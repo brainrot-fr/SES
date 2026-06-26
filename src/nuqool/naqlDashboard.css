@@ -49,6 +49,7 @@
 
 .naql-nav__btn:hover:not(:disabled) {
   filter: brightness(1.12);
+  box-shadow: 0px 5px 5px var(--shadow);
 }
 
 .naql-nav__btn:disabled {
@@ -64,4 +65,6 @@
 .bismillah {
   display: flex;
   justify-content: center;
+  align-items: center;
+  font-family: 'Sora', 'QPC V4 Tajweed';
 }

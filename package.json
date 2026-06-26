@@ -12,6 +12,9 @@
   "dependencies": {
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
+    "@fontsource/readex-pro": "^5.2.11",
+    "@fontsource/sora": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

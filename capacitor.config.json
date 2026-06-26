@@ -1,0 +1,11 @@
+{
+  "appId": "com.example.ses",
+  "appName": "ses",
+  "webDir": "dist",
+  "android": {
+    "keystorePath": "upload-keystore.jks",
+    "keystorePassword": "one plus 8",
+    "keystoreAlias": "upload",
+    "keystoreKeyPassword": "one plus 8"
+  }
+}

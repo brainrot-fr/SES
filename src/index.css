@@ -1,3 +1,14 @@
+@import '@fontsource/readex-pro/400.css';
+@import '@fontsource/readex-pro/600.css';
+@import '@fontsource/space-grotesk/400.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/sora/400.css';
+@import '@fontsource/sora/600.css';
+@font-face {
+  font-family: 'QPC V4 Tajweed';
+  src: url('./assets/fonts/QPC-V4-Tajweed.ttf') format('truetype');
+}
+
 /* LIGHT */
 :root {
   --bg: #FBF7F0;
@@ -5,8 +16,8 @@
   --text-small: #3D3D00;
   --muted: #616156;
 
-  --panel: #FFE4C4;
-  --panel-2: #FFF1DF;
+  --panel: #ffead0;
+  --panel-2: #faf5ee;
 
   --border: #7A6A3A;
 
@@ -22,18 +33,18 @@
 
 /* DARK */
 html[data-theme="dark"] {
-  --bg: #121010;
-  --text-large: #F4B8B8;
-  --text-small: #E9E4B8;
+  --bg: #18130F;
+  --text-large: #f5e982;
+  --text-small: #e9e4b8;
   --muted: #A39F8A;
 
-  --panel: #2A1F18;
-  --panel-2: #231A14;
+  --panel: #2E2117;
+  --panel-2: #18110c;
 
-  --border: #6F5E44;
+  --border: #5C4A30;
 
-  --primary: #D18B8B;
-  --primary-2: #F0A3A3;
+  --primary: #e8d5d5;
+  --primary-2: #faeaea;
 
   --shadow: rgba(0, 0, 0, 0.55);
   --ring: rgba(240, 163, 163, 0.28);
@@ -46,7 +57,7 @@ html[data-theme="dark"] {
 *::before,
 *::after {
   box-sizing: border-box;
-  font-family: 'Readex Pro', 'Google Sans Flex', 'Space Grotesk', sans-serif;
+  font-family: 'Sora', 'Readex Pro', 'Google Sans Flex', 'Space Grotesk', sans-serif;
 }
 
 body {

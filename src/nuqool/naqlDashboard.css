@@ -1,0 +1,67 @@
+.naql-container {
+  padding: 1rem;
+  display: flexbox;
+  justify-content: center;
+}
+
+.naql-title {
+  margin: 2rem;
+  color: var(--text-large);
+}
+
+.naql-content p {
+  margin: 0 2rem 1.5rem;
+  color: var(--text-small);
+  line-height: 1.7;
+}
+
+.naql-content summary {
+  margin: 1rem 2rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.naql-content details {
+  margin: 0 2rem;
+}
+
+/* ── Navigation ── */
+.naql-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  margin-top: 0.5rem;
+}
+
+.naql-nav__btn {
+  padding: 0.5rem 1.25rem;
+  background: var(--primary);
+  color: var(--panel);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: filter 150ms ease;
+
+}
+
+.naql-nav__btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.naql-nav__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.naql-nav__counter {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.bismillah {
+  display: flex;
+  justify-content: center;
+}

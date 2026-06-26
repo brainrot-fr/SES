@@ -1,0 +1,118 @@
+/* ColorTester.css */
+.tester-wrap{
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-small);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.tester-head h1{ margin:0 0 8px; color: var(--text-large); }
+.tester-head p{ margin:0 0 20px; color: var(--muted); }
+
+.group{
+  margin: 18px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  padding: 16px;
+  background: var(--panel-2);
+}
+
+.group h2{
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: var(--text-large);
+}
+
+.grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.color-block{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.color-swatch{
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.12);
+}
+
+.color-meta{ display:flex; flex-direction: column; gap: 4px; }
+.color-label{ font-weight: 700; color: var(--text-large); font-size: 13px; }
+.color-value{ font-size: 12px; color: var(--muted); }
+
+.demo{
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.demo h2{ margin:0 0 14px; color: var(--text-large); }
+
+.demo-row{ display:flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.demo-btn{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--primary);
+  color: var(--panel);
+  cursor:pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+
+.demo-btn:hover{ filter: brightness(1.05); }
+
+.demo-btn-danger{
+  background: var(--danger);
+}
+
+.demo-input{
+  width: min(360px, 100%);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-small);
+  outline: none;
+}
+
+.demo-input:focus{
+  box-shadow: 0 0 0 4px var(--ring);
+  border-color: var(--primary-2);
+}
+
+.demo-cards{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 10px 0 12px;
+}
+
+.demo-card{
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.demo-card-2{
+  background: var(--panel-2);
+}
+
+.demo-muted{
+  margin:0;
+  color: var(--muted);
+}

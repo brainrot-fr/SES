@@ -1,3 +1,4 @@
+/* src/sidebar/sidebar.css */
 .sidebar {
   position: fixed;
   top: 0;
@@ -110,4 +111,21 @@
 
 .sidebar__theme-btn:hover {
   background: var(--panel-2);
+}
+
+.sidebar__theme-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Test notification button (native builds only) ── */
+.sidebar__test-btn {
+  margin-top: 0.5rem;
+}
+
+.sidebar__test-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
 }

@@ -6,23 +6,32 @@ import { nuqoolObject } from '../nuqool/nuqool.jsx';
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
-const DAYS_AHEAD = 90;
+const DAYS_AHEAD = 14;
 
 const TIMES_OF_DAY = [
   { hour: 8, minute: 0 },
-  { hour: 13, minute: 47 },
-  { hour: 13, minute: 48 },
-  { hour: 13, minute: 49 },
-  { hour: 13, minute: 50 },
-  { hour: 13, minute: 51 },
+  { hour: 13, minute: 30 },
+  { hour: 20, minute: 0 },
 ];
 
-const PREVIEW_LENGTH = 100; // collapsed one-liner
-const FULL_LENGTH = 800;    // expanded "big text" — safety cap, not a real limit for your content
+const PREVIEW_LENGTH = 100;
+const FULL_LENGTH = 800;
+
+// React's renderToStaticMarkup only ever escapes these five characters in
+// text content — decode them back so "Ma'ud" doesn't show up as "Ma&#x27;ud".
+function decodeReactEscapedHtml(str) {
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, '&');
+}
 
 function jsxToPlainText(node, maxLength) {
   const html = renderToStaticMarkup(node);
-  const text = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const withoutTags = html.replace(/<[^>]*>/g, ' ');
+  const text = decodeReactEscapedHtml(withoutTags).replace(/\s+/g, ' ').trim();
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}…` : text;
 }
 
@@ -47,44 +56,64 @@ async function cancelPendingNaqlNotifications() {
 export async function scheduleDailyNaqlNotifications() {
   if (!Capacitor.isNativePlatform()) return;
 
-  let perm = await LocalNotifications.checkPermissions();
-  if (perm.display !== 'granted') {
-    perm = await LocalNotifications.requestPermissions();
-    if (perm.display !== 'granted') return;
-  }
+  try {
+    let perm = await LocalNotifications.checkPermissions();
+    if (perm.display !== 'granted') {
+      perm = await LocalNotifications.requestPermissions();
+      if (perm.display !== 'granted') {
+        console.warn('[naqlNotifications] permission denied, nothing scheduled');
+        return;
+      }
+    }
 
-  await cancelPendingNaqlNotifications();
+    await cancelPendingNaqlNotifications();
 
-  const notifications = [];
-  for (let day = 0; day < DAYS_AHEAD; day++) {
-    TIMES_OF_DAY.forEach((time, slot) => {
-      const target = new Date();
-      target.setDate(target.getDate() + day);
-      target.setHours(time.hour, time.minute, 0, 0);
-      if (target.getTime() <= Date.now()) return;
+    const notifications = [];
+    for (let day = 0; day < DAYS_AHEAD; day++) {
+      TIMES_OF_DAY.forEach((time, slot) => {
+        const target = new Date();
+        target.setDate(target.getDate() + day);
+        target.setHours(time.hour, time.minute, 0, 0);
+        if (target.getTime() <= Date.now()) return;
 
-      const naqlNumber = pickRandomNaql();
-      notifications.push({
-        id: ID_BASE + day * TIMES_OF_DAY.length + slot,
-        title: `Naql ${naqlNumber}`,
-        body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-        largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-        schedule: { at: target, allowWhileIdle: true },
-        extra: { naqlNumber },
+        const naqlNumber = pickRandomNaql();
+        notifications.push({
+          id: ID_BASE + day * TIMES_OF_DAY.length + slot,
+          title: `Naql ${naqlNumber}`,
+          body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
+          largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+          schedule: { at: target, allowWhileIdle: true },
+          extra: { naqlNumber },
+        });
       });
-    });
-  }
+    }
 
-  if (notifications.length) {
-    await LocalNotifications.schedule({ notifications });
+    if (notifications.length) {
+      const result = await LocalNotifications.schedule({ notifications });
+      console.log('[naqlNotifications] scheduled', result.notifications.length, 'notifications');
+    }
+  } catch (err) {
+    console.error('[naqlNotifications] scheduling failed', err);
   }
 }
 
-// Calls onOpenNaql(naqlNumber) whenever the user taps one of our
-// notifications — including the one that launched the app from a fully
-// killed state, since Capacitor replays the triggering event to the first
-// listener registered after launch. Register this as early as possible
-// (top-level App effect), not deep inside some lazily-mounted page.
+// Fire-and-forget test helper — no allowWhileIdle, no 9-minute throttle,
+// safe to call repeatedly seconds apart while you're iterating.
+export async function scheduleTestNotification(secondsFromNow = 10) {
+  if (!Capacitor.isNativePlatform()) return;
+  const naqlNumber = pickRandomNaql();
+  await LocalNotifications.schedule({
+    notifications: [{
+      id: 1,
+      title: `Naql ${naqlNumber}`,
+      body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
+      largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+      schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
+      extra: { naqlNumber },
+    }],
+  });
+}
+
 export function onNaqlNotificationTapped(onOpenNaql) {
   if (!Capacitor.isNativePlatform()) return () => {};
 

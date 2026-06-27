@@ -1,7 +1,25 @@
-import React from "react";
+// src/sidebar/sidebar.jsx
+import React, { useState } from "react";
 import "./sidebar.css";
+import { Capacitor } from '@capacitor/core';
+import { scheduleTestNotification } from '../notifications/naqlNotifications';
 
 export default function Sidebar({ items, isOpen, onClose, darkMode, onThemeToggle, onNavigate, activePage }) {
+  const [testStatus, setTestStatus] = useState('');
+
+  const handleTestNotification = async () => {
+    setTestStatus('Scheduling…');
+    try {
+      await scheduleTestNotification(10);
+      setTestStatus('Sent! Check in ~10s');
+    } catch (err) {
+      console.error('[Sidebar] test notification failed', err);
+      setTestStatus('Failed — see console');
+    } finally {
+      setTimeout(() => setTestStatus(''), 4000);
+    }
+  };
+
   return (
     <>
       {isOpen && <div className="backdrop" onClick={onClose} />}
@@ -18,7 +36,7 @@ export default function Sidebar({ items, isOpen, onClose, darkMode, onThemeToggl
         {/* ── Nav links ── */}
         <nav className="sidebar__nav">
           {items.map((it) => (
-            <a
+            
               key={it.id}
               href="#"
               className={`sidebar__link${activePage === it.id ? ' sidebar__link--active' : ''}`}
@@ -29,7 +47,7 @@ export default function Sidebar({ items, isOpen, onClose, darkMode, onThemeToggl
           ))}
         </nav>
 
-        {/* ── Footer: theme toggle ── */}
+        {/* ── Footer: theme toggle + (native-only) test notification ── */}
         <div className="sidebar__footer">
           <button className="sidebar__theme-btn" onClick={onThemeToggle}>
             <span>
@@ -40,6 +58,20 @@ export default function Sidebar({ items, isOpen, onClose, darkMode, onThemeToggl
             </span>
             {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           </button>
+
+          {Capacitor.isNativePlatform() && (
+            <>
+              <button
+                className="sidebar__theme-btn sidebar__test-btn"
+                onClick={handleTestNotification}
+                disabled={testStatus === 'Scheduling…'}
+              >
+                <span>🔔</span>
+                Send Test Notification
+              </button>
+              {testStatus && <p className="sidebar__test-status">{testStatus}</p>}
+            </>
+          )}
         </div>
       </aside>
     </>

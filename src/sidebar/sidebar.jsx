@@ -36,7 +36,7 @@ export default function Sidebar({ items, isOpen, onClose, darkMode, onThemeToggl
         {/* ── Nav links ── */}
         <nav className="sidebar__nav">
           {items.map((it) => (
-            
+            <a
               key={it.id}
               href="#"
               className={`sidebar__link${activePage === it.id ? ' sidebar__link--active' : ''}`}

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './sidebar/sidebar';
 import NaqlDashboard from './nuqool/naqlDashboard';
+import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped } from './notifications/naqlNotifications';
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('nuqool');
+  const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
 
   // Fixed: was === 'light' before (inverted), now correctly reads 'dark'
   const [darkMode, setDarkMode] = useState(
@@ -16,6 +18,15 @@ export default function App() {
     document.documentElement.dataset.theme = darkMode ? 'dark' : '';
     localStorage.setItem('ses-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    scheduleDailyNaqlNotifications();
+    const cleanup = onNaqlNotificationTapped((naqlNumber) => {
+      setCurrentPage('nuqool');
+      setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+    });
+    return cleanup;
+  }, []);
 
   const toggleTheme = () => setDarkMode(d => !d);
 
@@ -78,5 +89,4 @@ export default function App() {
       </main>
     </div>
   );
-  window.electronAPI.notify("TITLE", "BODY")
 }

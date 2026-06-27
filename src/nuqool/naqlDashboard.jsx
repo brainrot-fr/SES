@@ -6,7 +6,7 @@ import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 const TOTAL = Object.keys(nuqoolObject).length;
 const STORAGE_KEY = 'ses-current-naql';
 
-export default function NaqlDashboard() {
+export default function NaqlDashboard({ openNaqlRequest }) {
   const [currentNaql, setCurrentNaql] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     const n = parseInt(saved, 10);
@@ -22,6 +22,13 @@ export default function NaqlDashboard() {
   }, [currentNaql]);
 
   const goTo = (n) => setCurrentNaql(Math.max(1, Math.min(TOTAL, n)));
+
+    // Jump to whichever naql was tapped from a notification.
+    useEffect(() => {
+      if (openNaqlRequest?.number) {
+        goTo(openNaqlRequest.number);
+      }
+    }, [openNaqlRequest]);
 
   const commitInput = () => {
     const n = parseInt(inputVal, 10);

@@ -15,6 +15,7 @@
   "dependencies": {
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
+    "@capacitor/local-notifications": "^8.2.0",
     "@fontsource/readex-pro": "^5.2.11",
     "@fontsource/sora": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
@@ -35,10 +36,21 @@
   "build": {
     "appId": "com.example.ses",
     "productName": "Nuqool e Imam Mahdi",
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "dist-electron/**/*"],
-    "mac": { "target": "dmg" },
-    "win": { "target": "nsis" },
-    "linux": { "target": "AppImage" }
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }

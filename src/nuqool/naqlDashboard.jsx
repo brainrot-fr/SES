@@ -3,32 +3,54 @@ import './naqlDashboard.css';
 import { nuqoolObject } from './nuqool.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 
+// ═════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═════════════════════════════════════════════════════════════════════════════
+
 const TOTAL = Object.keys(nuqoolObject).length;
 const STORAGE_KEY = 'ses-current-naql';
 
+// ═════════════════════════════════════════════════════════════════════════════
+// COMPONENT
+// ═════════════════════════════════════════════════════════════════════════════
+
 export default function NaqlDashboard({ openNaqlRequest }) {
+  // ───────────────────────────────────────────────────────────────────────────
+  // STATE
+  // ───────────────────────────────────────────────────────────────────────────
+
   const [currentNaql, setCurrentNaql] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     const n = parseInt(saved, 10);
-    return (!isNaN(n) && n >= 1 && n <= TOTAL) ? n : 1;
+    return !isNaN(n) && n >= 1 && n <= TOTAL ? n : 1;
   });
+
   const [inputVal, setInputVal] = useState(String(currentNaql));
   const topRef = useRef(null);
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // EFFECTS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // Sync currentNaql to localStorage and scroll to top
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, String(currentNaql));
     setInputVal(String(currentNaql));
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentNaql]);
 
-  const goTo = (n) => setCurrentNaql(Math.max(1, Math.min(TOTAL, n)));
+  // Navigate to naql when notification is tapped
+  useEffect(() => {
+    if (openNaqlRequest?.number) {
+      goTo(openNaqlRequest.number);
+    }
+  }, [openNaqlRequest]);
 
-    // Jump to whichever naql was tapped from a notification.
-    useEffect(() => {
-      if (openNaqlRequest?.number) {
-        goTo(openNaqlRequest.number);
-      }
-    }, [openNaqlRequest]);
+  // ───────────────────────────────────────────────────────────────────────────
+  // HANDLERS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const goTo = (n) => setCurrentNaql(Math.max(1, Math.min(TOTAL, n)));
 
   const commitInput = () => {
     const n = parseInt(inputVal, 10);

@@ -1,18 +1,31 @@
-import React from 'react';
-import './nuqool.css'
+/**
+ * Naql Content Data and Constants
+ * Contains all naql text content and Islamic reference abbreviations
+ */
 
-export const KHUDA_T =   "Khuda e Ta'ala";
-export const R_SAWS  =   "Rasool Allah S.A.W.S";
-export const Q       =   "Qur'an"
-export const MAS     =   "Mahdi e Ma'ud A.S";
-export const HMAS    =   "Hazrat Mahdi A.S"
-export const AAS     =   "AanHazrat A.S"
-export const HBM     =   "Hazrat Bandagi Miyan";
-export const BM      =   "Bandagi Miyan";
+import React from 'react';
+import './nuqool.css';
+
+// ═════════════════════════════════════════════════════════════════════════════
+// REFERENCES (ABBREVIATIONS)
+// ═════════════════════════════════════════════════════════════════════════════
+
+export const KHUDA_T = "Khuda e Ta'ala";
+export const R_SAWS = "Rasool Allah S.A.W.S";
+export const Q = "Qur'an";
+export const MAS = "Mahdi e Ma'ud A.S";
+export const HMAS = "Hazrat Mahdi A.S";
+export const AAS = "AanHazrat A.S";
+export const HBM = "Hazrat Bandagi Miyan";
+export const BM = "Bandagi Miyan";
 
 // Books
-export const MUW     =   "Ma'arij-ul-Wilayat"
-export const SUW     =   "Shawahid-ul-Wilayat"
+export const MUW = "Ma'arij-ul-Wilayat";
+export const SUW = "Shawahid-ul-Wilayat";
+
+// ═════════════════════════════════════════════════════════════════════════════
+// NAQL CONTENT
+// ═════════════════════════════════════════════════════════════════════════════
 
 export const nuqoolObject = {
   1: (

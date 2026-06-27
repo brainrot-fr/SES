@@ -1,6 +1,5 @@
 .env
 android/
-node_modules/
 dist/
 .npm
 *.log

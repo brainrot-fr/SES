@@ -20,7 +20,9 @@ export default function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    scheduleDailyNaqlNotifications();
+    (async () => {
+      await scheduleDailyNaqlNotifications();
+    })();
     const cleanup = onNaqlNotificationTapped((naqlNumber) => {
       setCurrentPage('nuqool');
       setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
@@ -80,7 +82,7 @@ export default function App() {
       />
 
       <main className="app-main">
-        {currentPage === 'nuqool' && <NaqlDashboard />}
+        {currentPage === 'nuqool' && <NaqlDashboard openNaqlRequest={openNaqlRequest} />}
         {currentPage === 'about' && (
           <div style={{ padding: '2rem', color: 'var(--text-small)' }}>
             About page coming soon.

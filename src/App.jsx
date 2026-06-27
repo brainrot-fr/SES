@@ -4,7 +4,7 @@ import Sidebar from './sidebar/sidebar';
 import NaqlDashboard from './nuqool/naqlDashboard';
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(1);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Persist theme across refreshes
   const [darkMode, setDarkMode] = useState(

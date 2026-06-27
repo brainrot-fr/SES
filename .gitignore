@@ -5,3 +5,4 @@ dist/
 .npm
 *.log
 build/
+ocr_output.txt

@@ -1,0 +1,8 @@
+.quran{
+    display: flexbox;
+    justify-content: center;
+    justify-self: center;
+    align-items: center;
+    align-content: center;
+    font-family: 'QPC V4 Tajweed';
+}

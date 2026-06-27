@@ -5,3 +5,5 @@ dist/
 *.log
 build/
 ocr_output.txt
+dist-electron/
+release/

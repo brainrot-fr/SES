@@ -220,7 +220,11 @@ export const nuqoolObject = {
       Naiz {HMAS} ne apni dono ungaliyan ek doosre mein milayein aure farmaya ke Muhammad aur khuda aise wasl ho gaye. Chunanche Haq Subhanahu wa Ta'ala ne farmaya ke 
       <strong><div className="quran">ثُمَّ دَنَا فَتَدَلَّىٰ ٨ فَكَانَ قَابَ قَوْسَيْنِ أَوْ أَدْنَىٰ ٩</div></strong>
       <cite> Surah najm Ayat 8,9</cite>
-      <br /><br /><br />
+    </p>
+  ),
+  19: (
+    <p>
+      
     </p>
   )
   // Add more nuqool entries here as: 2: (<p>...</p>)

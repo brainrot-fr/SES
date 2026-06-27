@@ -78,4 +78,5 @@ export default function App() {
       </main>
     </div>
   );
+  window.electronAPI.notify("TITLE", "BODY")
 }

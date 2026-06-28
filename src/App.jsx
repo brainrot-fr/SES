@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './sidebar/sidebar';
-import NaqlDashboard from './nuqool/naqlDashboard';
+import NaqlDashboard from './nuqool/en/naqlDashboard';
 import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped } from './notifications/naqlNotifications';
 
 const THEME_STORAGE_KEY = 'ses-theme';

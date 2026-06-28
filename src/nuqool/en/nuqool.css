@@ -1,0 +1,24 @@
+.quran {
+    font-family: 'QPCHafs';
+    direction: rtl;
+    font-size: 1.8rem;
+    line-height: 2;
+    margin: 0.75rem 0;
+    text-align: center;
+    background-color: var(--shadow);
+    color: var(--large-text);
+    border-radius: 10px;
+    padding: 1rem;
+}
+.hadees {
+    font-family: 'QPCHafs';
+    direction: rtl;
+    font-size: 1.4rem;
+    line-height: 2;
+    margin: 0.75rem 0;
+    text-align: center;
+    background-color: var(--shadow);
+    color: var(--large-text);
+    border-radius: 10px;
+    padding: 0.5rem;
+}

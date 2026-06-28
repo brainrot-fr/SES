@@ -6,7 +6,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { nuqoolObject } from '../nuqool/nuqool.jsx';
+import { nuqoolObject } from '../nuqool/en/nuqool.jsx';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -14,7 +14,7 @@ import { nuqoolObject } from '../nuqool/nuqool.jsx';
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
-const DAYS_AHEAD = 14;
+const DAYS_AHEAD = 90;
 const BATCH_SIZE = 50;
 
 const TIMES_OF_DAY = [

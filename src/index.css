@@ -8,6 +8,10 @@
   font-family: 'QPC V4 Tajweed';
   src: url('./assets/fonts/QPC-V4-Tajweed.ttf') format('truetype');
 }
+@font-face {
+  font-family: 'QPCHafs';
+  src: url('./assets/fonts/QPC\ Hafs\ \(Official\ Uthmani\ script\ font\)\ -\ TTF.ttf') format('truetype');
+}
 
 /* LIGHT */
 :root {
@@ -46,7 +50,7 @@ html[data-theme="dark"] {
   --primary: #e8d5d5;
   --primary-2: #faeaea;
 
-  --shadow: rgba(0, 0, 0, 0.55);
+  --shadow: #0000008c;
   --ring: rgba(240, 163, 163, 0.28);
 
   --danger: #FF5A5A;

@@ -281,7 +281,7 @@ export const nuqoolObject = {
   ),
   23: (
     <p>
-      Manqool hai ke {HMAS} ek roz hadees A;-Wilayatu... ...ila akhirihi (Wilayat afzal hai Nabuwwat se) ka bayan farma rahe the ek taalib-e-ilm ne kaha ke yahan Nabi S.A.W.S ki Nabuwwat par Nabi S.A.W.S ki Wilayat ka fazl maloon hota hai farmaya ke main kab kehta hoon ke meri wilayat Nabi S.A.W.S par fazeelat rakhti hai ya bande ko Nabi SAWS par fazl hai. Ya kisi wali ko kisi Nabi par fazeelat hai lekin banda bhi waisa hi kehta hai ke Nabi SAWS ki Nabuwwat par Nabi ki Wilayat ko fazl hai.
+      Manqool hai ke {HMAS} ek roz hadees AlWilayatu... ...ila akhirihi (Wilayat afzal hai Nabuwwat se) ka bayan farma rahe the ek taalib-e-ilm ne kaha ke yahan Nabi S.A.W.S ki Nabuwwat par Nabi S.A.W.S ki Wilayat ka fazl maloon hota hai farmaya ke main kab kehta hoon ke meri wilayat Nabi S.A.W.S par fazeelat rakhti hai ya bande ko Nabi SAWS par fazl hai. Ya kisi wali ko kisi Nabi par fazeelat hai lekin banda bhi waisa hi kehta hai ke Nabi SAWS ki Nabuwwat par Nabi ki Wilayat ko fazl hai.
       <br /><br /><br />
       <cite>
         {TUK} pgno. 6

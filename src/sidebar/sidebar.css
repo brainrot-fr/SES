@@ -1,4 +1,3 @@
-/* src/sidebar/sidebar.css */
 .sidebar {
   position: fixed;
   top: 0;
@@ -65,13 +64,24 @@
   padding: 0.75rem;
 }
 
+/* Reset <button> so it looks like a link */
 .sidebar__link {
+  /* Button reset */
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+
+  /* Visual */
   color: var(--text-small);
   text-decoration: none;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   border-left: 3px solid transparent;
-  transition: background 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .sidebar__link:hover {
@@ -106,26 +116,10 @@
   color: var(--text-small);
   cursor: pointer;
   font-size: 0.9rem;
+  font-family: inherit;
   transition: background 150ms;
 }
 
 .sidebar__theme-btn:hover {
   background: var(--panel-2);
-}
-
-.sidebar__theme-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Test notification button (native builds only) ── */
-.sidebar__test-btn {
-  margin-top: 0.5rem;
-}
-
-.sidebar__test-status {
-  margin: 0.5rem 0 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-  text-align: center;
 }

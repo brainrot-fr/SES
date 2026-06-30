@@ -6,7 +6,7 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { nuqoolObject } from '../nuqool/en/nuqool.jsx';
+import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // CONSTANTS

@@ -123,3 +123,24 @@
 .sidebar__theme-btn:hover {
   background: var(--panel-2);
 }
+
+.sidebar__lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: background 150ms;
+}
+
+.sidebar__lang-btn:hover {
+  background: var(--panel-2);
+}

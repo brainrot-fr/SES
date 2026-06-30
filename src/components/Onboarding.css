@@ -1,0 +1,95 @@
+.ob-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 1.5rem;
+}
+
+.ob-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+}
+
+.ob-logo {
+  margin-bottom: 0.4rem;
+}
+
+.ob-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-large);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ob-title-ur {
+  font-family: 'Readex Pro', sans-serif;
+  font-size: 1rem;
+  color: var(--muted);
+  margin: 0;
+  direction: rtl;
+}
+
+.ob-prompt {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+}
+
+.ob-options {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.ob-option {
+  flex: 1;
+  padding: 0.85rem 1rem;
+  background: var(--panel-2);
+  color: var(--text-small);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms, background 150ms;
+}
+
+.ob-option--rtl {
+  font-family: 'Readex Pro', sans-serif;
+  direction: rtl;
+}
+
+.ob-option--active {
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+  background: var(--panel);
+}
+
+.ob-continue {
+  width: 100%;
+  padding: 0.9rem;
+  margin-top: 0.25rem;
+  background: var(--primary);
+  color: var(--panel);
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 150ms;
+}
+
+.ob-continue:hover {
+  filter: brightness(1.1);
+}

@@ -1,81 +1,68 @@
 import { useState, useEffect } from 'react';
-import { timelineEvents, PERIOD_LABELS } from './timelineData';
+import { timelineEvents } from './timelineData';
+import { useLang } from '../../context/LanguageContext';
 import './timeline.css';
 
 export default function Timeline() {
+  const { t } = useLang();
   const [selected, setSelected] = useState(null);
 
-  // Lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = selected ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [selected]);
 
-  const closeModal = () => setSelected(null);
+  const close = () => setSelected(null);
 
   return (
     <div className="tl-container">
       <div className="tl-hero">
-        <h1 className="tl-hero__title">Timeline</h1>
-        <p className="tl-hero__name">Imam Mahdi A.S</p>
-        <p className="tl-hero__span">847 AH — 910 AH</p>
+        <p className="tl-hero__name">{t('tlName')}</p>
+        <p className="tl-hero__span">{t('tlSpan')}</p>
       </div>
 
-      {/* ── Vertical track ── */}
       <div className="tl-track">
-        {timelineEvents.map(ev => (
+        {timelineEvents.map((ev, i) => (
           <button
             key={ev.id}
-            className={`tl-event tl-event--${ev.period}`}
+            className="tl-event"
             onClick={() => setSelected(ev)}
             aria-label={`View details: ${ev.title}`}
           >
-            {/* Dot on the line */}
             <span className="tl-dot" aria-hidden="true" />
-
-            {/* Card */}
+            {/* Connector line between dots — hide on last item */}
+            {i < timelineEvents.length - 1 && (
+              <span className="tl-connector" aria-hidden="true" />
+            )}
             <div className="tl-card">
-              <span className="tl-card__badge">
-                {PERIOD_LABELS[ev.period] ?? ev.period}
-              </span>
               <span className="tl-card__year">{ev.year}</span>
               <h3 className="tl-card__title">{ev.title}</h3>
               <p className="tl-card__summary">{ev.summary}</p>
-              <span className="tl-card__cta" aria-hidden="true">Details →</span>
+              <span className="tl-card__cta">{t('tlDetails')}</span>
             </div>
           </button>
         ))}
       </div>
 
-      {/* ── Modal bottom-sheet ── */}
       {selected && (
         <div
           className="tl-overlay"
-          onClick={closeModal}
+          onClick={close}
           role="dialog"
           aria-modal="true"
           aria-labelledby="tl-modal-title"
         >
-          <div
-            className={`tl-modal tl-event--${selected.period}`}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Drag handle — visual hint */}
+          <div className="tl-modal" onClick={e => e.stopPropagation()}>
             <div className="tl-modal__handle" aria-hidden="true" />
 
             <div className="tl-modal__header">
-              <div>
-                <span className="tl-card__badge tl-modal__badge">
-                  {PERIOD_LABELS[selected.period] ?? selected.period}
-                </span>
-                <p className="tl-modal__year">{selected.year}</p>
-              </div>
+              <p className="tl-modal__year">{selected.year}</p>
               <button
                 className="tl-modal__close"
-                onClick={closeModal}
-                aria-label="Close details"
+                onClick={close}
+                aria-label={t('tlCloseLabel')}
               >
-                ✕
+                {t('tlClose')}
               </button>
             </div>
 

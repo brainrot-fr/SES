@@ -1,23 +1,11 @@
 import React from 'react';
 
-// ── Period tokens — drives dot colour, badge colour, and modal accent ──────────
-// Extend by adding a new value here AND a CSS rule in timeline.css
-// 'birth' | 'youth' | 'declaration' | 'travels' | 'passing'
-
-export const PERIOD_LABELS = {
-  birth:       'Wiladat',
-  youth:       'Early Life',
-  declaration: 'I\'laan',
-  travels:     'Asfaar',
-  passing:     'Wisal',
-};
 
 // ── Add or edit events freely — Timeline renders them in array order ──────────
 export const timelineEvents = [
   {
     id: 1,
     year: '847 AH · 1443 CE',
-    period: 'birth',
     title: 'Wiladat — Birth in Jaunpur',
     summary: 'Born into a noble Sayyid household in Jaunpur, India.',
     detail: (
@@ -41,7 +29,6 @@ export const timelineEvents = [
   {
     id: 2,
     year: '847–862 AH',
-    period: 'youth',
     title: 'Childhood & Early Upbringing',
     summary: 'Raised in Jaunpur; extraordinary qualities noted from the earliest years.',
     detail: (
@@ -62,7 +49,6 @@ export const timelineEvents = [
   {
     id: 3,
     year: '862–880 AH',
-    period: 'youth',
     title: 'Spiritual Formation',
     summary: 'Years of intensive worship, reflection, and inner development.',
     detail: (
@@ -83,7 +69,6 @@ export const timelineEvents = [
   {
     id: 4,
     year: '901 AH · 1496 CE',
-    period: 'declaration',
     title: "I'laan-e-Mahdaviyat — Declaration in Mecca",
     summary: 'Publicly declared Mahdaviyat before scholars and pilgrims in the Holy City.',
     detail: (
@@ -110,7 +95,6 @@ export const timelineEvents = [
   {
     id: 5,
     year: '901–905 AH',
-    period: 'travels',
     title: 'Return Journey — Spreading the Message',
     summary: 'Traveled through major Indian cities; thousands accepted the call.',
     detail: (
@@ -131,7 +115,7 @@ export const timelineEvents = [
   {
     id: 6,
     year: '905–908 AH',
-    period: 'travels',
+
     title: 'Journeys through Gujarat & the Deccan',
     summary: 'Extended stays at major centres of learning; deep Nuqool-era teachings.',
     detail: (
@@ -156,7 +140,6 @@ export const timelineEvents = [
   {
     id: 7,
     year: '908–910 AH',
-    period: 'travels',
     title: 'Final Journey toward Khorasan',
     summary: 'Last major travel; companions received the deepest teachings.',
     detail: (
@@ -177,7 +160,6 @@ export const timelineEvents = [
   {
     id: 8,
     year: '910 AH · 1505 CE',
-    period: 'passing',
     title: 'Wisal — Departure from This World',
     summary: 'Passed away in Farah, Afghanistan. His legacy and lineage endure.',
     detail: (

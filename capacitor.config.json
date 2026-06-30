@@ -1,5 +1,6 @@
 {
   "appId": "com.example.ses",
   "appName": "ses",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": { "androidScheme": "https" }
 }

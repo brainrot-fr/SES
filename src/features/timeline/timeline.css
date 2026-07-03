@@ -1,0 +1,177 @@
+/* ═══════════════════════════════════════════════════════════
+   Timeline — MUI Lab structure, styled with the app's own tokens
+   All MUI-internal styling (dot, connector, dialog paper) lives in
+   sx in Timeline.jsx, not here — sx is guaranteed to win over MUI's
+   own component styles, whereas plain classes racing MUI's injected
+   styles is exactly what broke this the first time round.
+═══════════════════════════════════════════════════════════ */
+
+.tl-root {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+/* ── Hero ── */
+.tl-hero {
+  text-align: center;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tl-hero__name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-large);
+  margin: 0 0 0.35rem;
+}
+
+.tl-hero__span {
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+/* ── Card ── */
+.tl-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.tl-card:hover,
+.tl-card:focus-visible {
+  box-shadow: 0 4px 20px var(--shadow);
+  transform: translateX(3px);
+  border-left-color: var(--primary-2);
+}
+
+.tl-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tl-card__year {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+
+.tl-card__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-large);
+  line-height: 1.4;
+}
+
+.tl-card__summary {
+  margin: 0 0 0.55rem;
+  font-size: 0.8rem;
+  color: var(--text-small);
+  line-height: 1.6;
+}
+
+.tl-card__cta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+/* ── Dialog content (the Paper root itself is styled via sx in the JSX) ── */
+.tl-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.tl-dialog__year {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.tl-dialog__close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-small);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms, border-color 150ms, color 150ms;
+}
+
+.tl-dialog__close:hover {
+  background: var(--danger);
+  border-color: var(--primary);
+  color: var(--panel);
+}
+
+.tl-dialog__close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tl-dialog__title {
+  margin: 0 1.25rem 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-large);
+}
+
+.tl-dialog__body {
+  padding: 0 1.25rem 1.75rem;
+}
+
+.tl-dialog__body p {
+  color: var(--text-small);
+  line-height: 1.8;
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+}
+
+.tl-dialog__body p:last-child {
+  margin-bottom: 0;
+}
+
+.tl-dialog__body strong {
+  color: var(--text-large);
+}
+
+.tl-dialog__body em {
+  color: var(--primary);
+  font-style: normal;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-card {
+    transition: none;
+  }
+}

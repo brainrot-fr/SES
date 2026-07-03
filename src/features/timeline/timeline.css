@@ -69,15 +69,11 @@
 /* ── Connector line between dots ── */
 .tl-connector {
   position: absolute;
-  left: -32px;           /* centre of dot lane */
-  top: 30px;             /* just below this dot */
-  bottom: -1.5rem;       /* reach down to next event's top */
+  left: -32px;
+  top: 30px;
+  bottom: -1.5rem;
   width: 2px;
-  background: linear-gradient(
-    to bottom,
-    var(--primary) 0%,
-    color-mix(in srgb, var(--primary) 15%, transparent) 100%
-  );
+ background: var(--primary);
   z-index: 1;
 }
 

@@ -18,6 +18,7 @@ const DAYS_AHEAD = 90;
 const BATCH_SIZE = 50;
 
 const TIMES_OF_DAY = [
+  { hour: 6, minute: 31 },
   { hour: 8, minute: 0 },
   { hour: 13, minute: 30 },
   { hour: 20, minute: 0 },
@@ -25,6 +26,10 @@ const TIMES_OF_DAY = [
 
 const PREVIEW_LENGTH = 100;
 const FULL_LENGTH = 800;
+
+const CHANNEL_ID = 'naql-notifications';
+const CHANNEL_NAME = 'Nuqool reminders';
+const CHANNEL_DESC = 'Daily Naql reminders and alerts';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -58,11 +63,17 @@ function jsxToPlainText(node, maxLength) {
  */
 const naqlNumbers = Object.keys(nuqoolObject)
   .map(Number)
-  .filter((n) => jsxToPlainText(nuqoolObject[n], FULL_LENGTH).length > 0);
+  .filter((n) => jsxToPlainText(nuqoolObject[n], FULL_LENGTH).length > 0)
+  .sort((a, b) => a - b);
 
-/**
- * Pick a random naql number from available naql content
- */
+function getNaqlIndexForSchedule(day, slot) {
+  return (day * TIMES_OF_DAY.length + slot) % naqlNumbers.length;
+}
+
+function pickScheduledNaql(day, slot) {
+  return naqlNumbers[getNaqlIndexForSchedule(day, slot)];
+}
+
 function pickRandomNaql() {
   return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
 }
@@ -108,6 +119,7 @@ async function hasNotificationsForToday() {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     return pending.notifications.some((n) => {
+      if (n.id < ID_BASE || n.id >= ID_BASE + ID_RANGE) return false;
       const scheduled = new Date(n.schedule?.at || 0);
       return scheduled >= today && scheduled < tomorrow;
     });
@@ -130,10 +142,28 @@ export async function scheduleDailyNaqlNotifications() {
   try {
     console.log('[naqlNotifications] starting schedule check');
 
+    // Create notification channel on Android before scheduling
+    if (Capacitor.getPlatform() === 'android') {
+      try {
+        await LocalNotifications.createChannel({
+          id: CHANNEL_ID,
+          name: CHANNEL_NAME,
+          description: CHANNEL_DESC,
+          importance: 4,
+          visibility: 1,
+        });
+        console.log('[naqlNotifications] created/verified Android notification channel');
+      } catch (channelErr) {
+        console.warn('[naqlNotifications] failed to create Android channel', channelErr);
+      }
+    }
+
     // Check and request permissions
     let perm = await LocalNotifications.checkPermissions();
+    console.log('[naqlNotifications] current permissions', perm);
     if (perm.display !== 'granted') {
       perm = await LocalNotifications.requestPermissions();
+      console.log('[naqlNotifications] requested permissions', perm);
       if (perm.display !== 'granted') {
         console.warn('[naqlNotifications] permission denied, nothing scheduled');
         return;
@@ -159,7 +189,7 @@ export async function scheduleDailyNaqlNotifications() {
 
         if (target.getTime() <= Date.now()) return;
 
-        const naqlNumber = pickRandomNaql();
+        const naqlNumber = pickScheduledNaql(day, slot);
         notifications.push({
           id: ID_BASE + day * TIMES_OF_DAY.length + slot,
           title: `Naql ${naqlNumber}`,
@@ -167,6 +197,7 @@ export async function scheduleDailyNaqlNotifications() {
           largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
           schedule: { at: target, allowWhileIdle: true },
           extra: { naqlNumber },
+          channelId: CHANNEL_ID,
         });
       });
     }
@@ -217,19 +248,28 @@ async function handleScheduleError(err) {
 export async function scheduleTestNotification(secondsFromNow = 10) {
   if (!Capacitor.isNativePlatform()) return;
 
+  // Ensure permission is still active before scheduling a test notification
+  let perm = await LocalNotifications.checkPermissions();
+  if (perm.display !== 'granted') {
+    perm = await LocalNotifications.requestPermissions();
+    if (perm.display !== 'granted') {
+      throw new Error('Notification permission not granted');
+    }
+  }
+
   const naqlNumber = pickRandomNaql();
-  await LocalNotifications.schedule({
-    notifications: [
-      {
-        id: 1,
-        title: `Naql ${naqlNumber}`,
-        body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-        largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-        schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
-        extra: { naqlNumber },
-      },
-    ],
-  });
+  const notification = {
+    id: 1,
+    title: `Naql ${naqlNumber}`,
+    body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
+    largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+    schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
+    extra: { naqlNumber },
+    channelId: CHANNEL_ID,
+  };
+
+  console.log('[naqlNotifications] scheduling test notification', notification);
+  await LocalNotifications.schedule({ notifications: [notification] });
 }
 
 /**

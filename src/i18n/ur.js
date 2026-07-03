@@ -16,6 +16,10 @@ export default {
 
   // Sidebar
   menu: 'مینو',
+  testNotification: 'ٹیسٹ نوٹیفکیشن بھیجیں',
+
+  notificationScheduled: 'ٹیسٹ نوٹیفکیشن جلد موصول ہوگا۔',
+  notificationScheduleFailed: 'ٹیسٹ نوٹیفکیشن شیڈیول نہیں ہو سکا۔',
 
   // NaqlDashboard
   naql:     'نقل',

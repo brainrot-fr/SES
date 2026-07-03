@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { timelineEvents } from './timelineData';
 import { useLang } from '../../context/LanguageContext';
 import './timeline.css';
@@ -6,10 +6,23 @@ import './timeline.css';
 export default function Timeline() {
   const { t } = useLang();
   const [selected, setSelected] = useState(null);
+  const closeBtnRef = useRef(null);
 
   useEffect(() => {
     document.body.style.overflow = selected ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
+  }, [selected]);
+
+  // Escape closes the modal; focus moves to the close button on open
+  useEffect(() => {
+    if (!selected) return;
+    closeBtnRef.current?.focus();
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setSelected(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [selected]);
 
   const close = () => setSelected(null);

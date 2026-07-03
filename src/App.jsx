@@ -5,6 +5,7 @@ import NaqlDashboard from './features/nuqool/en/naqlDashboard';
 import Timeline from './features/timeline/Timeline';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
+import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped, scheduleTestNotification } from './notifications/naqlNotifications';
 
 // ── Icons ────────────────────────────────────────────────────
 const SunIcon = () => (
@@ -35,13 +36,30 @@ export default function App() {
   const [darkMode, setDarkMode]        = useState(
     () => localStorage.getItem('ses-theme') === 'dark'
   );
-  // Notification tap → open a specific naql
+  const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : '';
     localStorage.setItem('ses-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
+
+  useEffect(() => {
+    scheduleDailyNaqlNotifications();
+
+    const cleanup = onNaqlNotificationTapped((naqlNumber) => {
+      setCurrentPage('nuqool');
+      setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+    });
+
+    return cleanup;
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return undefined;
+    const timeout = window.setTimeout(() => setToastMessage(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
 
   // Gate the whole app behind language selection
   if (!lang) return <Onboarding />;
@@ -54,6 +72,16 @@ export default function App() {
   const pageTitles = {
     nuqool:   t('titleNuqool'),
     timeline: t('titleTimeline'),
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      await scheduleTestNotification(10);
+      setToastMessage(t('notificationScheduled'));
+    } catch (err) {
+      console.error('[App] test notification failed', err);
+      setToastMessage(t('notificationScheduleFailed'));
+    }
   };
 
   const renderPage = () => {
@@ -96,7 +124,14 @@ export default function App() {
         onThemeToggle={() => setDarkMode(d => !d)}
         activePage={currentPage}
         onNavigate={(id) => { setCurrentPage(id); setSidebarOpen(false); }}
+        onTestNotification={handleTestNotification}
       />
+
+      {toastMessage && (
+        <div className="app-toast" role="status" aria-live="polite">
+          {toastMessage}
+        </div>
+      )}
 
       <main className="app-main">
         {renderPage()}

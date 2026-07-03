@@ -14,7 +14,7 @@ const MoonIcon = () => (
 );
 
 export default function Sidebar({
-  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate,
+  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification,
 }) {
   const { t, resetLang } = useLang();
 
@@ -48,6 +48,9 @@ export default function Sidebar({
           </button>
           <button className="sidebar__lang-btn" onClick={resetLang}>
             🌐 {t('changeLang')}
+          </button>
+          <button className="sidebar__test-btn" onClick={onTestNotification}>
+            🔔 {t('testNotification')}
           </button>
         </div>
       </aside>

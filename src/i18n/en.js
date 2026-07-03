@@ -16,6 +16,11 @@ export default {
 
   // Sidebar
   menu: 'Menu',
+  testNotification: 'Send test notification',
+
+  // Notifications
+  notificationScheduled: 'Test notification scheduled! It should arrive shortly.',
+  notificationScheduleFailed: 'Unable to schedule test notification.',
 
   // NaqlDashboard
   naql:       'Naql',

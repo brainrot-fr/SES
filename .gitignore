@@ -4,6 +4,7 @@ dist/
 .npm
 *.log
 build/
-ocr_output.txt
 dist-electron/
 release/
+node_modules/
+electron/

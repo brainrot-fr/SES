@@ -43,3 +43,19 @@
   max-width: 800px;
   margin: 0 auto;
 }
+
+.app-toast {
+  position: fixed;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  background: var(--panel);
+  color: var(--text-normal);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  z-index: 1100;
+  min-width: 240px;
+  text-align: center;
+}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/sidebar';
 import NaqlDashboard from './features/nuqool/en/naqlDashboard';
-import Timeline from './features/timeline/Timeline';
+import Timeline from './features/timeline/timeline';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
 import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped, scheduleTestNotification } from './notifications/naqlNotifications';

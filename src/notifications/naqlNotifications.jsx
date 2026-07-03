@@ -14,14 +14,22 @@ import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
-const DAYS_AHEAD = 90;
+const DAYS_AHEAD = 10;
 const BATCH_SIZE = 50;
 
 const TIMES_OF_DAY = [
-  { hour: 6, minute: 31 },
-  { hour: 8, minute: 0 },
-  { hour: 13, minute: 30 },
-  { hour: 20, minute: 0 },
+  { hour: 5,  minute: 0   },
+  { hour: 6,  minute: 30  },
+  { hour: 8,  minute: 0   },
+  { hour: 9,  minute: 30  },
+  { hour: 11, minute: 0   },
+  { hour: 12, minute: 30  },
+  { hour: 14, minute: 0   },
+  { hour: 15, minute: 30  },
+  { hour: 17, minute: 0   },
+  { hour: 18, minute: 30  },
+  { hour: 20, minute: 0   },
+  { hour: 21, minute: 30  },
 ];
 
 const PREVIEW_LENGTH = 100;
@@ -31,9 +39,9 @@ const CHANNEL_ID = 'naql-notifications';
 const CHANNEL_NAME = 'Nuqool reminders';
 const CHANNEL_DESC = 'Daily Naql reminders and alerts';
 
-// ═════════════════════════════════════════════════════════════════════════════
+//
 // HELPERS
-// ═════════════════════════════════════════════════════════════════════════════
+//
 
 /**
  * Decodes HTML entities that React's renderToStaticMarkup escapes
@@ -78,9 +86,9 @@ function pickRandomNaql() {
   return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
+//
 // NOTIFICATION MANAGEMENT
-// ═════════════════════════════════════════════════════════════════════════════
+//
 
 /**
  * Cancel all pending naql notifications to prevent buildup

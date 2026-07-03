@@ -1,114 +1,74 @@
 /* ═══════════════════════════════════════════════════════════
-   Timeline — clean rebuild, no period colour system
+   Timeline — MUI Lab structure, styled with the app's own tokens
+   All MUI-internal styling (dot, connector, dialog paper) lives in
+   sx in Timeline.jsx, not here — sx is guaranteed to win over MUI's
+   own component styles, whereas plain classes racing MUI's injected
+   styles is exactly what broke this the first time round.
 ═══════════════════════════════════════════════════════════ */
 
-.tl-container {
-  padding: 0 0 120px;
+.tl-root {
   max-width: 640px;
   margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
 /* ── Hero ── */
 .tl-hero {
   text-align: center;
-  padding: 2rem 1rem 1.75rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 2rem;
 }
 
 .tl-hero__name {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-large);
   margin: 0 0 0.35rem;
 }
 
 .tl-hero__span {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   letter-spacing: 0.12em;
   margin: 0;
 }
 
-/* ── Track ── */
-.tl-track {
-  position: relative;
-  padding: 0 1rem 0 52px;
-}
-
-/* ── Single event ── */
-.tl-event {
-  position: relative;
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 0 0 0 0;
-  margin-bottom: 1.5rem;
-  cursor: pointer;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
-
-/* ── Dot ── */
-.tl-dot {
-  position: absolute;
-  left: -38px;
-  top: 16px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  border: 2.5px solid var(--bg);
-  box-shadow: 0 0 0 2px var(--primary);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-  z-index: 2;
-}
-
-/* ── Connector line between dots ── */
-.tl-connector {
-  /* position: absolute; */
-  left: -32px;
-  top: 30px;
-  bottom: -1.5rem;
-  width: 2px;
-  background: linear-gradient(
-    to bottom,
-    var(--primary) 0%,
-    var(--primary) 100%
-  );
-  z-index: 2;
-}
-
-.tl-event:hover .tl-dot,
-.tl-event:focus-visible .tl-dot {
-  transform: scale(1.4);
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 25%, transparent);
-}
-
 /* ── Card ── */
 .tl-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   background: var(--panel);
   border: 1px solid var(--border);
   border-left: 3px solid var(--primary);
   border-radius: 10px;
-  padding: 0.8rem 1rem;
-  transition: box-shadow 180ms ease, transform 180ms ease;
+  padding: 0.85rem 1rem;
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
-.tl-event:hover .tl-card,
-.tl-event:focus-visible .tl-card {
+.tl-card:hover,
+.tl-card:focus-visible {
   box-shadow: 0 4px 20px var(--shadow);
-  transform: translateX(4px);
+  transform: translateX(3px);
+  border-left-color: var(--primary-2);
+}
+
+.tl-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .tl-card__year {
   display: block;
   font-size: 0.7rem;
   color: var(--muted);
-  margin-bottom: 0.3rem;
   letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
 }
 
 .tl-card__title {
@@ -130,70 +90,26 @@
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--primary);
-  opacity: 0.75;
+  opacity: 0.8;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   Modal overlay + bottom-sheet
-═══════════════════════════════════════════════════════════ */
-
-.tl-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.52);
-  z-index: 2000;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: tl-fade-in 180ms ease;
-}
-
-@keyframes tl-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.tl-modal {
-  background: var(--panel);
-  border-radius: 20px 20px 0 0;
-  padding: 0 1.25rem 2.5rem;
-  width: 100%;
-  max-width: 640px;
-  max-height: 82vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  animation: tl-slide-up 260ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-@keyframes tl-slide-up {
-  from { transform: translateY(40px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-.tl-modal__handle {
-  width: 40px;
-  height: 4px;
-  background: var(--border);
-  border-radius: 99px;
-  margin: 10px auto 16px;
-}
-
-.tl-modal__header {
+/* ── Dialog content (the Paper root itself is styled via sx in the JSX) ── */
+.tl-dialog__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
-  padding-top: 2rem;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 0.75rem;
 }
 
-.tl-modal__year {
+.tl-dialog__year {
   font-size: 0.75rem;
   color: var(--muted);
-  margin: 0;
   letter-spacing: 0.06em;
 }
 
-.tl-modal__close {
+.tl-dialog__close {
+  flex-shrink: 0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -202,425 +118,60 @@
   color: var(--text-small);
   cursor: pointer;
   font-size: 0.8rem;
+  font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 150ms, border-color 150ms, color 150ms;
-  flex-shrink: 0;
 }
 
-.tl-modal__close:hover {
+.tl-dialog__close:hover {
   background: var(--danger);
   border-color: var(--primary);
   color: var(--panel);
 }
 
-.tl-modal__title {
+.tl-dialog__close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tl-dialog__title {
+  margin: 0 1.25rem 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-large);
-  margin: 0 0 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
 }
 
-.tl-modal__body p {
+.tl-dialog__body {
+  padding: 0 1.25rem 1.75rem;
+}
+
+.tl-dialog__body p {
   color: var(--text-small);
   line-height: 1.8;
   margin: 0 0 0.9rem;
   font-size: 0.9rem;
 }
 
-.tl-modal__body p:last-child { margin-bottom: 0; }
-.tl-modal__body strong      { color: var(--text-large); }
-.tl-modal__body em          { color: var(--primary); font-style: normal; font-weight: 600; }
-
-/* ── Tablet: centred modal ── */
-@media (min-width: 600px) {
-  .tl-overlay  { align-items: center; padding: 1.5rem; }
-  .tl-modal    { border-radius: 18px; max-height: 88vh; padding: 0 1.5rem 2rem; }
-  .tl-modal__handle { display: none; }
-}
- /* ═══════════════════════════════════════════════════════════
-   Timeline Styling — MUI Timeline with index.css color system
-═══════════════════════════════════════════════════════════ */
-
-/* Root container */
-.MuiTimeline-root {
-  padding: 0;
-  margin: 0;
-}
-
-/* Timeline Items */
-.MuiTimelineItem-root {
-  min-height: auto;
-}
-
-.MuiTimelineItem-root::before {
-  content: none;
-}
-
-/* ── Timeline Dot ── */
-.MuiTimelineDot-root {
-  width: 14px;
-  height: 14px;
-  padding: 0;
-  background: var(--primary);
-  border: 2.5px solid var(--bg);
-  box-shadow: 0 0 0 2px var(--primary);
-  transition: transform 180ms cubic-bezier(0.4, 0.0, 0.2, 1),
-              box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
-  z-index: 2;
-  cursor: pointer;
-}
-
-.MuiTimelineDot-root:hover,
-.MuiTimelineDot-root:focus-visible {
-  transform: scale(1.4);
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 6px var(--ring);
-  outline: none;
-}
-
-/* ── Connector Line ── */
-.MuiTimelineConnector-root {
-  width: 2px;
-  background: var(--primary);
-  margin: 0;
-  transition: background 180ms ease;
-}
-
-/* ── Timeline Separator ── */
-.MuiTimelineSeparator-root {
-  margin: 0;
-}
-
-/* ── Timeline Content (Card Container) ── */
-.MuiTimelineContent-root {
-  padding: 0;
-  flex: 1;
-  margin-bottom: 1.5rem;
-}
-
-/* ── Timeline Opposite Content ── */
-.MuiTimelineOppositeContent-root {
-  flex: 0;
-}
-
-/* ── Card Styling ── */
-.MuiPaper-root {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--primary);
-  color: var(--text-small);
-  transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1),
-              transform 180ms cubic-bezier(0.4, 0.0, 0.2, 1),
-              border-color 180ms ease;
-}
-
-.MuiPaper-root:hover,
-.MuiPaper-root:focus-visible {
-  box-shadow: 0 4px 20px var(--shadow);
-  transform: translateX(4px);
-  border-left-color: var(--primary-2);
-}
-
-/* ── Text Colors in Cards ── */
-.MuiTimelineContent-root .MuiTypography-caption {
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  font-size: 0.7rem;
-}
-
-.MuiTimelineContent-root .MuiTypography-subtitle2 {
-  color: var(--text-large);
-  font-weight: 600;
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-
-.MuiTimelineContent-root .MuiTypography-body2 {
-  color: var(--text-small);
-  font-size: 0.8rem;
-  line-height: 1.6;
-}
-
-/* "Details" link text */
-.MuiTimelineContent-root .MuiTypography-caption:last-child {
-  color: var(--primary);
-  opacity: 0.85;
-  font-weight: 600;
-  font-size: 0.72rem;
-  cursor: pointer;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   MOBILE LAYOUT — All cards on the right, connector on left
-═══════════════════════════════════════════════════════════ */
-
-@media (max-width: 899px) {
-  /* Force right-only layout */
-  .MuiTimeline-root {
-    position: relative;
-    padding-left: 52px;
-  }
-
-  .MuiTimelineItem-root {
-    width: 100%;
-    direction: ltr;
-    margin-bottom: 2rem;
-  }
-
-  /* Position separator on the left */
-  .MuiTimelineSeparator-root {
-    position: absolute;
-    left: -32px;
-    top: 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  /* Dot stays centered on the line */
-  .MuiTimelineDot-root {
-    margin: 0;
-    z-index: 2;
-  }
-
-  /* Connector extends full height */
-  .MuiTimelineConnector-root {
-    width: 2px;
-    background: var(--primary);
-    flex-grow: 1;
-    min-height: 80px;
-  }
-
-  /* Content on the right with padding */
-  .MuiTimelineContent-root {
-    padding-left: 24px;
-    padding-top: 0;
-    text-align: left;
-    flex: 1;
-  }
-
-  /* Hide opposite content on mobile */
-  .MuiTimelineOppositeContent-root {
-    display: none;
-  }
-
-  /* Last item — no connector needed */
-  .MuiTimelineItem-root:last-child .MuiTimelineConnector-root {
-    display: none;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   TABLET/DESKTOP LAYOUT — Alternate left/right
-═══════════════════════════════════════════════════════════ */
-
-@media (min-width: 900px) {
-  /* Reset mobile styles */
-  .MuiTimeline-root {
-    padding-left: 0;
-    position: relative;
-  }
-
-  .MuiTimelineItem-root {
-    direction: inherit;
-    display: flex;
-    margin-bottom: 1.5rem;
-  }
-
-  /* Position separator in center */
-  .MuiTimelineSeparator-root {
-    position: relative;
-    margin: 0 2rem;
-  }
-
-  /* Alternate layout — odd items on left, even on right */
-  .MuiTimelineItem-root:nth-child(odd) {
-    flex-direction: row;
-  }
-
-  .MuiTimelineItem-root:nth-child(even) {
-    flex-direction: row-reverse;
-  }
-
-  /* Opposite content visible on desktop */
-  .MuiTimelineOppositeContent-root {
-    flex: 0.5;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 2rem;
-    text-align: right;
-  }
-
-  .MuiTimelineItem-root:nth-child(even) .MuiTimelineOppositeContent-root {
-    text-align: left;
-    justify-content: flex-start;
-    padding-right: 0;
-    padding-left: 2rem;
-  }
-
-  /* Content positioning */
-  .MuiTimelineContent-root {
-    flex: 0.5;
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    text-align: left;
-  }
-
-  .MuiTimelineItem-root:nth-child(even) .MuiTimelineContent-root {
-    text-align: right;
-    padding: 0 2rem;
-  }
-
-  /* Connector height on desktop */
-  .MuiTimelineConnector-root {
-    min-height: 100%;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   DIALOG/MODAL STYLING
-═══════════════════════════════════════════════════════════ */
-
-.MuiDialog-paper {
-  background: var(--panel);
-  color: var(--text-small);
-}
-
-.MuiDialogTitle-root {
-  color: var(--text-large);
-  border-bottom: 1px solid var(--border);
-  padding: 1.5rem;
-}
-
-.MuiDialogContent-root {
-  background: var(--panel);
-  color: var(--text-small);
-  padding: 1.5rem;
-}
-
-.MuiDialogContent-root p {
-  color: var(--text-small);
-  line-height: 1.8;
-  margin-bottom: 0.9rem;
-  font-size: 0.9rem;
-}
-
-.MuiDialogContent-root p:last-child {
+.tl-dialog__body p:last-child {
   margin-bottom: 0;
 }
 
-.MuiDialogContent-root strong {
+.tl-dialog__body strong {
   color: var(--text-large);
-  font-weight: 600;
 }
 
-.MuiDialogContent-root em {
+.tl-dialog__body em {
   color: var(--primary);
   font-style: normal;
   font-weight: 600;
 }
 
-.MuiDialogActions-root {
-  background: var(--panel);
-  border-top: 1px solid var(--border);
-  padding: 1rem 1.5rem;
-}
-
-.MuiButton-contained {
-  background: var(--primary);
-  color: var(--panel);
-}
-
-.MuiButton-contained:hover {
-  background: var(--primary-2);
-}
-
-.MuiButton-outlined {
-  border-color: var(--border);
-  color: var(--text-small);
-}
-
-.MuiButton-outlined:hover {
-  background: var(--panel-2);
-  border-color: var(--primary);
-}
-
-/* Close button (X) styling */
-.MuiButton-outlined.MuiIconButton-root {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 150ms ease;
-  padding: 0;
-}
-
-.MuiButton-outlined.MuiIconButton-root:hover {
-  background: var(--danger);
-  border-color: var(--primary);
-  color: var(--panel);
-}
-
-.MuiButton-outlined.MuiIconButton-root .MuiSvgIcon-root {
-  font-size: 0.8rem;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   DARK MODE ADJUSTMENTS (Uses CSS vars from index.css)
-═══════════════════════════════════════════════════════════ */
-
-/* All colors automatically switch via CSS custom properties */
-/* Light mode primary → dark mode shows as light cream (#ffead0) */
-/* Light mode text → dark mode shows as light (#f5e982) */
-
-/* Hero section text */
-.MuiBox-root > .MuiTypography-h5 {
-  color: var(--text-large);
-}
-
-.MuiBox-root > .MuiTypography-caption {
-  color: var(--muted);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ACCESSIBILITY & ANIMATIONS
-═══════════════════════════════════════════════════════════ */
-
 @media (prefers-reduced-motion: reduce) {
-  .MuiTimelineDot-root,
-  .MuiPaper-root,
-  .MuiButton-root,
-  .MuiTimelineConnector-root {
+  .tl-card {
     transition: none;
-  }
-}
-
-/* Focus visible states for keyboard navigation */
-.MuiTimelineContent-root [role="button"]:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   PRINT STYLES
-═══════════════════════════════════════════════════════════ */
-
-@media print {
-  .MuiDialog-paper {
-    display: none;
-  }
-
-  .MuiTimeline-root {
-    padding: 0;
   }
 }

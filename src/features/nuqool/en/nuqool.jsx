@@ -6,9 +6,9 @@
 import React from 'react';
 import './nuqool.css';
 
-// ═════════════════════════════════════════════════════════════════════════════
+//
 // REFERENCES (ABBREVIATIONS)
-// ═════════════════════════════════════════════════════════════════════════════
+//
 
 export const KHUDA_T = "Khuda e Ta'ala";
 export const R_SAWS = "Rasool Allah S.A.W.S";
@@ -25,9 +25,9 @@ export const MUW = "Ma'arij-ul-Wilayat";
 export const SUW = "Shawahid-ul-Wilayat";
 export const TUK = "Taswiyat-ul-Khatimain A.S"
 
-// ═════════════════════════════════════════════════════════════════════════════
+//
 // NAQL CONTENT
-// ═════════════════════════════════════════════════════════════════════════════
+//
 
 export const nuqoolObject = {
   1: (

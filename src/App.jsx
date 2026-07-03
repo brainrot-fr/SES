@@ -3,6 +3,7 @@ import './App.css';
 import Sidebar from './components/sidebar';
 import NaqlDashboard from './features/nuqool/en/naqlDashboard';
 import Timeline from './features/timeline/timeline';
+import Quran from './features/quran/Quran';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
 import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped, scheduleTestNotification } from './notifications/naqlNotifications';
@@ -32,7 +33,7 @@ export default function App() {
   const { lang, t } = useLang();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage]  = useState('nuqool');
+  const [currentPage, setCurrentPage]  = useState('quran');
   const [darkMode, setDarkMode]        = useState(
     () => localStorage.getItem('ses-theme') === 'dark'
   );
@@ -66,11 +67,13 @@ export default function App() {
 
   const navItems = [
     { id: 'nuqool',   label: t('navNuqool') },
+    { id: 'quran',    label: t('navQuran') },
     { id: 'timeline', label: t('navTimeline') },
   ];
 
   const pageTitles = {
     nuqool:   t('titleNuqool'),
+    quran:    t('titleQuran'),
     timeline: t('titleTimeline'),
   };
 
@@ -87,7 +90,8 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'timeline': return <Timeline />;
-      default:         return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
+      case 'nuqool':   return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
+      default:         return <Quran />;
     }
   };
 

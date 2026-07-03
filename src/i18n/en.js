@@ -40,4 +40,20 @@ export default {
   obEnglish:  'English',
   obUrdu:     'اردو',
   obContinue: 'Continue',
+
+
+  // Quran
+  navQuran:    'Quran',
+  titleQuran:  'Quran',
+
+  quranLoading:        'Loading…',
+  quranLoadError:      'Could not load this Surah — check your connection and try again.',
+  quranBackToList:     'Surah List',
+  quranPlayAyah:       'Play',
+  quranPause:          'Pause',
+  quranPlaySurah:      'Play Surah',
+  quranPrevSurah:      '←',
+  quranNextSurah:      '→',
+  quranPrevSurahLabel: 'Previous Surah',
+  quranNextSurahLabel: 'Next Surah',
 };

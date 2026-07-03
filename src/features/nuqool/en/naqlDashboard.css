@@ -93,6 +93,14 @@
   cursor: not-allowed;
 }
 
+.naql-nav__icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
 /* Number input */
 .naql-nav__input {
   width: 64px;

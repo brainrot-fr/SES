@@ -39,4 +39,19 @@ export default {
   obEnglish:  'English',
   obUrdu:     'اردو',
   obContinue: 'جاری رکھیں',
+
+  //Quran
+  navQuran:    'قرآن مجید',
+  titleQuran:  'قرآن مجید',
+
+  quranLoading:        'لوڈ ہو رہا ہے…',
+  quranLoadError:      'یہ سورت لوڈ نہیں ہو سکی — انٹرنیٹ کنکشن چیک کریں۔',
+  quranBackToList:     'تمام سورتیں',
+  quranPlayAyah:       'چلائیں',
+  quranPause:          'روکیں',
+  quranPlaySurah:      'سورت چلائیں',
+  quranPrevSurah:      '→',
+  quranNextSurah:      '←',
+  quranPrevSurahLabel: 'پچھلی سورت',
+  quranNextSurahLabel: 'اگلی سورت',
 };

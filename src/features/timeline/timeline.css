@@ -1,10 +1,10 @@
-/* ═══════════════════════════════════════════════════════════
+/*
    Timeline — MUI Lab structure, styled with the app's own tokens
    All MUI-internal styling (dot, connector, dialog paper) lives in
    sx in Timeline.jsx, not here — sx is guaranteed to win over MUI's
    own component styles, whereas plain classes racing MUI's injected
-   styles is exactly what broke this the first time round.
-═══════════════════════════════════════════════════════════ */
+   styles is exactly what broke this the first time round. 
+*/
 
 .tl-root {
   max-width: 640px;

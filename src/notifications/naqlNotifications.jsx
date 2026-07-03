@@ -8,9 +8,9 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
-// ═════════════════════════════════════════════════════════════════════════════
+//
 // CONSTANTS
-// ═════════════════════════════════════════════════════════════════════════════
+//
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
@@ -19,17 +19,11 @@ const BATCH_SIZE = 50;
 
 const TIMES_OF_DAY = [
   { hour: 5,  minute: 0   },
-  { hour: 6,  minute: 30  },
   { hour: 8,  minute: 0   },
-  { hour: 9,  minute: 30  },
   { hour: 11, minute: 0   },
-  { hour: 12, minute: 30  },
   { hour: 14, minute: 0   },
-  { hour: 15, minute: 30  },
   { hour: 17, minute: 0   },
-  { hour: 18, minute: 30  },
   { hour: 20, minute: 0   },
-  { hour: 21, minute: 30  },
 ];
 
 const PREVIEW_LENGTH = 100;

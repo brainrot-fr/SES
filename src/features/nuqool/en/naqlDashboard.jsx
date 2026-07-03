@@ -3,6 +3,7 @@ import './naqlDashboard.css';
 import { nuqoolObject } from './nuqool.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 import { useLang } from '../../../context/LanguageContext.jsx';
+import { PrevIcon, NextIcon } from '../../../components/icons/MediaIcons.jsx';
 
 // When you have Urdu naql content ready:
 // import { nuqoolObject as nuqoolUr } from '../ur/nuqool.jsx';
@@ -65,9 +66,9 @@ export default function NaqlDashboard({ openNaqlRequest }) {
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql - 1)}
             disabled={currentNaql === 1}
-            aria-label="Previous naql"
+            aria-label={t('prevNaql')}
           >
-            {t('prevNaql')}
+            <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
           </button>
 
           <div className="naql-nav__position">
@@ -89,9 +90,9 @@ export default function NaqlDashboard({ openNaqlRequest }) {
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql + 1)}
             disabled={currentNaql === TOTAL}
-            aria-label="Next naql"
+            aria-label={t('nextNaql')}
           >
-            {t('nextNaql')}
+            <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
           </button>
         </div>
 

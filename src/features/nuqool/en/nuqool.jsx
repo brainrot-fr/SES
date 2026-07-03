@@ -24,6 +24,7 @@ export const BM = "Bandagi Miyan";
 export const MUW = "Ma'arij-ul-Wilayat";
 export const SUW = "Shawahid-ul-Wilayat";
 export const TUK = "Taswiyat-ul-Khatimain A.S"
+export const NBMAR = "Naqliyat BM Abdul Rasheed RH"
 
 //
 // NAQL CONTENT
@@ -44,7 +45,7 @@ export const nuqoolObject = {
         <br />
         Siraj-ul-Absar pgno. 5,
         <br />
-        Naqliyat Bandagi Miyan Abdul Rasheed (RZ) pgno. 1
+        {NBMAR} pgno. 1
       </cite>
     </p>
   ),
@@ -66,7 +67,7 @@ export const nuqoolObject = {
       <br />
       <br />
       <cite>
-        Naqliyat {BM} Abdul Rasheed (RZ) pgno. 1
+        {NBMAR} pgno. 1
       </cite>
     </p>
   ),
@@ -334,10 +335,192 @@ export const nuqoolObject = {
         <br />
         Hashiya pgno. 9
         <br />
-        Naqliyat {BM} Abdul Rasheed RH pgno. 3
+        {NBMAR} pgno. 3
       </cite>
     </p>
   ),
+  28: (
+    <p>
+      {HMAS} ne farmaya hai har hukum jo main bayan karta hoon khuda ki taraf se aur khuda ka hukum se bayan karta hoon jo koi in ahkaam se ek harf ka munkir ho woh Allah ke paas ma'khooz hoga.
+      <br /><br /><br />
+      <cite>
+        Aqeeda Sharifa pgno. 1
+        <br />
+        Insaf Nama pgno. 22, 30
+        <br />
+        {NBMAR} pgno. 13
+      </cite>
+    </p>
+  ),
+  29: (
+    <p>
+
+      Meeran AS ne farmaya ke is bande ke aage tas;heeh hoti hai jo yahan maqbool hua woh khuda ke paas maqbool hai aur jo mere paas sahih na  hoo woh khuda ke paas mardood hai.
+      <br /><br /><br />
+      <cite>
+        Aqeeda Sharifa pgno. 3
+        <br />
+        Insaf Nama pgno. 80, 177
+        <br />
+        {NBMAR} pgno. 31
+      </cite>
+    </p>
+  ),
+  30: (
+    <p>
+      Aur naiz {HMAS} se manqool hai ke da'wa-e-mahdiyat zaahir karne se pehle bees saal aap ko Allah ka farman hota raha ke ti Mahdi-e-Mao'ud hai {HMAS} ne (is farman ko) bees saal zaahir nahi farmaya jab Aap qasba badli mein tashreef laaye to farman-e-Baari hua ke kyuun ti apne da'wa-e-mahdiyat ko zaahir nahi karta hai balke itaab aamez farman hua ke tu makhlooq se darta hai. Ba'ad Aap ne da'wa-e-mahdiyat ko zahir farmaya.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama pgno. 23
+      </cite>
+    </p>
+  ),
+  31: (
+    <p>
+      {HMAS} ne farmaya ke Haq Ta'ala ne bande ko ambiya, auliya, momineen aur mominaat ke maraatib aur tamaam maujoodat ka ahwaal aisa maloom kiya hai jaisa ke ek shakhs ek cheez haath mein rakhta hai aur har taraf us ko paltata hai taake us ko achhi tarah pehchaane haisa ke sarraaf (rupiya ashrafi ka parakhne wala) karta hai taake sikka nuqra ke khare khotte se waaqif hojaye.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama Baab 5 pgno. 59
+        <br />
+        {NBMAR} pgno. 4
+      </cite>
+    </p>
+  ),
+  32: (
+    <p>
+      Mulla'on ne phir kaha ke hum aap ke saath kaise beha kar sakte hain, aap to muqayyad mazhab nahi rakhte jo kuch jawab dete ho mutlaq Quran se jawab dete ho aur hum Quran nahi samajh sakte aur hum Imam-e-Azam RH ke mazhab par muqauuad hain is ke ba'ad {HMAS} ne farmaya ke <strong>"agarche main kisi mazhab par muqayyad nahi mera mazhab kitabullah aur Ittiba e {R_SAWS} hai.</strong> phir farmaya ke isi par qayam ho jao aur (kaho ke) jo koi Imam-e-Azam RH ke mazhab se baahar ho jaaye aur mazhab ke khilaf amal kare to us par kya hukum hoga is ke ba'ad {MAS} ne farmaya ke naadaan mazhab ka ma'ni kya jaante mazhab ka ma'ni Imam e Azam RH ki raftaar hai na ke guftaar. Aur Paighambar SAWS ki sunnat Paighambar SAWS ke amal ko kehte hain na ke guftaar-e-Paighambar AS ko tamaam sharai mua'milat ho fiqh ki kitabo mein mazkoor hain Paighambar AS ki guftaar hai na ke amal-e-Paighambar AS pas Imam e Azam RH ka mazhab amal hai jo mash'hoor hai.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama Baab 5 pgno 88
+        <br />
+        Maulood pgno. 70
+      </cite>
+    </p>
+  ),
+  33: (
+    <p>
+      Aur naiz naql hai ke {HMAS} ne farmaya ke banda ki ek nazar hazaar saal ki maqboola ibadat see behtar hai.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama bab 8 pgno. 175
+        <br />
+        Hashiya pgno. 67
+        <br />
+        {NBMAR} pgno. 29
+      </cite>
+    </p>
+  ),
+  34: (
+    <p>
+      Miyan Bhai Mujahir RZ se manqool hai ke {HMAS} ne farmaya jo shakhs ke {MAS} ki suhbat mein itni der raha jitni ke jootiyon ki gard jhaadne mein lagti hai to pehle us ne ho kuch gunaah kiya tha sab muaaf ho jayenge.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama Baab 8 pgno. 175
+        <br />
+        Hashiya pgno. 66
+        <br />
+        {NBMAR} pgno. 19
+      </cite>
+    </p>
+  ),
+  35: (
+    <p>
+      Bandagi Meeran AS ne farmaya ke banda {R_SAWS} ke qadam bar qadam hai.
+      <br /><br /><br />
+      <cite>
+        Insaf Nama Baab 12 pgno. 271
+      </cite>
+    </p>
+  ),
+  36: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke farman-e-Khudae Ta'ala hota hai ke hum ne imaan ke khazana ki kunjiya tere haath mein de di hain aur hum ne tujh ko khaas deen-e-Muhammadi SAWS ki nusrat karne wala kiya hai aur main teri musrat karne wala hoon ja da'wat kar jis ne tijh ko qubool kiya momin hai aur jis ne tera inkaar kiya kaafir hai.
+      <br /><br /><br />
+      <cite>
+        Hasihya pgno. 9
+        <br />
+        {NBMAR} pgno. 3
+        <br />
+        {SUW} pgno. 50
+        <br />
+        {MUW} pgno. 37
+      </cite>
+    </p>
+  ),
+  37: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke is bande ke saamne tas'heeh hoti hai aur farman-e-khuda hota hai ke Aye Syed Muhammad jo shakhs tere saamne sahih hua woh hamari baargah mein maqbool hai aur ho shakhs tere saamne sahih na hua woh Allah ke paas mardood hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 95
+      </cite>
+    </p>
+  ),
+  38: (
+    <p>
+      Naql hai {HMAS} ke huzoor mein mulla'on ne arz kiya ke Mahdi aalam ka badshsh hoga {HMAS} ne farmaya haan wa lekin ghodon ki leed nahi kheinche ga. is ke ba'ad {MAS} ne yeh nahi farmaya ke {MAS} ke giroh se koi badshsh hoga ho falaan shahar fatah kare wa lekin Isa AS badshah-e-aalam honge.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 80
+      </cite>
+    </p>
+  ),
+  39: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke banda faqiron ka sadqa khata hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 94
+        <br />
+        {NBMAR} pgno. 45
+      </cite>
+    </p>
+  ),
+  40: (
+    <p>
+      Aur naiz {HMAS} ne farmaya ke bande ki baatini parwarish faqiron ke waaste se hoti hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 94
+        <br />
+        {NBMAR} pgno. 94
+      </cite>
+    </p>
+  ),
+  41: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke ho log bande ke roobaru inteqaal kiye kaamyaab gaye jo log bande ke ba'ad rahenge un becharon ke sar par museebat hai. Phir {HMAS} ne farmaya ke hum  in logon ko khuda ke hawale karke jaate hain.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 98
+        <br />
+        {NBMAR} pgno. 33
+      </cite>
+    </p>
+  ),
+  42: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke kisi ne bande ka daaman nahi pakda ke hum ko Khudae Ta'ala tak pahunchao.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 105
+        <br />
+        {NBMAR} pgno. 65
+      </cite>
+    </p>
+  ),
+  43: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke banda apne kaan se jo kuch khuda ki awaaz sunta hai zuban se ada karta hai tum amal karo ya na karo tum jaano aur khuda jaane.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 116
+        <br />
+        {NBMAR} pgno. 14, 92
+      </cite>
+    </p>
+  ),
+  
   // Add more nuqool entries here as: 2: (<p>...</p>)
 };
 

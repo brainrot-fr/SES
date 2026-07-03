@@ -17,6 +17,10 @@
   margin: 0 2rem 1.5rem;
   color: var(--text-small);
   line-height: 1.7;
+  background-color: var(--panel);
+  padding: 1rem;
+  border-radius: 20px;
+  border-color: black;
 }
 
 .naql-content summary {

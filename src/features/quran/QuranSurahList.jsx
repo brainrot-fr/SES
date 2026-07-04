@@ -1,3 +1,11 @@
+/**
+ * QuranSurahList.jsx
+ * Surah picker component for the Quran section.
+ *
+ * - Fetches the list of all 114 surahs.
+ * - Renders each surah as a button to open the reader.
+ */
+
 import { useEffect, useState } from 'react';
 import { fetchSurahList } from './quranApi';
 import { useLang } from '../../context/LanguageContext';
@@ -8,7 +16,9 @@ export default function QuranSurahList({ onOpenSurah }) {
   const [surahs, setSurahs] = useState(null);
   const [error, setError] = useState(null);
 
+  /* Fetch the list of all surahs once, then render them as selectable buttons. */
   useEffect(() => {
+    /* Load the list of surahs once and protect against setting state after unmount. */
     let cancelled = false;
     fetchSurahList()
       .then((list) => { if (!cancelled) setSurahs(list); })

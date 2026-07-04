@@ -1,5 +1,14 @@
+/**
+ * QuranReader.jsx
+ * Displays Arabic Quran text with playback controls.
+ *
+ * - Fetches the selected surah and renders ayahs in batches.
+ * - Supports play/pause for individual ayahs and automatic progression.
+ * - Reuses the audio player hook and shows translations when available.
+ */
+
 import { useState, useEffect, useRef } from 'react';
-import { fetchSurah } from './quranApi';
+import { fetchSurah, RECITERS } from './quranApi';
 import { quranTranslations } from './quranTranslations';
 import { useLang } from '../../context/LanguageContext';
 import { PlayIcon, PauseIcon, PrevIcon, NextIcon } from '../../components/icons/MediaIcons.jsx';
@@ -25,10 +34,13 @@ export default function QuranReader({ initialSurah, onBack }) {
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
 
+  /* Clamp navigation input and update the current surah index. */
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
 
+  /* destructure the new hook values */
   const {
     activeAyahNumber, isPlaying, autoAdvance,
+    reciterId, changeReciter,
     toggleAyah, playSurahFromStart, stop,
   } = useQuranAudioPlayer(surah);
 
@@ -47,9 +59,12 @@ export default function QuranReader({ initialSurah, onBack }) {
     return () => { cancelled = true; };
   }, [currentSurah]);
 
-  // Reveal more ayahs as the reader scrolls near the bottom, instead of
-  // mounting the whole surah (up to 286 ayahs of QPCHafs ligature text)
-  // in one synchronous pass — that's what was blocking/crashing on device.
+  /*
+   * Reveal more ayahs as the reader scrolls near the bottom, instead of
+   * mounting the whole surah (up to 286 ayahs of QPCHafs ligature text)
+   * in one synchronous pass — that's what was blocking/crashing on device.
+   */
+
   useEffect(() => {
     if (!surah) return undefined;
     const sentinel = sentinelRef.current;
@@ -66,14 +81,18 @@ export default function QuranReader({ initialSurah, onBack }) {
     return () => observer.disconnect();
   }, [surah]);
 
-  // Keep the revealed window in sync with whatever's actually playing
-  // (e.g. "Play Surah" auto-advancing past what's currently rendered).
+  /*
+   * Keep the revealed window in sync with whatever's actually playing
+   * (e.g. "Play Surah" auto-advancing past what's currently rendered).
+   */
+
   useEffect(() => {
     if (activeAyahNumber && activeAyahNumber > visibleCount) {
       setVisibleCount((c) => Math.max(c, activeAyahNumber));
     }
   }, [activeAyahNumber, visibleCount]);
 
+  /* Lookup translation text for the current surah and ayah, if available. */
   const translationForAyah = (numberInSurah) => quranTranslations[currentSurah]?.[numberInSurah];
 
   const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
@@ -100,6 +119,22 @@ export default function QuranReader({ initialSurah, onBack }) {
               {surah.englishName} · {surah.englishNameTranslation}
             </p>
           </header>
+
+          <div className="quran-reciter">
+            <label className="quran-reciter__label" htmlFor="quran-reciter-select">
+              {t('quranReciter')}
+            </label>
+            <select
+              id="quran-reciter-select"
+              className="quran-reciter__select"
+              value={reciterId}
+              onChange={(e) => changeReciter(e.target.value)}
+            >
+              {RECITERS.map((r) => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+            </select>
+          </div>
 
           {!NO_SEPARATE_BISMILLAH.includes(currentSurah) && (
             <h1 className="quran-bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>

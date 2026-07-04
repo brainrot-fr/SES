@@ -1,48 +1,53 @@
+/**
+ * en.js
+ * English translation strings used across the application.
+ */
+
 export default {
-  // App shell
+  /* App shell */
   appTitle:    'Nuqool e Imam Mahdi A.S',
   openMenu:    'Open menu',
   toLightMode: 'Switch to light mode',
   toDarkMode:  'Switch to dark mode',
   changeLang:  'Change Language',
 
-  // Nav
+  /* Nav */
   navNuqool:    'Nuqool e Imam Mahdi A.S',
   navTimeline:  'Timeline of Imam Mahdi A.S',
 
-  // Page titles (header)
+  /* Page titles (header) */
   titleNuqool:   'Nuqool e Imam Mahdi A.S',
   titleTimeline: 'Timeline',
 
-  // Sidebar
+  /* Sidebar */
   menu: 'Menu',
   testNotification: 'Send test notification',
 
-  // Notifications
+  /* Notifications */
   notificationScheduled: 'Test notification scheduled! It should arrive shortly.',
   notificationScheduleFailed: 'Unable to schedule test notification.',
 
-  // NaqlDashboard
+  /* NaqlDashboard */
   naql:       'Naql',
   prevNaql:   '←',
   nextNaql:   '→',
   goToNaql:   'Go to naql number',
 
-  // Timeline
+  /* Timeline */
   tlName:       'Imam Mahdi A.S',
   tlSpan:       '847 AH — 910 AH',
   tlDetails:    'Details →',
   tlClose:      '✕',
   tlCloseLabel: 'Close details',
 
-  // Onboarding
+  /* Onboarding */
   obChoose:   'Choose your language to continue',
   obEnglish:  'English',
   obUrdu:     'اردو',
   obContinue: 'Continue',
 
 
-  // Quran
+  /* Quran */
   navQuran:    'Quran',
   titleQuran:  'Quran',
 

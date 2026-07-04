@@ -1,3 +1,13 @@
+/**
+ * App.jsx
+ * Main application shell for the SES PWA.
+ *
+ * - Imports the shared context, top-level features, and notification lifecycle.
+ * - Manages page state, theme mode, sidebar visibility, toast notifications,
+ *   and handling of notification taps.
+ * - Renders the sticky header, sidebar, bottom nav, and current page view.
+ */
+
 import { useState, useEffect } from 'react';
 import './App.css';
 import Sidebar from './components/sidebar';
@@ -7,9 +17,8 @@ import Quran from './features/quran/Quran';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
 import { initNaqlNotificationLifecycle, scheduleTestNotification } from './notifications/naqlNotifications';
-import { App as CapacitorApp } from '@capacitor/app';
 
-// ── Icons ────────────────────────────────────────────────────
+/* ── Icons ──────────────────────────────────────────────────── */
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
     <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
@@ -76,7 +85,7 @@ function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
   );
 }
 
-// ── Component ────────────────────────────────────────────────
+/* ── Component ──────────────────────────────────────────────── */
 export default function App() {
   const { lang, t } = useLang();
 
@@ -88,35 +97,23 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
 
+  /* Keep the theme preference in sync with <html> and localStorage. */
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : '';
     localStorage.setItem('ses-theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  useEffect(() => {
-    scheduleDailyNaqlNotifications();
-
-    const cleanup = onNaqlNotificationTapped((naqlNumber) => {
-      setCurrentPage('nuqool');
-      setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
-    });
-
-    let stateHandle;
-    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) scheduleDailyNaqlNotifications();
-    }).then((h) => { stateHandle = h; });
-
-    return () => {
-      cleanup();
-      stateHandle?.remove();
-    };
-  }, []);
-
+  /* Show toast messages for a short duration and then clear them. */
   useEffect(() => {
     if (!toastMessage) return undefined;
     const timeout = window.setTimeout(() => setToastMessage(null), 4000);
     return () => window.clearTimeout(timeout);
   }, [toastMessage]);
+
+  /*
+   * Initialize the Naql notification lifecycle once on mount.
+   * This schedules notifications and listens for taps from the native OS.
+   */
 
   useEffect(() => {
     const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
@@ -126,22 +123,35 @@ export default function App() {
     return cleanup;
   }, []);
 
-  // Gate the whole app behind language selection
+  /*
+   * Gate the whole app behind language selection. The onboarding
+   * screen is shown only until the user picks a language.
+   */
+
   if (!lang) return <Onboarding />;
 
+  /* Navigation items shown both in the sidebar and bottom tab bar. */
   const navItems = [
     { id: 'nuqool', label: t('navNuqool'), icon: <ScrollIcon /> },
     { id: 'quran', label: t('navQuran'), icon: <BookIcon /> },
     { id: 'timeline', label: t('navTimeline'), icon: <ClockIcon /> },
   ];
 
+  /* Localized page titles for the current route. */
   const pageTitles = {
     nuqool: t('titleNuqool'),
     quran: t('titleQuran'),
     timeline: t('titleTimeline'),
   };
 
+  /* Trigger a short test notification and surface success/failure as a toast. */
   const handleTestNotification = async () => {
+
+    /*
+     * Attempt a near-term local notification for testing purposes.
+     * Any failure is shown to the user rather than crashing the app.
+     */
+
     try {
       await scheduleTestNotification(10);
       setToastMessage(t('notificationScheduled'));

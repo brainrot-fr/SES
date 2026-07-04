@@ -1,3 +1,11 @@
+/*
+ * App.css
+ * Shared app shell styling.
+ *
+ * - Styles the sticky header and responsive bottom navigation.
+ * - Positions toast notifications and main content area.
+ */
+
 .app-root {
   min-height: 100vh;
 }

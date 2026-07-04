@@ -1,7 +1,20 @@
+/**
+ * timelineData.jsx
+ * Static timeline event definitions.
+ *
+ * - Exports an array of event objects rendered by the timeline page.
+ * - Each event includes year, title, summary, and expanded detail markup.
+ */
+
 import React from 'react';
 
 
-// ── Add or edit events freely — Timeline renders them in array order ──────────
+/*
+ * ── Add or edit events freely — Timeline renders them in array order ──────────
+ * Each object defines the year, title, summary and expanded detail shown
+ * when the user taps the event card.
+ */
+
 export const timelineEvents = [
   {
     id: 1,
@@ -198,7 +211,7 @@ export const timelineEvents = [
       </>
     )
   },
-  // new object template
+  /* new object template */
   /*
   {
     id: x,

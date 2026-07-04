@@ -1,3 +1,11 @@
+/**
+ * MediaIcons.jsx
+ * Reusable SVG components for audio playback controls.
+ *
+ * - Exports Prev, Next, Play, and Pause icons.
+ * - Each icon supports accessible titles and customizable size.
+ */
+
 import React from 'react';
 
 export function PrevIcon({ size = 20, className = '', title }) {

@@ -9,9 +9,9 @@ import { App } from '@capacitor/app';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
-//
-// CONSTANTS
-//
+/* 
+* CONSTANTS
+*/
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
@@ -35,9 +35,11 @@ const CHANNEL_ID = 'naql-notifications';
 const CHANNEL_NAME = 'Nuqool reminders';
 const CHANNEL_DESC = 'Daily Naql reminders and alerts';
 
-//
-// TEXT HELPERS
-//
+/*
+ *
+ * TEXT HELPERS
+ *
+ */
 
 function decodeReactEscapedHtml(str) {
   return str
@@ -47,6 +49,11 @@ function decodeReactEscapedHtml(str) {
     .replace(/&#x27;/g, "'")
     .replace(/&amp;/g, '&');
 }
+
+/*
+ * Convert React JSX content into a plain-text notification body.
+ * This avoids sending HTML tags to the native notification payload.
+ */
 
 function jsxToPlainText(node, maxLength) {
   const html = renderToStaticMarkup(node);
@@ -63,23 +70,30 @@ const naqlNumbers = Object.keys(nuqoolObject)
 function getNaqlIndexForSchedule(day, slot) {
   return (day * TIMES_OF_DAY.length + slot) % naqlNumbers.length;
 }
+
+/* Pick a Naql number deterministically based on the schedule slot. */
 function pickScheduledNaql(day, slot) {
   return naqlNumbers[getNaqlIndexForSchedule(day, slot)];
 }
+
+/* Use a random Naql number for quick test notifications. */
 function pickRandomNaql() {
   return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
 }
 
-//
-// EXACT ALARM PERMISSION (Android 12+)
-//
-// SCHEDULE_EXACT_ALARM in the manifest only makes this permission
-// available — it does not grant it. If the user has it off (or later
-// switches it off), scheduled notifications using allowWhileIdle can be
-// silently dropped or wiped entirely. A near-immediate test notification
-// doesn't hit this wall since it never has to survive Doze; the daily
-// batch does.
-//
+/*
+ *
+ * EXACT ALARM PERMISSION (Android 12+)
+ *
+ * SCHEDULE_EXACT_ALARM in the manifest only makes this permission
+ * available — it does not grant it. If the user has it off (or later
+ * switches it off), scheduled notifications using allowWhileIdle can be
+ * silently dropped or wiped entirely. A near-immediate test notification
+ * doesn't hit this wall since it never has to survive Doze; the daily
+ * batch does.
+ *
+ */
+
 async function ensureExactAlarmPermission() {
   if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
     return true;
@@ -95,9 +109,11 @@ async function ensureExactAlarmPermission() {
   }
 }
 
-//
-// NOTIFICATION MANAGEMENT
-//
+/*
+ *
+ * NOTIFICATION MANAGEMENT
+ *
+ */
 
 async function cancelPendingNaqlNotifications() {
   try {
@@ -213,10 +229,14 @@ export async function scheduleDailyNaqlNotifications() {
 }
 
 async function handleScheduleError(err) {
-  // Different OEM WebViews/plugin versions phrase batch-scheduling
-  // failures differently, so we don't try to pattern-match a specific
-  // error string anymore — if the whole batch failed, just clear
-  // whatever partial state exists and let the next resume retry clean.
+
+  /*
+   * Different OEM WebViews/plugin versions phrase batch-scheduling
+   * failures differently, so we don't try to pattern-match a specific
+   * error string anymore — if the whole batch failed, just clear
+   * whatever partial state exists and let the next resume retry clean.
+   */
+
   console.error('[naqlNotifications] full scheduling error', err);
   try {
     const allPending = await LocalNotifications.getPending();
@@ -260,6 +280,8 @@ export async function scheduleTestNotification(secondsFromNow = 10) {
 export function onNaqlNotificationTapped(onOpenNaql) {
   if (!Capacitor.isNativePlatform()) return () => {};
   let handle;
+
+  /* Listen for a notification tap action and forward the requested Naql number. */
   LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
     const naqlNumber = action.notification?.extra?.naqlNumber;
     if (naqlNumber != null) onOpenNaql(naqlNumber);

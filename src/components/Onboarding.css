@@ -1,3 +1,8 @@
+/*
+ * Onboarding.css
+ * Styles the language choice card and buttons for first-time users.
+ */
+
 .ob-root {
   min-height: 100vh;
   display: flex;

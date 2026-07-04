@@ -1,3 +1,11 @@
+/**
+ * Onboarding.jsx
+ * Initial language selection screen shown before the app loads.
+ *
+ * - Lets the user choose English or Urdu.
+ * - Stores the choice through LanguageContext.
+ */
+
 import { useState } from 'react';
 import { useLang } from '../context/LanguageContext';
 import './Onboarding.css';
@@ -6,6 +14,7 @@ export default function Onboarding() {
   const { chooseLang } = useLang();
   const [selected, setSelected] = useState('en');
 
+  /* This onboarding view only appears before the user has chosen a language. */
   return (
     <div className="ob-root">
       <div className="ob-card">

@@ -36,6 +36,11 @@ export function buildAudioUrl(globalAyahNumber, reciterId = getSavedReciter()) {
   return `${AUDIO_CDN}/${AUDIO_BITRATE}/${reciterId}/${globalAyahNumber}.mp3`;
 }
 
+/*
+ * readCache and writeCache are simple localStorage cache helpers. They keep
+ * network usage down by storing API responses per surah or surah list.
+ */
+
 function readCache(key) {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + key);
@@ -49,7 +54,7 @@ function writeCache(key, value) {
   try {
     localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(value));
   } catch {
-    // Storage full or unavailable — fine, it's just a cache
+    /* Storage full or unavailable — fine, it's just a cache */
   }
 }
 

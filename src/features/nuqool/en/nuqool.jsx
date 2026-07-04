@@ -6,9 +6,11 @@
 import React from 'react';
 import './nuqool.css';
 
-//
-// REFERENCES (ABBREVIATIONS)
-//
+/*
+ *
+ * REFERENCES (ABBREVIATIONS)
+ *
+ */
 
 export const KHUDA_T = "Khuda e Ta'ala";
 export const R_SAWS = "Rasool Allah S.A.W.S";
@@ -20,15 +22,17 @@ export const AAS = "AanHazrat A.S";
 export const HBM = "Hazrat Bandagi Miyan";
 export const BM = "Bandagi Miyan";
 
-// Books
+/* Books */
 export const MUW = "Ma'arij-ul-Wilayat";
 export const SUW = "Shawahid-ul-Wilayat";
 export const TUK = "Taswiyat-ul-Khatimain A.S"
-export const NBMAR = "Naqliyat BM Abdul Rasheed RH"
+export const NBMAR = "Naqliyat Bandagi Miyan Abdul Rasheed RH"
+export const NBM = "Naqliyat Bandagi Miyan"
 
-//
-// NAQL CONTENT
-//
+/*
+ * Core Naql content mapping. Each key is the Naql number and the value
+ * is a React fragment containing the quoted text and citation.
+ */
 
 export const nuqoolObject = {
   1: (
@@ -49,23 +53,19 @@ export const nuqoolObject = {
       </cite>
     </p>
   ),
-  2:  (
-        <p>
-          {HMAS} ne farmaya ke "<strong>hum kisi mazhab ke muqayyad nahi hain aur agar koi hamare sidq ko maloom karna chahta hai to us ko chahiye ke kalaam-e-khuda ki muwafiqat aur {R_SAWS} ki ittiba ka hamare ahwaal wa a'maal me dhoondein aur samajh lein.</strong>"
-          <br />
-          <br />
-          <br />
-          <cite>
-            Aqeeda Sharifa pgno. 4
-          </cite>
-        </p>
-      ),
+  2: (
+    <p>
+      {HMAS} ne farmaya ke "<strong>hum kisi mazhab ke muqayyad nahi hain aur agar koi hamare sidq ko maloom karna chahta hai to us ko chahiye ke kalaam-e-khuda ki muwafiqat aur {R_SAWS} ki ittiba ka hamare ahwaal wa a'maal me dhoondein aur samajh lein.</strong>"
+      <br /><br /><br />
+      <cite>
+        Aqeeda Sharifa pgno. 4
+      </cite>
+    </p>
+  ),
   3: (
     <p>
       {HMAS} ne farmaya ke "<strong>jo shakhs mujhe naql karta hai agar woh naql {KHUDA_T} ke kalaam ke muwafiq hai to woh naql durust hai aur agar woh naql {KHUDA_T} ke kalaam ke muwafiq nahi hai to mujh se nahi hai ya naaqil ka dil sun'ne ke waqt haazir nahi raha hoga. Is liye sahu hua hai.</strong>
-      <br />
-      <br />
-      <br />
+      <br /><br /><br />
       <cite>
         {NBMAR} pgno. 1
       </cite>
@@ -74,7 +74,7 @@ export const nuqoolObject = {
   4: (
     <p>
       {HMAS} ne farmaya ke "<strong>meri naql woh hai jo mutabiq e {Q} ho."</strong>
-      <br/><br/><br/>
+      <br /><br /><br />
       <cite>
         {MUW} pgno. 368
       </cite>
@@ -83,17 +83,17 @@ export const nuqoolObject = {
   5: (
     <p>
       Naql hai {HBM} Dilawar R.Z ne farmaya <strong>"agar koi shakhs {Q} ki ayat {HMAS} ki naql se tatbeeq dein to (us ka bayan) sahih hai"</strong>
-      <br/>
+      <br />
       Pas is ibaarat ko {HMAS} ke saamne Sahaba R.Z ne arz kiya. {HMAS} ne farmaya Jo shakhs fana ke darje ko pahuncha ho woh shakhs {Q} ki ayat ko naql se tatbeeq dega.
-      <br/><br/><br/>
+      <br /><br /><br />
       <cite>Panj Fazail pgno. 100</cite>
     </p>
   ),
   6: (
     <p>
-      Is majzoob ne apni naak se rassi nikal di us ke ba'ad {HMAS} se sawal kiya ke "{MAS} se koi baat posheeda nahi hai. Allah ki zaat ka bayan karo." {MAS} ne farmaya <strong>"Allah ki zaat bayan mein nahi aati. Allah ke sifaat bayan mein nahi aate hain lekin main beenai ki lazzat bayan karta hoon - 
-      <br />
-      ke kisi shakhs ke naak mein rassi daal kar tamaam zameen par phirayen aur us ko {KHUDA_T} ki beenai suyi ke soraakh mein hojaye to us ko aisi raahat ho phir woh kahe ke hum ko hazaar saal zameen par phirayen taake hum ko aisi raahat ho."</strong>
+      Is majzoob ne apni naak se rassi nikal di us ke ba'ad {HMAS} se sawal kiya ke "{MAS} se koi baat posheeda nahi hai. Allah ki zaat ka bayan karo." {MAS} ne farmaya <strong>"Allah ki zaat bayan mein nahi aati. Allah ke sifaat bayan mein nahi aate hain lekin main beenai ki lazzat bayan karta hoon -
+        <br />
+        ke kisi shakhs ke naak mein rassi daal kar tamaam zameen par phirayen aur us ko {KHUDA_T} ki beenai suyi ke soraakh mein hojaye to us ko aisi raahat ho phir woh kahe ke hum ko hazaar saal zameen par phirayen taake hum ko aisi raahat ho."</strong>
       <br /><br /><br />
       <cite>Hashiya pgno. 199</cite>
     </p>
@@ -132,15 +132,15 @@ export const nuqoolObject = {
         Matla-ul-Wilayat pgno. 59
         <br />
         {MUW} pgno. 74
-        </cite>
+      </cite>
     </p>
   ),
   10: (
     <p>
-      Naql hai ke {HMAS} ne Qazi Qadan se poochha ke tum kahan ke qazi ho unhon ne jawab diya ke mulk-e-Sindh ka qazi hoon phir 
-      <br /><br />{HMAS} ne farmaya ke Sindh kis ka mulk hai unhon ne jawab diya ke Jaam ka. 
-      <br /><br />Phir {AAS} ne farmaya ke Jaam kis ka hai. Unhon ne jawab diya ke {KHUDA_T} ka hai. 
-      <br /><br />Phir {AAS} ne farmaya ke {KHUDA_T} kis ka hai unhon ne jawab diya ke yahan tak apne ilm se main ne jawabaat diye is jagah hamara ilm khatam ho chuka hai jo kuch Khundkar farmayein wahi tehqeeq hai. 
+      Naql hai ke {HMAS} ne Qazi Qadan se poochha ke tum kahan ke qazi ho unhon ne jawab diya ke mulk-e-Sindh ka qazi hoon phir
+      <br /><br />{HMAS} ne farmaya ke Sindh kis ka mulk hai unhon ne jawab diya ke Jaam ka.
+      <br /><br />Phir {AAS} ne farmaya ke Jaam kis ka hai. Unhon ne jawab diya ke {KHUDA_T} ka hai.
+      <br /><br />Phir {AAS} ne farmaya ke {KHUDA_T} kis ka hai unhon ne jawab diya ke yahan tak apne ilm se main ne jawabaat diye is jagah hamara ilm khatam ho chuka hai jo kuch Khundkar farmayein wahi tehqeeq hai.
       <br /><br />{AAS} ne farmaya <strong>"Aye Qazi {KHUDA_T} usi ka hai jo {KHUDA_T} ko haasil kare."</strong>
       <br /><br /><br />
       <cite>
@@ -161,7 +161,7 @@ export const nuqoolObject = {
     <p>
       {HMAS} ne farmaya <strong>"fazl usi ke liye hai jis par Allah fazl kare na ke amal aur zaat ke a'ala hone se."</strong>
       <br /><br /><br />
-      <cite>Hashdah Aayat pgno. 24</cite>     
+      <cite>Hashdah Aayat pgno. 24</cite>
     </p>
   ),
   13: (
@@ -204,7 +204,7 @@ export const nuqoolObject = {
   ),
   16: (
     <p>
-      Dooyi ko door karo: {HMAS} ke huzoor mein kisi ne yeh sher padha. 
+      Dooyi ko door karo: {HMAS} ke huzoor mein kisi ne yeh sher padha.
       <br />
       Jo shakhs apna sar nahi haarta hai bulandi par kab qadam rakh sakta hai. Aye dil yeh ishq ka koocha hai khala ka ghar nahi.
       <br />
@@ -233,7 +233,7 @@ export const nuqoolObject = {
   ),
   18: (
     <p>
-      Naiz {HMAS} ne apni dono ungaliyan ek doosre mein milayein aur farmaya ke Muhammad aur khuda aise (wasl) ho gaye. Chunanche Haq Subhanahu wa Ta'ala ne farmaya ke 
+      Naiz {HMAS} ne apni dono ungaliyan ek doosre mein milayein aur farmaya ke Muhammad aur khuda aise (wasl) ho gaye. Chunanche Haq Subhanahu wa Ta'ala ne farmaya ke
       <div className="quran">ثُمَّ دَنَا فَتَدَلَّىٰ ٨ فَكَانَ قَابَ قَوْسَيْنِ أَوْ أَدْنَىٰ ٩</div>
       "Phir nazdeek hua aur phir aur nazdeek hua pas do kamanon ya us se bhi qareeb fasla reh gaya."
       <br /><br /><br />
@@ -291,7 +291,7 @@ export const nuqoolObject = {
   ),
   24: (
     <p>
-      {IMAS} se bhi riwayat ki gayi hai ke farmaya {R_SAWS} mab'oos hue taake kuffar se kufr ka qala qama karein aur Islam ko aashkara karein taake deen tamaam tar Allah ke liye hojaye. Jaisa ke irshad-e- Baari Ta'ala hai 
+      {IMAS} se bhi riwayat ki gayi hai ke farmaya {R_SAWS} mab'oos hue taake kuffar se kufr ka qala qama karein aur Islam ko aashkara karein taake deen tamaam tar Allah ke liye hojaye. Jaisa ke irshad-e- Baari Ta'ala hai
       <div className="quran">هُوَ ٱلَّذِىٓ أَرْسَلَ رَسُولَهُۥ بِٱلْهُدَىٰ وَدِينِ ٱلْحَقِّ لِيُظْهِرَهُۥ عَلَى ٱلدِّينِ كُلِّهِۦ</div>
       "Woh aisa hai jis ne apne Rasool ko hidayat ke saath deen-e-haq de kar bheja taake us ko doosre tamaam deenon par ghaalib kar de."
       <br /><br /><br />
@@ -522,7 +522,7 @@ export const nuqoolObject = {
   ),
   44: (
     <p>
-      Naql hai {HMAS} baithe hue the janaza laaye sahaba RZne {MAS} se arz kiya is murda par azaab ho raha hai. {HMAS} ne is murda ko dekha farman-e-khuda hua ke <strong>"Aye Syed Muhammad teri nazar is par padi hum ne is ko najaat di is oar namaz-e-janaza padho."</strong> {HMAS} ne is par namaz padhi Shaba RZ ne dekha aur kaha ke {MAS} ke sabab se is murde par reham hua.
+      Naql hai {HMAS} baithe hue the janaza laaye sahaba RZ ne {MAS} se arz kiya is murda par azaab ho raha hai. {HMAS} ne is murda ko dekha farman-e-khuda hua ke <strong>"Aye Syed Muhammad teri nazar is par padi hum ne is ko najaat di is oar namaz-e-janaza padho."</strong> {HMAS} ne is par namaz padhi Shaba RZ ne dekha aur kaha ke {MAS} ke sabab se is murde par reham hua.
       <br /><br /><br />
       <cite>
         Hashiya pgno. 126
@@ -531,10 +531,128 @@ export const nuqoolObject = {
   ),
   45: (
     <p>
-      naql hai Miyan Abdul Karim ki waalida ne {HMAS} ke huzoor mein arz kee ke main ne khwab mein dekha ke mujhe Mahtar Yahya AS ka hamal hua hai. {HMAS} ne farmaya ke Khuda e Ta'ala tum ko farzand aata karega jo Mahtar Yahya AS ka qayam-maqam hoga. {HMAS} ko qai jui us waqt Miyan Abdul Majeed RZ maujood the woh sab qai apne haath mein le kar kha liye thodi qai jo reh gayi thi apni aurat ko khilaya 
+      Naql hai Miyan Abdul Karim ki waalida ne {HMAS} ke huzoor mein arz kee ke main ne khwab mein dekha ke mujhe Mahtar Yahya AS ka hamal hua hai. {HMAS} ne farmaya ke Khuda e Ta'ala tum ko farzand aata karega jo Mahtar Yahya AS ka qayam-maqam hoga. {HMAS} ko qai jui us waqt Miyan Abdul Majeed RZ maujood the woh sab qai apne haath mein le kar kha liye thodi qai jo reh gayi thi apni aurat ko khilaya {HMAS} ne yeh kaifiyat suni aur farmaya ke Khuda e Ta'ala tum ko farzand-e-saaleh dega Miyan Abdul Karim {HMAS} ke mubashshir hain {HMAS} ki rihlat ke ek saal ba'ad Miyan Abdul Karim paida hue.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 145
+      </cite>
+    </p>
+  ),
+  46: (
+    <p>
+      Naql hai {HMAS} ne farmaya ke koi shakhs hazaar saal ibadat kiya hai aur woh ibadat maqbool ho chuki hai to bande ki ek nazar ke barabar na hogi bande ki ek nazar hazaar saala ibadat se behtar hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 147
+      </cite>
+    </p>
+  ),
+  47: (
+    <p>
+      naql hai {HMAS} ke ghar mein baandi thi jab raat hoti to baahar jaati. {MAS} ki biwiyon ne jhidki di ke raat mein kahan jaati hai {HMAS} ne farmaya ke is ki sair arsh ke neeche hai wahan jaati hai aur namaz padhti hai is ko kuch mat kaho.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 172
+        <br />
+        {NBM} Syed Aalam RH pgno. 44
+      </cite>
+    </p>
+  ),
+  48: (
+    <p>
+      Naql hai {HMAS} ne Miyan Syed Salamullah RZ ki maandi par apna sar rakh kar bahut zaari ki Miyan RZ ne arz kiya ke {HMAS} kis liye is qadr zaari karte hain {MAS} ne farmaya ke satrah (17) saal hue ke do dam barabar nahi nafi ke dam ki sair taht-us-sara tak hai aur isbaat ke dam ki sair arsh tak hai. Sair aisi hai Khudae Ta'ala baaqi is liye zaari hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 193
+        <br />
+        {NBM} Syed Aalam RH pgno. 51 mein hai "Hizhdah saal" 18 saal.
+      </cite>
+    </p>
+  ),
+  49: (
+    <p>
+      Naql hai {HMAS} jahaaz mein baithe hue darya ki gehraai mein pahunche yakayak toofan zaahir hua chalane wala jahaaz chalane se aajiz ho gaya. Miyan Syed Salamullah RZ shor wa ghul aur pareshani se {MAS} ke huzoor mein aaye kya dekhte hain ke {MAS} muraqeba mein hain. Miyan RZ ne shor wa ghul se aisa arz kiya ke jahaaz mein qahar paida ho gaya tha. {MAS} ne farmaya ke mujh ko kya kehte ho main ne kis waqt kaha ke main Khudae Ta'ala ke hukum par qaadir hoon. Is ke ba'ad Miyan RZ ne kaha ke Aap qasam khaiye ke aap ke haath mein Khuda ke khazane ki kunjiya nahi hain. {HMAS} ne sar utha kar chand baar aasmaan aur darya ki taraf dekha usi waqt toofan baith gaya kya dekhte hain ke pandrah (15) roz ke raaste par jo bandar tha usi waqt aa gaya jahaaz mein talaash kiye to zakheera qareeb-ul-khatm tha is ke ba'ad farmaya ke ek baar tu ne sabr bhi nahi kiya ke Khudae Ta'ala ne yeh toofan kis liye paida kiya hai.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 276
+        <br />
+        Hujjat pgno. 9
+        <br />
+        Maulood pgno. 50
+      </cite>
+    </p>
+  ),
+  50: (
+    <p>
+      Naql hai {HMAS} Kaabatullah ko gaye aur kaabatullah ke nazdeek baith gaye Sahaba RZ ne arz kiya ke Meeranji kis liye Kaabatullah ka tawaf nahi karte. Ek ghanta guzra Miyan Nizam RZ saahib-e-kashf the dekha ke Kaabatuallah {HMAS} ka tawaf karta hai. {HMAS} ne Miyan Nizam RZ se farmaya ke Khudae Ta'ala ne tum ko aankh diya hai tum dekhte ho doosre nahi dekhte.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 277
+        <br />
+        {NBM} Syed Aalam RH pgno. 29
+        <br />
+        Maulood pgno. 46
+      </cite>
+    </p>
+  ),
+  51: (
+    <p>
+      Naql hai ek roz ek mard-e-Mughal {HMAS} ke huzoor mein aakar baitha aur arz kiya ke Aye Syed {MAS} ki alamat hai ke us par shamsheer asar na kare. {HMAS} ne apni shamsheer us ke haath mein de di aur farmaya ke aazmao. Us ne shamsheer ko apne haath mein le kar bahut qasd kiya haath ooncha karne ki taqat nahi hui. Us ne kaha is ko patthar ya loha bandha hua    hai bhaari hone ke sabab se main oopar nahi kar sakta. {HMAS} ne farmaya ke Aye bhai shamsheer ka kaam kaatne ka hai aur paani ka kaam dubaane ka hai aur aag ka kaam jalane ka hai aur wa lekin {MAS} aur Mustafa SAWS par kkooi qaadir nahi ho sakta.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 278
+        <br />
+        Hujjat pgno. 26
+        <br />
+        {NBMAR} pgno. 83
+        <br />
+        Matla pgno. 83
+        <br />
+        {SUW} pgno. 226
+        <br />
+        Raunaq-ul-Muttaqeen pgno. 28
+        <br />
+        {MUW} pgno. 167
+      </cite>
+    </p>
+  ),
+  52: (
+    <p>
+      Naql hai Gujarat mein ek roz {HMAS} ghusl ke liye Sabarmati nadi ko gaye the wahan Aap ne ek ajnabi ghair aashna shakhs kkok bhi dekha jo jawan tha farmaya ke aa aur hamari peeth ko mal. Woh shakhs aakarr peeth mala us waqt farmaya ke tu baith hum teri peeth malte hain. Jab aap ne dast-e-mubarak us ki peeth par daala usi waqt us ko jazba hua ghaib ki cheezein nazar aane lagein.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 279
+      </cite>
+    </p>
+  ),
+  53: (
+    <p>
+      Naql hai ke ek roz {HMAS} ne shehar Farah mein ghusl kiya aur sar ke baal khol kar Haq Ta'ala ki yaad mein mashghool the yakayak ek bada saanp soraakh se baahar aaya aur apna sar uthaya {HMAS} ne apna sar jhuka kar saanp ke saamne rakha aur farmaya ke agar Khuda ka farman kaatne ke liye hai to hum raazi hain is ke ba'ad saanp ne apna sar soraakh mein kheinch liya {HMAS} ne apna sar utha liya. Phir saanp aaya phir {MAS} ne apna sar saanp ke saamne kiya aur farmaya ke jo kuch Haq ki raza hai us par hum raazi hain phir saanp ne apna sar kheinch liya teesri baar phir aaya {HMAS} ne apna sar us ke saamne rakha saanp kalaam kiya aur {HMAS} se chand sawal kiya aur kaha ke hum tere mushtaq the is waqt tera jamaal dekhne aaye hain. Saanp baahar aaya {MAS} ke nazdeek aakar qadam0e0mubarak par lot kar chale gaya. (Ek riwayat mein hai ke {HMAS} ne apne dono qadam-e-mubarak laanbe karke saanp ke saamne rakha)
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 280
+      </cite>
+    </p>
+  ),
+  54: (
+    <p>
+      Miyan Syed Salamullah RZ se marwi hai ek roz {HMAS} khade hue the yakayak {MAS} ke dahan-e-mubarak ke saamne ke chaar daanton ke baazu ka daant juda hua woh {HMAS} ki biwi jin ka naam Bibi Ilahdati (Razi allah Ta'ala 'anha) tha usi waqt zameen se utha liyein is ke ba'ad Syed mazkoor ne farmaya ke Aye meri behen mujh ko do main rakhoon ha daant rakhne ke muta'lliq bhai aur behen ke darmiyan badi khusoomat paida hui hab {MAS} ne (yeh waqia) dekhato farmaya ke kis liye khusoomat karte ho yeh Khuda ka noor hai noor se noor hargiz juda nahi rahega. Is ke ba'ad khusoomat door hui Bibi RZ ne dandan-e-mubarak nko rui mein lapet kar ek sandooq mein muqaffal rakhein aur chand roz ke ba'ad kya dekhti hain ke saari rui waisi hi  hai aur dandan-e-mubarak ghayab ho gaya. Pas maloom hua ke woh daant sarapa noor tha.
+      <br /><br /><br />
+      <cite>
+        Hujjat-ul-Munsafeen pgno. 7
+      </cite>
+    </p>
+  ),
+  55: (
+    <p>
+      Ba'az ashkhaas ne arz kiya Meeranji is kutte ka haal kaisa hai farmaya ke yeh Ashaab-e-Kahf ke kutte ka rafeeq hai.
+      <br /><br /><br />  
+      <cite>
+        Hujjat-ul-Munsafeen pgno. 19
+      </cite>
     </p>
   )
-  // Add more nuqool entries here as: 2: (<p>...</p>)
+  /* Add more nuqool entries here as: 2: (<p>...</p>) */
 };
 
 export default nuqoolObject;

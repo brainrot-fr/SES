@@ -1,3 +1,11 @@
+/*
+ * sidebar.css
+ * Layout and interaction styling for the app sidebar.
+ *
+ * - Animates the drawer sliding in and out.
+ * - Styles menu links, footer buttons, and the modal backdrop.
+ */
+
 .sidebar {
   position: fixed;
   top: 0;

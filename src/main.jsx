@@ -1,3 +1,12 @@
+/**
+ * main.jsx
+ * Entry point for the React application.
+ *
+ * - Bootstraps React using createRoot.
+ * - Wraps the whole app in LanguageProvider so translation and direction state
+ *   is available throughout the component tree.
+ */
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { LanguageProvider } from './context/LanguageContext';

@@ -1,3 +1,11 @@
+/**
+ * timeline.jsx
+ * Timeline feature page showing major events and details.
+ *
+ * - Renders a vertical timeline using MUI Lab components.
+ * - Opens event detail dialogs with accessible keyboard support.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import {
   Timeline,
@@ -17,18 +25,23 @@ const LAST_INDEX = timelineEvents.length - 1;
 export default function timeline() {
   const { t } = useLang();
 
-  // `openEvent` holds the content to render; `isOpen` only controls visibility.
-  // Keeping them separate means the dialog still shows the right event while
-  // it animates closed, instead of blanking out mid-transition.
+  /*
+   * `openEvent` holds the content to render; `isOpen` only controls visibility.
+   * Keeping them separate means the dialog still shows the right event while
+   * it animates closed, instead of blanking out mid-transition.
+   */
+
   const [openEvent, setOpenEvent] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const closeBtnRef = useRef(null);
 
+  /* When the dialog opens, move focus to the close button for accessibility. */
   useEffect(() => {
     if (isOpen) closeBtnRef.current?.focus();
   }, [isOpen]);
 
   const openDetails = (ev) => {
+    /* Store the selected event and make the dialog visible. */
     setOpenEvent(ev);
     setIsOpen(true);
   };

@@ -1,46 +1,51 @@
+/**
+ * ur.js
+ * Urdu translation strings used across the application.
+ */
+
 export default {
-  // App shell
+  /* App shell */
   appTitle:    'نقول امام مہدی علیہ السلام',
   openMenu:    'مینو کھولیں',
   toLightMode: 'روشن موڈ',
   toDarkMode:  'تاریک موڈ',
   changeLang:  'زبان بدلیں',
 
-  // Nav
+  /* Nav */
   navNuqool:   'نقول امام مہدی علیہ السلام',
   navTimeline: 'سلسلہ واقعات',
 
-  // Page titles
+  /* Page titles */
   titleNuqool:   'نقول امام مہدی علیہ السلام',
   titleTimeline: 'سلسلہ واقعات',
 
-  // Sidebar
+  /* Sidebar */
   menu: 'مینو',
   testNotification: 'ٹیسٹ نوٹیفکیشن بھیجیں',
 
   notificationScheduled: 'ٹیسٹ نوٹیفکیشن جلد موصول ہوگا۔',
   notificationScheduleFailed: 'ٹیسٹ نوٹیفکیشن شیڈیول نہیں ہو سکا۔',
 
-  // NaqlDashboard
+  /* NaqlDashboard */
   naql:     'نقل',
   prevNaql: '→',   // flipped for RTL reading direction
   nextNaql: '←',
   goToNaql: 'نقل نمبر پر جائیں',
 
-  // Timeline
+  /* Timeline */
   tlName:       'امام مہدی علیہ السلام',
   tlSpan:       '۸۴۷ ہجری — ۹۱۰ ہجری',
   tlDetails:    'تفصیل ←',
   tlClose:      '✕',
   tlCloseLabel: 'بند کریں',
 
-  // Onboarding
+  /* Onboarding */
   obChoose:   'جاری رکھنے کے لیے زبان منتخب کریں',
   obEnglish:  'English',
   obUrdu:     'اردو',
   obContinue: 'جاری رکھیں',
 
-  //Quran
+  /* Quran */
   navQuran:    'قرآن مجید',
   titleQuran:  'قرآن مجید',
 

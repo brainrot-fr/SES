@@ -1,3 +1,11 @@
+/**
+ * Quran.jsx
+ * Entry component for the Quran feature.
+ *
+ * - Loads the last selected Surah from storage.
+ * - Shows either the surah list or the reader depending on selection.
+ */
+
 import { useState } from 'react';
 import QuranSurahList from './QuranSurahList';
 import QuranReader from './QuranReader';

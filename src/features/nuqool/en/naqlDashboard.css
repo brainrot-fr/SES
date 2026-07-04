@@ -1,3 +1,8 @@
+/*
+ * naqlDashboard.css
+ * Layout and navigation styling for the Naql dashboard.
+ */
+
 .naql-container {
   padding: 1rem;
   padding-bottom: 170px; /* clearance for the two-row fixed nav */
@@ -20,7 +25,7 @@
   background-color: var(--panel);
   padding: 1rem;
   border-radius: 20px;
-  box-shadow: 10px 5px 5px 5px  var(--shadow);
+  box-shadow: 0 -2px 12px var(--shadow);
 }
 
 .naql-content summary {

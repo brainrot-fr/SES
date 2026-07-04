@@ -13,13 +13,27 @@
 
 const API_BASE = 'https://api.alquran.cloud/v1';
 const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
-const AUDIO_EDITION = 'ar.alafasy'; // Mishary Alafasy — clear, widely used default
 const AUDIO_BITRATE = 128;
-
 const CACHE_PREFIX = 'ses-quran-cache-';
+const RECITER_STORAGE_KEY = 'ses-quran-reciter';
 
-function audioUrlForAyah(globalAyahNumber) {
-  return `${AUDIO_CDN}/${AUDIO_BITRATE}/${AUDIO_EDITION}/${globalAyahNumber}.mp3`;
+export const RECITERS = [
+  { id: 'ar.alafasy', name: 'Mishary Alafasy' },
+  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit (Murattal)' },
+  { id: 'ar.husary', name: 'Mahmoud Al-Husary' },
+  { id: 'ar.minshawi', name: 'Mohamed Minshawi' },
+];
+
+export function getSavedReciter() {
+  return localStorage.getItem(RECITER_STORAGE_KEY) || RECITERS[0].id;
+}
+
+export function saveReciter(id) {
+  localStorage.setItem(RECITER_STORAGE_KEY, id);
+}
+
+export function buildAudioUrl(globalAyahNumber, reciterId = getSavedReciter()) {
+  return `${AUDIO_CDN}/${AUDIO_BITRATE}/${reciterId}/${globalAyahNumber}.mp3`;
 }
 
 function readCache(key) {
@@ -84,10 +98,9 @@ export async function fetchSurah(surahNumber) {
     revelationType: data.revelationType,
     numberOfAyahs: data.numberOfAyahs,
     ayahs: data.ayahs.map((a) => ({
-      number: a.number,               // global 1–6236, used for the audio URL
+      number: a.number,               // global 1–6236, used to build the audio URL
       numberInSurah: a.numberInSurah,
       text: a.text,
-      audioUrl: audioUrlForAyah(a.number),
     })),
   };
 

@@ -1,6 +1,6 @@
 .naql-container {
   padding: 1rem;
-  padding-bottom: 110px; /* clearance for the two-row fixed nav */
+  padding-bottom: 170px; /* clearance for the two-row fixed nav */
 }
 
 .naql-scroll-anchor {
@@ -14,29 +14,30 @@
 }
 
 .naql-content p {
-  margin: 0 2rem 1.5rem;
+  margin: 0 1rem 1rem;
   color: var(--text-small);
   line-height: 1.7;
   background-color: var(--panel);
   padding: 1rem;
   border-radius: 20px;
-  border-color: black;
+  box-shadow: 10px 5px 5px 5px  var(--shadow);
 }
 
 .naql-content summary {
-  margin: 1rem 2rem;
+  margin: 2rem 2rem;
   cursor: pointer;
   color: var(--muted);
 }
 
 .naql-content details {
-  margin: 0 2rem;
+  margin: 4rem 2rem;
+  font-size: large;
 }
 
 /* ── Fixed bottom navigation bar ── */
 .naql-nav {
   position: fixed;
-  bottom: 0;
+  bottom: 80px;
   left: 0;
   right: 0;
   display: flex;
@@ -46,8 +47,11 @@
   padding: 0.5rem 1rem 0.6rem;
   background: var(--panel);
   border-top: 1px solid var(--border);
+  border-radius: 20px;
+  width: min(80rem, 300px);
   box-shadow: 0 -2px 12px var(--shadow);
-  z-index: 50;
+  z-index: 0;
+  justify-self: center;
 }
 
 /* Each row inside the nav */

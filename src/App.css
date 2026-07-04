@@ -59,3 +59,47 @@
   min-width: 240px;
   text-align: center;
 }
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 12px var(--shadow);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.5rem 0.25rem 0.4rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.bottom-nav__icon {
+  display: flex;
+}
+
+.bottom-nav__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.bottom-nav__item--active {
+  color: var(--primary);
+}
+
+.app-main {
+  padding-bottom: 64px;
+}

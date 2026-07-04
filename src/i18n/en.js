@@ -56,4 +56,8 @@ export default {
   quranNextSurah:      '→',
   quranPrevSurahLabel: 'Previous Surah',
   quranNextSurahLabel: 'Next Surah',
+
+  quranReciter:          'Reciter',
+  quranShowTranslation:  'Show Translation',
+  quranHideTranslation:  'Hide Translation',
 };

@@ -110,6 +110,32 @@ async function cancelPendingNaqlNotifications() {
 }
 
 /**
+ * Cancel any pending naql notifications whose scheduled time has already
+ * passed. After a reboot, Android can otherwise deliver all of these at
+ * once instead of skipping them.
+ */
+export async function pruneStaleNaqlNotifications() {
+  try {
+    const pending = await LocalNotifications.getPending();
+    const now = Date.now();
+    const stale = pending.notifications.filter((n) => {
+      if (n.id < ID_BASE || n.id >= ID_BASE + ID_RANGE) return false;
+      const at = new Date(n.schedule?.at || 0).getTime();
+      return at <= now;
+    });
+    if (stale.length > 0) {
+      console.log(`[naqlNotifications] pruning ${stale.length} stale notifications`);
+      for (let i = 0; i < stale.length; i += BATCH_SIZE) {
+        const batch = stale.slice(i, i + BATCH_SIZE);
+        await LocalNotifications.cancel({ notifications: batch.map((n) => ({ id: n.id })) });
+      }
+    }
+  } catch (err) {
+    console.error('[naqlNotifications] error pruning stale notifications', err);
+  }
+}
+
+/**
  * Check if notifications are already scheduled for today
  */
 async function hasNotificationsForToday() {
@@ -143,6 +169,8 @@ export async function scheduleDailyNaqlNotifications() {
 
   try {
     console.log('[naqlNotifications] starting schedule check');
+
+    await pruneStaleNaqlNotifications();
 
     // Create notification channel on Android before scheduling
     if (Capacitor.getPlatform() === 'android') {

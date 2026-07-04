@@ -73,7 +73,7 @@
 /* ── Reader ── */
 .quran-container {
   padding: 1rem;
-  padding-bottom: 95px; /* clearance for the fixed nav */
+  padding-bottom: 155px; /* clearance for the fixed nav + bottom-nav */
 }
 
 .quran-scroll-anchor {
@@ -226,7 +226,7 @@
 /* ── Fixed bottom nav ── */
 .quran-nav {
   position: fixed;
-  bottom: 0;
+  bottom: 80px;
   left: 0;
   right: 0;
   display: flex;
@@ -298,4 +298,40 @@
 
 .quran-nav__play-text {
   margin-left: 0.5rem;
+}
+
+.quran-reciter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.quran-reciter__label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.quran-reciter__select {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text-small);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.quran-translation-toggle {
+  display: block;
+  margin: 0 auto 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
 }

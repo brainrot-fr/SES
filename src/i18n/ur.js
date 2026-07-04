@@ -54,4 +54,8 @@ export default {
   quranNextSurah:      '←',
   quranPrevSurahLabel: 'پچھلی سورت',
   quranNextSurahLabel: 'اگلی سورت',
+
+  quranReciter:          'قاری منتخب کریں',
+  quranShowTranslation:  'ترجمہ دکھائیں',
+  quranHideTranslation:  'ترجمہ چھپائیں',
 };

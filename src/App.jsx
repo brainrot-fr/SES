@@ -7,6 +7,7 @@ import Quran from './features/quran/Quran';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
 import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped, scheduleTestNotification } from './notifications/naqlNotifications';
+import { App as CapacitorApp } from '@capacitor/app';
 
 // ── Icons ────────────────────────────────────────────────────
 const SunIcon = () => (
@@ -27,6 +28,53 @@ const HamburgerIcon = () => (
     <path d="M3 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4z"/>
   </svg>
 );
+
+const BookIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z"/>
+  </svg>
+);
+
+const ScrollIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M8 3H6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2m0-5h10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M8 3v18M6 8h2m8 0a2 2 0 1 1-4 0m4 0V3m-4 5V3m0 18h10a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2H8"/>
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3"/>
+  </svg>
+);
+
+const MoreIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z"/>
+  </svg>
+);
+
+function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
+  return (
+    <nav className="bottom-nav" aria-label="Primary navigation">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          className={`bottom-nav__item ${activePage === it.id ? 'bottom-nav__item--active' : ''}`}
+          onClick={() => onNavigate(it.id)}
+          aria-current={activePage === it.id ? 'page' : undefined}
+        >
+          <span className="bottom-nav__icon">{it.icon}</span>
+          <span className="bottom-nav__label">{it.label}</span>
+        </button>
+      ))}
+      <button className="bottom-nav__item" onClick={onMore}>
+        <span className="bottom-nav__icon"><MoreIcon /></span>
+        <span className="bottom-nav__label">{moreLabel}</span>
+      </button>
+    </nav>
+  );
+}
 
 // ── Component ────────────────────────────────────────────────
 export default function App() {
@@ -53,7 +101,15 @@ export default function App() {
       setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
     });
 
-    return cleanup;
+    let stateHandle;
+    CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) scheduleDailyNaqlNotifications();
+    }).then((h) => { stateHandle = h; });
+
+    return () => {
+      cleanup();
+      stateHandle?.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -66,9 +122,9 @@ export default function App() {
   if (!lang) return <Onboarding />;
 
   const navItems = [
-    { id: 'nuqool',   label: t('navNuqool') },
-    { id: 'quran',    label: t('navQuran') },
-    { id: 'timeline', label: t('navTimeline') },
+    { id: 'nuqool',   label: t('navNuqool'),   icon: <ScrollIcon /> },
+    { id: 'quran',    label: t('navQuran'),    icon: <BookIcon /> },
+    { id: 'timeline', label: t('navTimeline'), icon: <ClockIcon /> },
   ];
 
   const pageTitles = {
@@ -140,6 +196,13 @@ export default function App() {
       <main className="app-main">
         {renderPage()}
       </main>
+      <BottomNav
+        items={navItems}
+        activePage={currentPage}
+        onNavigate={(id) => setCurrentPage(id)}
+        onMore={() => setSidebarOpen(true)}
+        moreLabel={t('menu')}
+      />
     </div>
   );
 }

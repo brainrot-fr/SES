@@ -520,7 +520,20 @@ export const nuqoolObject = {
       </cite>
     </p>
   ),
-  
+  44: (
+    <p>
+      Naql hai {HMAS} baithe hue the janaza laaye sahaba RZne {MAS} se arz kiya is murda par azaab ho raha hai. {HMAS} ne is murda ko dekha farman-e-khuda hua ke <strong>"Aye Syed Muhammad teri nazar is par padi hum ne is ko najaat di is oar namaz-e-janaza padho."</strong> {HMAS} ne is par namaz padhi Shaba RZ ne dekha aur kaha ke {MAS} ke sabab se is murde par reham hua.
+      <br /><br /><br />
+      <cite>
+        Hashiya pgno. 126
+      </cite>
+    </p>
+  ),
+  45: (
+    <p>
+      naql hai Miyan Abdul Karim ki waalida ne {HMAS} ke huzoor mein arz kee ke main ne khwab mein dekha ke mujhe Mahtar Yahya AS ka hamal hua hai. {HMAS} ne farmaya ke Khuda e Ta'ala tum ko farzand aata karega jo Mahtar Yahya AS ka qayam-maqam hoga. {HMAS} ko qai jui us waqt Miyan Abdul Majeed RZ maujood the woh sab qai apne haath mein le kar kha liye thodi qai jo reh gayi thi apni aurat ko khilaya 
+    </p>
+  )
   // Add more nuqool entries here as: 2: (<p>...</p>)
 };
 

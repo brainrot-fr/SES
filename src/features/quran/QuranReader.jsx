@@ -1,16 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { fetchSurah, RECITERS, buildAudioUrl, getSavedReciter, saveReciter } from './quranApi';
-import { LocalNotifications } from '@capacitor/local-notifications';
+import { useState, useEffect, useRef } from 'react';
+import { fetchSurah } from './quranApi';
 import { quranTranslations } from './quranTranslations';
 import { useLang } from '../../context/LanguageContext';
 import { PlayIcon, PauseIcon, PrevIcon, NextIcon } from '../../components/icons/MediaIcons.jsx';
+import { useQuranAudioPlayer } from './useQuranAudioPlayer';
 import './quran.css';
 
 const TOTAL_SURAHS = 114;
-const NO_SEPARATE_BISMILLAH = [1, 9]; // Al-Fatiha has it as ayah 1 itself; At-Tawbah omits it
+const NO_SEPARATE_BISMILLAH = [1, 9];
 const STORAGE_KEY = 'ses-current-surah';
-const NOTIF_ID = 778899;
+const AYAH_BATCH_SIZE = 20; // ayahs mounted per batch — keeps first paint light on device
 
 export default function QuranReader({ initialSurah, onBack }) {
   const { t } = useLang();
@@ -21,39 +20,23 @@ export default function QuranReader({ initialSurah, onBack }) {
   });
   const [surah, setSurah] = useState(null);
   const [error, setError] = useState(null);
-  const [playingAyah, setPlayingAyah] = useState(null);
-  const [autoAdvance, setAutoAdvance] = useState(false);
-  const [reciter, setReciter] = useState(() => getSavedReciter());
-  const [isPaused, setIsPaused] = useState(false);
-  const [showTranslation, setShowTranslation] = useState(
-    () => localStorage.getItem('ses-show-translation') !== 'false'
-  );
+  const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
 
-  // Lazy-init once, during render — guarantees audioRef.current is ready
-  // before any effect below touches it.
-  const audioRef = useRef(null);
-  if (audioRef.current === null) {
-    audioRef.current = new Audio();
-  }
   const topRef = useRef(null);
+  const sentinelRef = useRef(null);
 
-  const stateRef = useRef({ playingAyah: null, isPaused: false, surah: null, autoAdvance: false });
-  useEffect(() => {
-    stateRef.current = { playingAyah, isPaused, surah, autoAdvance };
-  });
+  const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
 
-  const goTo = useCallback(
-    (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n))),
-    []
-  );
+  const {
+    activeAyahNumber, isPlaying, autoAdvance,
+    toggleAyah, playSurahFromStart, stop,
+  } = useQuranAudioPlayer(surah);
 
   useEffect(() => {
     let cancelled = false;
     setSurah(null);
     setError(null);
-    audioRef.current.pause();
-    setPlayingAyah(null);
-    setAutoAdvance(false);
+    setVisibleCount(AYAH_BATCH_SIZE);
     localStorage.setItem(STORAGE_KEY, String(currentSurah));
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -64,158 +47,44 @@ export default function QuranReader({ initialSurah, onBack }) {
     return () => { cancelled = true; };
   }, [currentSurah]);
 
-  const playAyah = useCallback((ayah, chain = false) => {
-    const audio = audioRef.current;
-    audio.src = buildAudioUrl(ayah.number, reciter);
-    audio.play().catch(() => {});
-    setPlayingAyah(ayah.numberInSurah);
-    setAutoAdvance(chain);
-    setIsPaused(false);
-  }, [reciter]);
-
-  const pauseAudio = useCallback(() => {
-    audioRef.current.pause();
-    setIsPaused(true);
-  }, []);
-
-  const resumeAudio = useCallback(() => {
-    audioRef.current.play().catch(() => {});
-    setIsPaused(false);
-  }, []);
-
-  const stopAudio = useCallback(() => {
-    audioRef.current.pause();
-    setPlayingAyah(null);
-    setAutoAdvance(false);
-    setIsPaused(false);
-  }, []);
-
-  // Auto-advance through the surah when "Play Surah" is active
+  // Reveal more ayahs as the reader scrolls near the bottom, instead of
+  // mounting the whole surah (up to 286 ayahs of QPCHafs ligature text)
+  // in one synchronous pass — that's what was blocking/crashing on device.
   useEffect(() => {
-    const audio = audioRef.current;
-    const handleEnded = () => {
-      if (!autoAdvance || !surah) { setPlayingAyah(null); return; }
-      const next = surah.ayahs.find((a) => a.numberInSurah === playingAyah + 1);
-      if (next) playAyah(next, true);
-      else { setPlayingAyah(null); setAutoAdvance(false); }
-    };
-    audio.addEventListener('ended', handleEnded);
-    return () => audio.removeEventListener('ended', handleEnded);
-  }, [autoAdvance, playingAyah, surah, playAyah]);
-
-  // Subscribe to native button taps
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    console.log('[MusicControls] subscribing to actions');
-
-    const handleAction = (action) => {
-      console.log('[MusicControls] action received', action);
-      const { surah: s, playingAyah: pa, autoAdvance: aa } = stateRef.current;
-      const message = JSON.parse(action).message;
-      switch (message) {
-        case 'music-controls-pause':
-        case 'music-controls-media-button-pause':
-          pauseAudio();
-          break;
-        case 'music-controls-play':
-        case 'music-controls-media-button-play':
-          resumeAudio();
-          break;
-        case 'music-controls-next':
-        case 'music-controls-media-button-next': {
-          const next = s?.ayahs.find((a) => a.numberInSurah === pa + 1);
-          if (next) playAyah(next, aa);
-          break;
+    if (!surah) return undefined;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => Math.min(c + AYAH_BATCH_SIZE, surah.ayahs.length));
         }
-        case 'music-controls-previous':
-        case 'music-controls-media-button-previous': {
-          const prev = s?.ayahs.find((a) => a.numberInSurah === pa - 1);
-          if (prev) playAyah(prev, aa);
-          break;
-        }
-        default:
-          break;
-      }
-    };
+      },
+      { rootMargin: '800px 0px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [surah]);
 
-    MusicControls.subscribe(handleAction);
-    MusicControls.listen();
-
-    return () => {
-      MusicControls.destroy();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Create / update / tear down the notification as playback state changes
+  // Keep the revealed window in sync with whatever's actually playing
+  // (e.g. "Play Surah" auto-advancing past what's currently rendered).
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    if (playingAyah && surah) {
-      console.log('[MusicControls] create() called', { playingAyah, isPaused });
-      MusicControls.create({
-        track: `Ayah ${playingAyah}`,
-        artist: surah.englishName,
-        album: 'Quran',
-        isPlaying: !isPaused,
-        hasPrev: playingAyah > 1,
-        hasNext: playingAyah < surah.numberOfAyahs,
-        hasClose: true,
-        dismissable: true,
-      }, () => {}, (err) => console.error('[MusicControls] create failed', err));
-      MusicControls.updateIsPlaying(!isPaused);
-    } else {
-      MusicControls.destroy();
+    if (activeAyahNumber && activeAyahNumber > visibleCount) {
+      setVisibleCount((c) => Math.max(c, activeAyahNumber));
     }
-  }, [playingAyah, isPaused, surah]);
+  }, [activeAyahNumber, visibleCount]);
 
-  useEffect(() => {
-    saveReciter(reciter);
-    if (playingAyah != null && surah) {
-      const current = surah.ayahs.find((a) => a.numberInSurah === playingAyah);
-      if (current) {
-        audioRef.current.src = buildAudioUrl(current.number, reciter);
-        if (!isPaused) audioRef.current.play().catch(() => {});
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reciter]);
+  const translationForAyah = (numberInSurah) => quranTranslations[currentSurah]?.[numberInSurah];
 
-  useEffect(() => {
-    if (!('mediaSession' in navigator)) return;
-    if (playingAyah && surah) {
-      if (typeof MediaMetadata !== 'undefined') {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: `${surah.englishName} · Ayah ${playingAyah}`,
-          artist: t('appTitle'),
-          album: 'Quran',
-        });
-      }
-      navigator.mediaSession.playbackState = isPaused ? 'paused' : 'playing';
-      navigator.mediaSession.setActionHandler('play', resumeAudio);
-      navigator.mediaSession.setActionHandler('pause', pauseAudio);
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        const prev = surah.ayahs.find((a) => a.numberInSurah === playingAyah - 1);
-        if (prev) playAyah(prev, autoAdvance);
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        const next = surah.ayahs.find((a) => a.numberInSurah === playingAyah + 1);
-        if (next) playAyah(next, autoAdvance);
-      });
-    } else {
-      navigator.mediaSession.playbackState = 'none';
-    }
-  }, [playingAyah, isPaused, surah, autoAdvance, playAyah, pauseAudio, resumeAudio, t]);
-
-  const translationForAyah = (numberInSurah) =>
-    quranTranslations[currentSurah]?.[numberInSurah];
+  const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
+  const hasMore = surah ? visibleCount < surah.ayahs.length : false;
 
   return (
     <div className="quran-container">
       <div ref={topRef} className="quran-scroll-anchor" />
 
       {onBack && (
-        <button className="quran-back" onClick={onBack}>
+        <button className="quran-back" onClick={() => { stop(); onBack(); }}>
           {t('quranBackToList')}
         </button>
       )}
@@ -232,65 +101,32 @@ export default function QuranReader({ initialSurah, onBack }) {
             </p>
           </header>
 
-          <div className="quran-reciter">
-            <label htmlFor="reciter-select" className="quran-reciter__label">
-              {t('quranReciter')}
-            </label>
-            <select
-              id="reciter-select"
-              className="quran-reciter__select"
-              value={reciter}
-              onChange={(e) => setReciter(e.target.value)}
-            >
-              {RECITERS.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            type="button"
-            className="quran-translation-toggle"
-            onClick={() => {
-              setShowTranslation((v) => {
-                localStorage.setItem('ses-show-translation', String(!v));
-                return !v;
-              });
-            }}
-          >
-            {showTranslation ? t('quranHideTranslation') : t('quranShowTranslation')}
-          </button>
-
           {!NO_SEPARATE_BISMILLAH.includes(currentSurah) && (
             <h1 className="quran-bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
           )}
 
           <div className="quran-ayahs">
-            {surah.ayahs.map((ayah) => {
+            {visibleAyahs.map((ayah) => {
               const translation = translationForAyah(ayah.numberInSurah);
-              const isPlaying = playingAyah === ayah.numberInSurah;
+              const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
               return (
-                <div key={ayah.number} className={`quran-ayah ${isPlaying ? 'quran-ayah--playing' : ''}`}>
+                <div key={ayah.number} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
                   <div className="quran-ayah__row">
                     <span className="quran-ayah__num">{ayah.numberInSurah}</span>
                     <p className="quran-ayah__text">{ayah.text}</p>
                     <button
                       className="quran-ayah__play"
-                      onClick={() => {
-                        if (isPlaying && !isPaused) pauseAudio();
-                        else if (isPlaying && isPaused) resumeAudio();
-                        else playAyah(ayah);
-                      }}
-                      aria-label={isPlaying && !isPaused ? t('quranPause') : t('quranPlayAyah')}
+                      onClick={() => toggleAyah(ayah)}
+                      aria-label={isThisPlaying ? t('quranPause') : t('quranPlayAyah')}
                     >
-                      {isPlaying && !isPaused ? (
+                      {isThisPlaying ? (
                         <PauseIcon className="quran-ayah__icon" title={t('quranPause')} />
                       ) : (
                         <PlayIcon className="quran-ayah__icon" title={t('quranPlayAyah')} />
                       )}
                     </button>
                   </div>
-                  {showTranslation && translation && (
+                  {translation && (
                     <div className="quran-ayah__translation">
                       <p className="quran-ayah__ur">{translation.ur}</p>
                       <p className="quran-ayah__translit">{translation.urTransliteration}</p>
@@ -299,6 +135,7 @@ export default function QuranReader({ initialSurah, onBack }) {
                 </div>
               );
             })}
+            {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
           </div>
         </section>
       )}
@@ -316,15 +153,11 @@ export default function QuranReader({ initialSurah, onBack }) {
 
           <button
             className="quran-nav__play-surah"
-            onClick={() => {
-              if (autoAdvance && !isPaused) pauseAudio();
-              else if (autoAdvance && isPaused) resumeAudio();
-              else surah && playAyah(surah.ayahs[0], true);
-            }}
+            onClick={() => (autoAdvance ? stop() : playSurahFromStart())}
             disabled={!surah}
-            aria-label={autoAdvance && !isPaused ? t('quranPause') : t('quranPlaySurah')}
+            aria-label={autoAdvance ? t('quranPause') : t('quranPlaySurah')}
           >
-            {autoAdvance && !isPaused ? (
+            {autoAdvance ? (
               <>
                 <PauseIcon className="quran-nav__icon" title={t('quranPause')} />
                 <span className="quran-nav__play-text">{t('quranPause')}</span>

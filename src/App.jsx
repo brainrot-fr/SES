@@ -6,51 +6,51 @@ import Timeline from './features/timeline/timeline';
 import Quran from './features/quran/Quran';
 import Onboarding from './components/Onboarding';
 import { useLang } from './context/LanguageContext';
-import { scheduleDailyNaqlNotifications, onNaqlNotificationTapped, scheduleTestNotification } from './notifications/naqlNotifications';
+import { initNaqlNotificationLifecycle, scheduleTestNotification } from './notifications/naqlNotifications';
 import { App as CapacitorApp } from '@capacitor/app';
 
 // ── Icons ────────────────────────────────────────────────────
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+    <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
   </svg>
 );
 
 const MoonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z" />
   </svg>
 );
 
 const HamburgerIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z"/>
-    <path d="M3 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4z"/>
+    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z" />
+    <path d="M3 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4z" />
   </svg>
 );
 
 const BookIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z"/>
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z" />
   </svg>
 );
 
 const ScrollIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M8 3H6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2m0-5h10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M8 3v18M6 8h2m8 0a2 2 0 1 1-4 0m4 0V3m-4 5V3m0 18h10a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2H8"/>
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M8 3H6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2m0-5h10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M8 3v18M6 8h2m8 0a2 2 0 1 1-4 0m4 0V3m-4 5V3m0 18h10a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2H8" />
   </svg>
 );
 
 const ClockIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3"/>
+    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
   </svg>
 );
 
 const MoreIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z"/>
+    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z" />
   </svg>
 );
 
@@ -81,8 +81,8 @@ export default function App() {
   const { lang, t } = useLang();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage]  = useState('quran');
-  const [darkMode, setDarkMode]        = useState(
+  const [currentPage, setCurrentPage] = useState('quran');
+  const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem('ses-theme') === 'dark'
   );
   const [toastMessage, setToastMessage] = useState(null);
@@ -118,18 +118,26 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [toastMessage]);
 
+  useEffect(() => {
+    const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
+      setCurrentPage('nuqool');
+      setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+    });
+    return cleanup;
+  }, []);
+
   // Gate the whole app behind language selection
   if (!lang) return <Onboarding />;
 
   const navItems = [
-    { id: 'nuqool',   label: t('navNuqool'),   icon: <ScrollIcon /> },
-    { id: 'quran',    label: t('navQuran'),    icon: <BookIcon /> },
+    { id: 'nuqool', label: t('navNuqool'), icon: <ScrollIcon /> },
+    { id: 'quran', label: t('navQuran'), icon: <BookIcon /> },
     { id: 'timeline', label: t('navTimeline'), icon: <ClockIcon /> },
   ];
 
   const pageTitles = {
-    nuqool:   t('titleNuqool'),
-    quran:    t('titleQuran'),
+    nuqool: t('titleNuqool'),
+    quran: t('titleQuran'),
     timeline: t('titleTimeline'),
   };
 
@@ -146,8 +154,8 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'timeline': return <Timeline />;
-      case 'nuqool':   return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
-      default:         return <Quran />;
+      case 'nuqool': return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
+      default: return <Quran />;
     }
   };
 

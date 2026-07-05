@@ -99,7 +99,7 @@
 }
 
 .bottom-nav__label {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
 }
 
@@ -109,4 +109,21 @@
 
 .app-main {
   padding-bottom: 64px;
+}
+
+.bottom-nav__icon--center {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--panel);
+  border-radius: 50%;
+  margin-top: -20px;
+  box-shadow: 0 4px 10px var(--shadow);
+}
+
+.app-header__btn--placeholder {
+  visibility: hidden;
 }

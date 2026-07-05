@@ -12,8 +12,11 @@ export default {
   changeLang:  'زبان بدلیں',
 
   /* Nav */
-  navNuqool:   'نقول امام مہدی علیہ السلام',
-  navTimeline: 'سلسلہ واقعات',
+  navNuqool:   'نقول',
+  navTimeline: 'واقعات',
+
+  goBack: 'واپس',
+  quranBackToTop: 'اوپر جائیں',
 
   /* Page titles */
   titleNuqool:   'نقول امام مہدی علیہ السلام',
@@ -46,7 +49,7 @@ export default {
   obContinue: 'جاری رکھیں',
 
   /* Quran */
-  navQuran:    'قرآن مجید',
+  navQuran:    'قرآن',
   titleQuran:  'قرآن مجید',
 
   quranLoading:        'لوڈ ہو رہا ہے…',

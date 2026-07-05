@@ -1,5 +1,6 @@
 .env
 android/
+!android/app/src/main/AndroidManifest.xml
 dist/
 .npm
 *.log

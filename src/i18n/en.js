@@ -12,8 +12,11 @@ export default {
   changeLang:  'Change Language',
 
   /* Nav */
-  navNuqool:    'Nuqool e Imam Mahdi A.S',
-  navTimeline:  'Timeline of Imam Mahdi A.S',
+  navNuqool:    'Nuqool',
+  navTimeline:  'Timeline',
+
+  goBack: 'Back',
+  quranBackToTop: 'Back to top',
 
   /* Page titles (header) */
   titleNuqool:   'Nuqool e Imam Mahdi A.S',

@@ -12,11 +12,15 @@ import QuranReader from './QuranReader';
 
 const STORAGE_KEY = 'ses-current-surah';
 
-export default function Quran() {
-  const [selectedSurah, setSelectedSurah] = useState(() => {
+export default function Quran({ selectedSurah: controlledSurah, onSelectSurah } = {}) {
+  const [internalSurah, setInternalSurah] = useState(() => {
     const n = parseInt(localStorage.getItem(STORAGE_KEY), 10);
     return !isNaN(n) && n >= 1 && n <= 114 ? n : null;
   });
+
+  const isControlled = controlledSurah !== undefined;
+  const selectedSurah = isControlled ? controlledSurah : internalSurah;
+  const setSelectedSurah = isControlled ? onSelectSurah : setInternalSurah;
 
   if (selectedSurah == null) {
     return <QuranSurahList onOpenSurah={setSelectedSurah} />;

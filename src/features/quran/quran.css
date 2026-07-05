@@ -437,3 +437,31 @@
   color: var(--panel);
   border-color: var(--primary);
 }
+
+.quran-back-to-top {
+  position: fixed;
+  right: 1rem;
+  bottom: 170px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--primary);
+  box-shadow: 0 3px 12px var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 40;
+  transition: transform 150ms;
+}
+
+.quran-back-to-top:hover {
+  transform: translateY(-2px);
+}
+
+.quran-back-to-top__icon {
+  width: 20px;
+  height: 20px;
+}

@@ -8,7 +8,9 @@
  * - Renders the sticky header, sidebar, bottom nav, and current page view.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import './App.css';
 import Sidebar from './components/sidebar';
 import NaqlDashboard from './features/nuqool/en/naqlDashboard';
@@ -58,29 +60,43 @@ const ClockIcon = () => (
 );
 
 const MoreIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z" />
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+    <circle cx="5" cy="12" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="19" cy="12" r="1.8" />
+  </svg>
+);
+
+const BackIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6 7-7-7 7-7" />
   </svg>
 );
 
 function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
+  const mid = Math.ceil(items.length / 2);
+  const before = items.slice(0, mid);
+  const after = items.slice(mid);
+
+  const renderItem = (it) => (
+    <button
+      key={it.id}
+      className={`bottom-nav__item ${activePage === it.id ? 'bottom-nav__item--active' : ''}`}
+      onClick={() => onNavigate(it.id)}
+      aria-current={activePage === it.id ? 'page' : undefined}
+    >
+      <span className="bottom-nav__icon">{it.icon}</span>
+      <span className="bottom-nav__label">{it.label}</span>
+    </button>
+  );
+
   return (
     <nav className="bottom-nav" aria-label="Primary navigation">
-      {items.map((it) => (
-        <button
-          key={it.id}
-          className={`bottom-nav__item ${activePage === it.id ? 'bottom-nav__item--active' : ''}`}
-          onClick={() => onNavigate(it.id)}
-          aria-current={activePage === it.id ? 'page' : undefined}
-        >
-          <span className="bottom-nav__icon">{it.icon}</span>
-          <span className="bottom-nav__label">{it.label}</span>
-        </button>
-      ))}
-      <button className="bottom-nav__item" onClick={onMore}>
-        <span className="bottom-nav__icon"><MoreIcon /></span>
-        <span className="bottom-nav__label">{moreLabel}</span>
+      {before.map(renderItem)}
+      <button className="bottom-nav__item bottom-nav__item--center" onClick={onMore} aria-label={moreLabel}>
+        <span className="bottom-nav__icon bottom-nav__icon--center"><MoreIcon /></span>
       </button>
+      {after.map(renderItem)}
     </nav>
   );
 }
@@ -96,6 +112,30 @@ export default function App() {
   );
   const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
+  const QURAN_STORAGE_KEY = 'ses-current-surah';
+  const [quranSurah, setQuranSurah] = useState(() => {
+    const n = parseInt(localStorage.getItem(QURAN_STORAGE_KEY), 10);
+    return !isNaN(n) && n >= 1 && n <= 114 ? n : null;
+  });
+
+  const canGoBack = currentPage === 'quran' && quranSurah != null;
+  const canGoBackRef = useRef(canGoBack);
+  const sidebarOpenRef = useRef(sidebarOpen);
+  useEffect(() => { canGoBackRef.current = canGoBack; }, [canGoBack]);
+  useEffect(() => { sidebarOpenRef.current = sidebarOpen; }, [sidebarOpen]);
+
+  // Android hardware back button: close the sidebar, then step out of the
+  // Quran reader, then exit — same priority order the header back arrow uses.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let handle;
+    CapApp.addListener('backButton', () => {
+      if (sidebarOpenRef.current) { setSidebarOpen(false); return; }
+      if (canGoBackRef.current) { setQuranSurah(null); return; }
+      CapApp.exitApp();
+    }).then((h) => { handle = h; });
+    return () => handle?.remove();
+  }, []);
 
   /* Keep the theme preference in sync with <html> and localStorage. */
   useEffect(() => {
@@ -165,20 +205,24 @@ export default function App() {
     switch (currentPage) {
       case 'timeline': return <Timeline />;
       case 'nuqool': return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
-      default: return <Quran />;
+      default: return <Quran selectedSurah={quranSurah} onSelectSurah={setQuranSurah} />;
     }
   };
 
   return (
     <div className="app-root">
       <header className="app-header">
-        <button
-          className="app-header__btn"
-          onClick={() => setSidebarOpen(true)}
-          aria-label={t('openMenu')}
-        >
-          <HamburgerIcon />
-        </button>
+        {canGoBack ? (
+          <button
+            className="app-header__btn"
+            onClick={() => setQuranSurah(null)}
+            aria-label={t('goBack')}
+          >
+            <BackIcon />
+          </button>
+        ) : (
+          <span className="app-header__btn app-header__btn--placeholder" aria-hidden="true" />
+        )}
 
         <span className="app-header__title">
           {pageTitles[currentPage] ?? t('appTitle')}

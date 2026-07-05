@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { fetchSurah, RECITERS } from './quranApi';
 import { quranTranslations } from './quranTranslations';
 import { useLang } from '../../context/LanguageContext';
-import { PlayIcon, PauseIcon, PrevIcon, NextIcon } from '../../components/icons/MediaIcons.jsx';
+import { PlayIcon, PauseIcon, PrevIcon, NextIcon, TopArrowIcon } from '../../components/icons/MediaIcons.jsx';
 import { useQuranAudioPlayer } from './useQuranAudioPlayer';
 import './quran.css';
 
@@ -93,6 +93,14 @@ export default function QuranReader({ initialSurah, onBack }) {
   useEffect(() => {
     ayahRefs.current[activeAyahNumber]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [activeAyahNumber, visibleCount]);
+
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <div className="quran-container">
@@ -269,8 +277,18 @@ export default function QuranReader({ initialSurah, onBack }) {
           >
             <NextIcon className="quran-nav__icon" title={t('quranNextSurahLabel')} />
           </button>
+
         </div>
       </nav>
+      {showBackToTop && (
+        <button
+          className="quran-back-to-top"
+          onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          aria-label={t('quranBackToTop')}
+        >
+          <TopArrowIcon className="quran-back-to-top__icon" />
+        </button>
+      )}
     </div>
   );
 }

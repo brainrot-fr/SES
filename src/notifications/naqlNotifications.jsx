@@ -1,18 +1,11 @@
 /**
  * Naql Notifications Module
- * Handles scheduling daily naql notifications and responding to taps.
- *
- * Deliberately kept close to the version that was proven reliable:
- * - No custom notification channel (uses Android's default channel).
- *   Custom channels are immutable once created and can be silently disabled
- *   per-channel in system settings without the app-level permission changing —
- *   that's a real, invisible-from-JS failure mode, so we don't use one here.
- * - allowWhileIdle is always true. We don't gate it on
- *   checkExactNotificationSetting()/changeExactNotificationSetting() — if
- *   that setting isn't actually granted, every notification silently
- *   downgrades to non-exact instead, which is a much quieter failure than
- *   just declaring SCHEDULE_EXACT_ALARM in the manifest (already done) and
- *   letting the OS do its best.
+ * v2 — single "next notification" chain instead of bulk pre-scheduling.
+ * See chat for why: the plugin's own boot-restore receiver re-delivers
+ * anything whose time passed while the device was off, all at once, ~15s
+ * after boot. Keeping only one notification pending at a time caps that
+ * flood to 1, and removes the "skip if anything's scheduled today" guard
+ * that could wedge scheduling indefinitely.
  */
 
 import { Capacitor } from '@capacitor/core';
@@ -21,14 +14,10 @@ import { App } from '@capacitor/app';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
-/*
-* CONSTANTS
-*/
-
-const ID_BASE = 90000;
-const ID_RANGE = 10000;
-const DAYS_AHEAD = 10;
-const BATCH_SIZE = 50; // stay well clear of Android's per-app alarm cap
+const NEXT_NOTIF_ID = 500001; // fixed id — only ever one of these pending
+const TEST_NOTIF_ID = 1;
+const LEGACY_CLEANUP_KEY = 'ses-notif-legacy-cleanup-v2';
+const EXACT_ALARM_PROMPT_KEY = 'ses-exact-alarm-prompted';
 
 const TIMES_OF_DAY = [
   { hour: 5,  minute: 0 },
@@ -43,11 +32,7 @@ const TIMES_OF_DAY = [
 const PREVIEW_LENGTH = 100;
 const FULL_LENGTH = 800;
 
-/*
- *
- * TEXT HELPERS
- *
- */
+/* TEXT HELPERS — unchanged */
 
 function decodeReactEscapedHtml(str) {
   return str
@@ -73,54 +58,63 @@ function pickRandomNaql() {
   return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
 }
 
-/*
- *
- * NOTIFICATION MANAGEMENT
- *
- */
-
-async function cancelInBatches(notifications) {
-  for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
-    const batch = notifications.slice(i, i + BATCH_SIZE);
-    await LocalNotifications.cancel({ notifications: batch.map((n) => ({ id: n.id })) });
+/* Find the next TIME_OF_DAY slot strictly after `from`. */
+function getNextSlotDate(from = new Date()) {
+  for (let day = 0; day < 14; day++) {
+    for (const time of TIMES_OF_DAY) {
+      const candidate = new Date(from);
+      candidate.setDate(candidate.getDate() + day);
+      candidate.setHours(time.hour, time.minute, 0, 0);
+      if (candidate.getTime() > from.getTime()) return candidate;
+    }
   }
+  return null;
 }
 
-async function scheduleInBatches(notifications) {
-  const scheduled = [];
-  for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
-    const batch = notifications.slice(i, i + BATCH_SIZE);
-    const result = await LocalNotifications.schedule({ notifications: batch });
-    scheduled.push(...result.notifications);
+async function ensureExactAlarmPermission() {
+  let exactGranted = true;
+  try {
+    const exact = await LocalNotifications.checkExactNotificationSetting?.();
+    if (exact) {
+      exactGranted = exact.exact_alarm === 'granted';
+      if (!exactGranted && !localStorage.getItem(EXACT_ALARM_PROMPT_KEY)) {
+        localStorage.setItem(EXACT_ALARM_PROMPT_KEY, '1');
+        await LocalNotifications.changeExactNotificationSetting?.();
+        const recheck = await LocalNotifications.checkExactNotificationSetting?.();
+        exactGranted = recheck?.exact_alarm === 'granted';
+      }
+    }
+  } catch {
+    // API unavailable on this plugin/OS version — assume fine.
   }
-  return scheduled;
+  return exactGranted;
 }
 
-async function cancelPendingNaqlNotifications() {
+/* One-time cleanup of the old 90000–90069 batch-scheduled ids, so nothing
+ * stale from the previous version lingers in the plugin's storage. */
+async function cleanupLegacyNotifications() {
+  if (localStorage.getItem(LEGACY_CLEANUP_KEY)) return;
   try {
     const pending = await LocalNotifications.getPending();
-    const ours = pending.notifications.filter(
-      (n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE
-    );
-    if (ours.length > 0) {
-      console.log(`[naqlNotifications] cancelling ${ours.length} old notifications`);
-      await cancelInBatches(ours);
+    const legacy = pending.notifications.filter((n) => n.id >= 90000 && n.id < 90070);
+    if (legacy.length) {
+      await LocalNotifications.cancel({ notifications: legacy.map((n) => ({ id: n.id })) });
+      console.log(`[naqlNotifications] cleared ${legacy.length} legacy notifications`);
     }
   } catch (err) {
-    console.error('[naqlNotifications] error during cancel', err);
-    // not fatal
+    console.warn('[naqlNotifications] legacy cleanup failed', err);
+  } finally {
+    localStorage.setItem(LEGACY_CLEANUP_KEY, '1');
   }
 }
 
-export async function scheduleDailyNaqlNotifications() {
-  if (!Capacitor.isNativePlatform()) {
-    console.log('[naqlNotifications] not native platform, skipping');
-    return;
-  }
+/* Ensure exactly one naql notification is pending for the next upcoming
+ * slot. Safe to call as often as you like — no-op if a future one already
+ * exists. */
+export async function scheduleNextNaqlNotification() {
+  if (!Capacitor.isNativePlatform()) return;
 
   try {
-    console.log('[naqlNotifications] starting schedule check');
-
     let perm = await LocalNotifications.checkPermissions();
     if (perm.display !== 'granted') {
       perm = await LocalNotifications.requestPermissions();
@@ -130,93 +124,33 @@ export async function scheduleDailyNaqlNotifications() {
       }
     }
 
-    // Exact alarms need separate OS consent on Android 12+. Without it,
-    // scheduling with allowWhileIdle throws and kills the whole batch.
-    // Prompt once, then always fall back to normal alarms so scheduling
-    // never fails outright.
-    let exactGranted = true;
-    try {
-      const exact = await LocalNotifications.checkExactNotificationSetting?.();
-      if (exact) {
-        exactGranted = exact.exact_alarm === 'granted';
-        if (!exactGranted && !localStorage.getItem('ses-exact-alarm-prompted')) {
-          localStorage.setItem('ses-exact-alarm-prompted', '1');
-          await LocalNotifications.changeExactNotificationSetting?.();
-          const recheck = await LocalNotifications.checkExactNotificationSetting?.();
-          exactGranted = recheck?.exact_alarm === 'granted';
-        }
-      }
-    } catch {
-      // API unavailable on this plugin version — assume fine.
-    }
-
-    // If anything is already scheduled for today, today's batch is still
-    // good — skip. Once today's slots have all fired and nothing pending
-    // matches today's date, the next app open will extend the window again.
     const pending = await LocalNotifications.getPending();
-    const todayNotifications = pending.notifications.filter((n) => {
-      const scheduled = new Date(n.schedule?.at || 0);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return scheduled >= today && scheduled < tomorrow;
+    const existing = pending.notifications.find((n) => n.id === NEXT_NOTIF_ID);
+    if (existing && new Date(existing.schedule?.at || 0).getTime() > Date.now()) {
+      return; // already have a future one queued
+    }
+
+    const exactGranted = await ensureExactAlarmPermission();
+    const target = getNextSlotDate();
+    if (!target) return;
+
+    const naqlNumber = pickRandomNaql();
+    await LocalNotifications.schedule({
+      notifications: [{
+        id: NEXT_NOTIF_ID,
+        title: `Naql ${naqlNumber}`,
+        body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
+        largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+        schedule: { at: target, allowWhileIdle: exactGranted },
+        extra: { naqlNumber },
+      }],
     });
-
-    if (todayNotifications.length > 0) {
-      console.log(`[naqlNotifications] notifications already scheduled for today (${todayNotifications.length}), skipping reschedule`);
-      return;
-    }
-
-    await cancelPendingNaqlNotifications();
-
-    const notifications = [];
-    for (let day = 0; day < DAYS_AHEAD; day++) {
-      TIMES_OF_DAY.forEach((time, slot) => {
-        const target = new Date();
-        target.setDate(target.getDate() + day);
-        target.setHours(time.hour, time.minute, 0, 0);
-        if (target.getTime() <= Date.now()) return;
-
-        const naqlNumber = pickRandomNaql();
-        notifications.push({
-          id: ID_BASE + day * TIMES_OF_DAY.length + slot,
-          title: `Naql ${naqlNumber}`,
-          body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-          largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-           schedule: { at: target, allowWhileIdle: exactGranted },
-          extra: { naqlNumber },
-        });
-      });
-    }
-
-    if (notifications.length) {
-      try {
-        const scheduled = await scheduleInBatches(notifications);
-        console.log('[naqlNotifications] scheduled', scheduled.length, 'notifications');
-        await logPendingSummary();
-      } catch (scheduleErr) {
-        console.error('[naqlNotifications] schedule call failed', scheduleErr);
-        if (scheduleErr?.toString?.().includes('500')) {
-          console.error('[naqlNotifications] hit alarm limit, attempting full clear');
-          try {
-            const allPending = await LocalNotifications.getPending();
-            await cancelInBatches(allPending.notifications);
-            console.log('[naqlNotifications] cleared all notifications');
-          } catch (clearErr) {
-            console.error('[naqlNotifications] failed to clear alarms', clearErr);
-          }
-        }
-        // don't re-throw — a failed reschedule should not crash the app
-      }
-    }
+    console.log('[naqlNotifications] next notification scheduled for', target.toISOString());
   } catch (err) {
-    console.error('[naqlNotifications] fatal error in scheduleDailyNaqlNotifications', err);
+    console.error('[naqlNotifications] error in scheduleNextNaqlNotification', err);
   }
 }
 
-// Fire-and-forget test helper — no allowWhileIdle, no Doze concerns,
-// safe to call repeatedly while iterating.
 export async function scheduleTestNotification(secondsFromNow = 10) {
   if (!Capacitor.isNativePlatform()) return;
 
@@ -231,7 +165,7 @@ export async function scheduleTestNotification(secondsFromNow = 10) {
   const naqlNumber = pickRandomNaql();
   await LocalNotifications.schedule({
     notifications: [{
-      id: 1,
+      id: TEST_NOTIF_ID,
       title: `Naql ${naqlNumber}`,
       body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
       largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
@@ -241,10 +175,6 @@ export async function scheduleTestNotification(secondsFromNow = 10) {
   });
 }
 
-/*
- * Dumps what's actually pending right now, so you can see it instead of
- * guessing. Safe to call any time — read-only.
- */
 export async function logNotificationDebugInfo() {
   if (!Capacitor.isNativePlatform()) {
     console.log('[naqlNotifications] not running on a native platform');
@@ -252,31 +182,15 @@ export async function logNotificationDebugInfo() {
   }
   const permission = await LocalNotifications.checkPermissions();
   const pending = await LocalNotifications.getPending();
-  const ours = pending.notifications
-    .filter((n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE)
-    .sort((a, b) => new Date(a.schedule?.at) - new Date(b.schedule?.at));
+  const next = pending.notifications.find((n) => n.id === NEXT_NOTIF_ID);
 
   const summary = {
     permissionDisplay: permission.display,
-    pendingCount: ours.length,
-    pending: ours.map((n) => ({ id: n.id, naql: n.extra?.naqlNumber, at: n.schedule?.at })),
+    next: next ? { naql: next.extra?.naqlNumber, at: next.schedule?.at } : null,
+    allPendingIds: pending.notifications.map((n) => n.id),
   };
   console.log('[naqlNotifications] debug summary', summary);
   return summary;
-}
-
-async function logPendingSummary() {
-  try {
-    const pending = await LocalNotifications.getPending();
-    const ours = pending.notifications
-      .filter((n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE)
-      .sort((a, b) => new Date(a.schedule?.at) - new Date(b.schedule?.at));
-    console.log(
-      `[naqlNotifications] ${ours.length} pending, next: ${ours[0]?.schedule?.at}, last: ${ours[ours.length - 1]?.schedule?.at}`
-    );
-  } catch (err) {
-    console.warn('[naqlNotifications] could not read back pending list', err);
-  }
 }
 
 export function onNaqlNotificationTapped(onOpenNaql) {
@@ -291,23 +205,29 @@ export function onNaqlNotificationTapped(onOpenNaql) {
   return () => handle?.remove();
 }
 
-/**
- * Call once from App.jsx. Schedules immediately, and re-checks every time
- * the app returns to the foreground.
- */
 export function initNaqlNotificationLifecycle(onOpenNaql) {
-  scheduleDailyNaqlNotifications();
+  (async () => {
+    await cleanupLegacyNotifications();
+    await scheduleNextNaqlNotification();
+  })();
+
   const tapCleanup = onNaqlNotificationTapped(onOpenNaql);
 
+  let receivedHandle;
   let resumeHandle;
   if (Capacitor.isNativePlatform()) {
+    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      if (notification.id === NEXT_NOTIF_ID) scheduleNextNaqlNotification();
+    }).then((h) => { receivedHandle = h; });
+
     App.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) scheduleDailyNaqlNotifications();
+      if (isActive) scheduleNextNaqlNotification();
     }).then((h) => { resumeHandle = h; });
   }
 
   return () => {
     tapCleanup();
+    receivedHandle?.remove();
     resumeHandle?.remove();
   };
 }

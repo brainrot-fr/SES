@@ -14,14 +14,25 @@
 const API_BASE = 'https://api.alquran.cloud/v1';
 const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
 const AUDIO_BITRATE = 128;
-const CACHE_PREFIX = 'ses-quran-cache-';
+const CACHE_PREFIX = 'ses-quran-cache-v3-';
 const RECITER_STORAGE_KEY = 'ses-quran-reciter';
 
+const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
+const NO_BISMILLAH_STRIP = [1, 9]; // Al-Fatiha: Bismillah IS ayah 1 · At-Tawbah: has none to strip
+
+function stripBismillah(text, surahNumber) {
+  if (NO_BISMILLAH_STRIP.includes(surahNumber)) return text;
+  return text.startsWith(BISMILLAH) ? text.slice(BISMILLAH.length).trim() : text;
+}
+
 export const RECITERS = [
+  { id: 'ar.saoodshuraym', name: 'Saood Ash-Shuraym' },     // default
   { id: 'ar.alafasy', name: 'Mishary Alafasy' },
-  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit (Murattal)' },
-  { id: 'ar.husary', name: 'Mahmoud Al-Husary' },
-  { id: 'ar.minshawi', name: 'Mohamed Minshawi' },
+  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit' },
+  { id: 'ar.abdurrahmaansudais', name: 'Abdurrahmaan As-Sudais' },
+  { id: 'ar.abdulsamad', name: 'Abdul Samad' },
+  { id: 'ar.husarymujawwad', name: 'Husary (Mujawwad)' },
+  { id: 'ar.minshawi', name: 'Minshawi' },
 ];
 
 export function getSavedReciter() {
@@ -103,9 +114,9 @@ export async function fetchSurah(surahNumber) {
     revelationType: data.revelationType,
     numberOfAyahs: data.numberOfAyahs,
     ayahs: data.ayahs.map((a) => ({
-      number: a.number,               // global 1–6236, used to build the audio URL
+      number: a.number,
       numberInSurah: a.numberInSurah,
-      text: a.text,
+      text: a.numberInSurah === 1 ? stripBismillah(a.text, data.number) : a.text,
     })),
   };
 

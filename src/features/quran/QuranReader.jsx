@@ -1,12 +1,3 @@
-/**
- * QuranReader.jsx
- * Displays Arabic Quran text with playback controls.
- *
- * - Fetches the selected surah and renders ayahs in batches.
- * - Supports play/pause for individual ayahs and automatic progression.
- * - Reuses the audio player hook and shows translations when available.
- */
-
 import { useState, useEffect, useRef } from 'react';
 import { fetchSurah, RECITERS } from './quranApi';
 import { quranTranslations } from './quranTranslations';
@@ -18,7 +9,12 @@ import './quran.css';
 const TOTAL_SURAHS = 114;
 const NO_SEPARATE_BISMILLAH = [1, 9];
 const STORAGE_KEY = 'ses-current-surah';
-const AYAH_BATCH_SIZE = 20; // ayahs mounted per batch — keeps first paint light on device
+const VIEW_MODE_KEY = 'ses-quran-view-mode';
+const TRANSLATION_KEY = 'ses-show-translation';
+const AYAH_BATCH_SIZE = 20;
+
+const ARABIC_DIGITS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+const toArabicNumber = (n) => String(n).split('').map((d) => ARABIC_DIGITS[Number(d)]).join('');
 
 export default function QuranReader({ initialSurah, onBack }) {
   const { t } = useLang();
@@ -31,13 +27,19 @@ export default function QuranReader({ initialSurah, onBack }) {
   const [error, setError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
 
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem(VIEW_MODE_KEY) || 'verse');
+  const [showTranslation, setShowTranslation] = useState(
+    () => localStorage.getItem(TRANSLATION_KEY) !== 'false'
+  );
+
+  useEffect(() => { localStorage.setItem(VIEW_MODE_KEY, viewMode); }, [viewMode]);
+  useEffect(() => { localStorage.setItem(TRANSLATION_KEY, String(showTranslation)); }, [showTranslation]);
+
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
 
-  /* Clamp navigation input and update the current surah index. */
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
 
-  /* destructure the new hook values */
   const {
     activeAyahNumber, isPlaying, autoAdvance,
     reciterId, changeReciter,
@@ -59,12 +61,6 @@ export default function QuranReader({ initialSurah, onBack }) {
     return () => { cancelled = true; };
   }, [currentSurah]);
 
-  /*
-   * Reveal more ayahs as the reader scrolls near the bottom, instead of
-   * mounting the whole surah (up to 286 ayahs of QPCHafs ligature text)
-   * in one synchronous pass — that's what was blocking/crashing on device.
-   */
-
   useEffect(() => {
     if (!surah) return undefined;
     const sentinel = sentinelRef.current;
@@ -81,18 +77,12 @@ export default function QuranReader({ initialSurah, onBack }) {
     return () => observer.disconnect();
   }, [surah]);
 
-  /*
-   * Keep the revealed window in sync with whatever's actually playing
-   * (e.g. "Play Surah" auto-advancing past what's currently rendered).
-   */
-
   useEffect(() => {
     if (activeAyahNumber && activeAyahNumber > visibleCount) {
       setVisibleCount((c) => Math.max(c, activeAyahNumber));
     }
   }, [activeAyahNumber, visibleCount]);
 
-  /* Lookup translation text for the current surah and ayah, if available. */
   const translationForAyah = (numberInSurah) => quranTranslations[currentSurah]?.[numberInSurah];
 
   const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
@@ -121,57 +111,113 @@ export default function QuranReader({ initialSurah, onBack }) {
           </header>
 
           <div className="quran-reciter">
-            <label className="quran-reciter__label" htmlFor="quran-reciter-select">
-              {t('quranReciter')}
-            </label>
-            <select
-              id="quran-reciter-select"
-              className="quran-reciter__select"
-              value={reciterId}
-              onChange={(e) => changeReciter(e.target.value)}
-            >
+            <span className="quran-reciter__label">{t('quranReciter')}</span>
+            <div className="quran-reciter__chips" role="radiogroup" aria-label={t('quranReciter')}>
               {RECITERS.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+                <button
+                  key={r.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={reciterId === r.id}
+                  className={`quran-reciter__chip ${reciterId === r.id ? 'quran-reciter__chip--active' : ''}`}
+                  onClick={() => changeReciter(r.id)}
+                >
+                  {r.name}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
+
+          <div className="quran-view-toggle" role="tablist" aria-label={t('quranViewMode')}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'verse'}
+              className={`quran-view-toggle__btn ${viewMode === 'verse' ? 'quran-view-toggle__btn--active' : ''}`}
+              onClick={() => setViewMode('verse')}
+            >
+              {t('quranVerseByVerse')}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'reading'}
+              className={`quran-view-toggle__btn ${viewMode === 'reading' ? 'quran-view-toggle__btn--active' : ''}`}
+              onClick={() => setViewMode('reading')}
+            >
+              {t('quranReadingMode')}
+            </button>
+          </div>
+
+          {viewMode === 'verse' && (
+            <button
+              className="quran-translation-toggle"
+              onClick={() => setShowTranslation((v) => !v)}
+            >
+              {showTranslation ? t('quranHideTranslation') : t('quranShowTranslation')}
+            </button>
+          )}
 
           {!NO_SEPARATE_BISMILLAH.includes(currentSurah) && (
             <h1 className="quran-bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
           )}
 
-          <div className="quran-ayahs">
-            {visibleAyahs.map((ayah) => {
-              const translation = translationForAyah(ayah.numberInSurah);
-              const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
-              return (
-                <div key={ayah.number} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
-                  <div className="quran-ayah__row">
-                    <span className="quran-ayah__num">{ayah.numberInSurah}</span>
-                    <p className="quran-ayah__text">{ayah.text}</p>
-                    <button
-                      className="quran-ayah__play"
-                      onClick={() => toggleAyah(ayah)}
-                      aria-label={isThisPlaying ? t('quranPause') : t('quranPlayAyah')}
-                    >
-                      {isThisPlaying ? (
-                        <PauseIcon className="quran-ayah__icon" title={t('quranPause')} />
-                      ) : (
-                        <PlayIcon className="quran-ayah__icon" title={t('quranPlayAyah')} />
-                      )}
-                    </button>
-                  </div>
-                  {translation && (
-                    <div className="quran-ayah__translation">
-                      <p className="quran-ayah__ur">{translation.ur}</p>
-                      <p className="quran-ayah__translit">{translation.urTransliteration}</p>
+          {viewMode === 'reading' ? (
+            <p className="quran-reading">
+              {visibleAyahs.map((ayah) => {
+                const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
+                return (
+                  <span
+                    key={ayah.number}
+                    role="button"
+                    tabIndex={0}
+                    className={`quran-reading__ayah ${isThisPlaying ? 'quran-reading__ayah--playing' : ''}`}
+                    onClick={() => toggleAyah(ayah)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAyah(ayah); }
+                    }}
+                  >
+                    {ayah.text}
+                    <span className="quran-reading__marker">﴿{toArabicNumber(ayah.numberInSurah)}﴾</span>{' '}
+                  </span>
+                );
+              })}
+              {hasMore && <span ref={sentinelRef} style={{ display: 'inline-block', width: 1, height: 1 }} />}
+            </p>
+          ) : (
+            <div className="quran-ayahs">
+              {visibleAyahs.map((ayah) => {
+                const translation = translationForAyah(ayah.numberInSurah);
+                const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
+                return (
+                  <div key={ayah.number} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
+                    <div className="quran-ayah__row">
+                      <span className="quran-ayah__num">{ayah.numberInSurah}</span>
+                      <p className="quran-ayah__text">{ayah.text}</p>
+                      <button
+                        className="quran-ayah__play"
+                        onClick={() => toggleAyah(ayah)}
+                        aria-label={isThisPlaying ? t('quranPause') : t('quranPlayAyah')}
+                      >
+                        {isThisPlaying ? (
+                          <PauseIcon className="quran-ayah__icon" title={t('quranPause')} />
+                        ) : (
+                          <PlayIcon className="quran-ayah__icon" title={t('quranPlayAyah')} />
+                        )}
+                      </button>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-            {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
-          </div>
+                    {showTranslation && translation && (
+                      <div className="quran-ayah__translation">
+                        <p className="quran-ayah__ur">{translation.ur}</p>
+                        <p className="quran-ayah__translit">{translation.urTransliteration}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+            </div>
+          )}
         </section>
       )}
 

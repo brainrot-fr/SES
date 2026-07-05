@@ -63,4 +63,10 @@ export default {
   quranReciter:          'قاری منتخب کریں',
   quranShowTranslation:  'ترجمہ دکھائیں',
   quranHideTranslation:  'ترجمہ چھپائیں',
+
+  quranViewMode:         'دیکھنے کا انداز',
+  quranVerseByVerse:     'آیت بہ آیت',
+  quranReadingMode:      'مطالعہ',
+  quranSearchPlaceholder:'سورت کا نام یا نمبر تلاش کریں…',
+  quranNoResults:        'کوئی سورت نہیں ملی۔',
 };

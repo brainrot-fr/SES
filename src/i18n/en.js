@@ -65,4 +65,10 @@ export default {
   quranReciter:          'Reciter',
   quranShowTranslation:  'Show Translation',
   quranHideTranslation:  'Hide Translation',
+
+  quranViewMode:         'View mode',
+  quranVerseByVerse:     'Verse by Verse',
+  quranReadingMode:      'Reading',
+  quranSearchPlaceholder:'Search surah name or number…',
+  quranNoResults:        'No surahs match your search.',
 };

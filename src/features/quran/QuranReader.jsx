@@ -37,6 +37,7 @@ export default function QuranReader({ initialSurah, onBack }) {
 
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
+  const ayahRefs = useRef({});
 
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
 
@@ -88,6 +89,10 @@ export default function QuranReader({ initialSurah, onBack }) {
 
   const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
   const hasMore = surah ? visibleCount < surah.ayahs.length : false;
+
+  useEffect(() => {
+    ayahRefs.current[activeAyahNumber]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [activeAyahNumber, visibleCount]);
 
   return (
     <div className="quran-container">
@@ -143,7 +148,7 @@ export default function QuranReader({ initialSurah, onBack }) {
               {t('quranReadingMode')}
             </button>
           </div>
-              <header className="quran-surah-header">
+          <header className="quran-surah-header">
             <h2 className="quran-surah-header__ar">{surah.name}</h2>
             <p className="quran-surah-header__en">
               {surah.englishName} · {surah.englishNameTranslation}
@@ -176,6 +181,7 @@ export default function QuranReader({ initialSurah, onBack }) {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAyah(ayah); }
                     }}
+                    ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)}
                   >
                     {ayah.text}
                     <span className="quran-reading__marker">﴿{toArabicNumber(ayah.numberInSurah)}﴾</span>{' '}
@@ -190,7 +196,7 @@ export default function QuranReader({ initialSurah, onBack }) {
                 const translation = translationForAyah(ayah.numberInSurah);
                 const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
                 return (
-                  <div key={ayah.number} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
+                  <div key={ayah.number} ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
                     <div className="quran-ayah__row">
                       <span className="quran-ayah__num">{ayah.numberInSurah}</span>
                       <p className="quran-ayah__text">{ayah.text}</p>

@@ -92,7 +92,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('quran');
   const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('ses-theme') === 'dark'
+    () => localStorage.getItem('ses-theme-v2') === 'dark'
   );
   const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
@@ -100,7 +100,7 @@ export default function App() {
   /* Keep the theme preference in sync with <html> and localStorage. */
   useEffect(() => {
     document.documentElement.dataset.theme = darkMode ? 'dark' : '';
-    localStorage.setItem('ses-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('ses-theme-v2', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
   /* Show toast messages for a short duration and then clear them. */

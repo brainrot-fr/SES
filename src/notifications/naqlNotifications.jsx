@@ -130,6 +130,26 @@ export async function scheduleDailyNaqlNotifications() {
       }
     }
 
+    // Exact alarms need separate OS consent on Android 12+. Without it,
+    // scheduling with allowWhileIdle throws and kills the whole batch.
+    // Prompt once, then always fall back to normal alarms so scheduling
+    // never fails outright.
+    let exactGranted = true;
+    try {
+      const exact = await LocalNotifications.checkExactNotificationSetting?.();
+      if (exact) {
+        exactGranted = exact.exact_alarm === 'granted';
+        if (!exactGranted && !localStorage.getItem('ses-exact-alarm-prompted')) {
+          localStorage.setItem('ses-exact-alarm-prompted', '1');
+          await LocalNotifications.changeExactNotificationSetting?.();
+          const recheck = await LocalNotifications.checkExactNotificationSetting?.();
+          exactGranted = recheck?.exact_alarm === 'granted';
+        }
+      }
+    } catch {
+      // API unavailable on this plugin version — assume fine.
+    }
+
     // If anything is already scheduled for today, today's batch is still
     // good — skip. Once today's slots have all fired and nothing pending
     // matches today's date, the next app open will extend the window again.
@@ -164,7 +184,7 @@ export async function scheduleDailyNaqlNotifications() {
           title: `Naql ${naqlNumber}`,
           body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
           largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-          schedule: { at: target, allowWhileIdle: true },
+           schedule: { at: target, allowWhileIdle: exactGranted },
           extra: { naqlNumber },
         });
       });

@@ -15,7 +15,7 @@ const strings = { en, ur };
 const Ctx = createContext(null);
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('ses-lang'));
+  const [lang, setLang] = useState(() => localStorage.getItem('ses-lang-v2'));
   const isRTL = lang === 'ur';
 
   /*
@@ -30,12 +30,12 @@ export function LanguageProvider({ children }) {
   }, [lang, isRTL]);
 
   const chooseLang = (l) => {
-    localStorage.setItem('ses-lang', l);
+    localStorage.setItem('ses-lang-v2', l);
     setLang(l);
   };
 
   const resetLang = () => {
-    localStorage.removeItem('ses-lang');
+    localStorage.removeItem('ses-lang-v2');
     setLang(null);
   };
 

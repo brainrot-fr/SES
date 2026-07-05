@@ -8,3 +8,4 @@ dist-electron/
 release/
 node_modules/
 electron/
+scripts/

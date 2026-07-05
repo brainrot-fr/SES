@@ -11,7 +11,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { MediaSession } from '@capgo/capacitor-media-session';
 import { ForegroundService } from '@capawesome-team/capacitor-android-foreground-service';
-import { RECITERS, buildAudioUrl, getSavedReciter, saveReciter } from './quranApi';
+import { RECITERS, buildAudioUrl, getSavedReciter, saveReciter, setReciterBitrate, nextAudioBitrate } from './quranApi';
 
 const FG_NOTIFICATION_ID = 5501;
 const FG_CHANNEL_ID = 'quran-playback';
@@ -142,10 +142,40 @@ export function useQuranAudioPlayer(surah) {
     updateNowPlaying(ayah, true);
   }, [reciterId, updateNowPlaying]);
 
+  /*
+   * Some reciters 404 at the default bitrate on the CDN. If the currently
+   * loaded ayah fails, step down through the bitrate list, remember the one
+   * that actually works for this reciter, and retry.
+   */
+  useEffect(() => {
+    const audio = audioRef.current;
+    const handleError = () => {
+      if (!audio.src) return;
+      const match = audio.src.match(/\/audio\/(\d+)\//);
+      const currentBitrate = match ? Number(match[1]) : null;
+      const fallback = currentBitrate ? nextAudioBitrate(currentBitrate) : null;
+      if (!fallback) {
+        console.warn('[quranAudio] no working bitrate found for', reciterId);
+        return;
+      }
+      const ayah = findAyah(activeAyahNumber);
+      if (!ayah) return;
+      console.warn(`[quranAudio] ${reciterId} failed at ${currentBitrate}kbps, trying ${fallback}kbps`);
+      setReciterBitrate(reciterId, fallback);
+      audio.src = buildAudioUrl(ayah.number, reciterId, fallback);
+      if (isPlaying) audio.play().catch(() => { });
+    };
+    audio.addEventListener('error', handleError);
+    return () => audio.removeEventListener('error', handleError);
+  }, [reciterId, activeAyahNumber, isPlaying, findAyah]);
+
   const pause = useCallback(() => {
     audioRef.current.pause();
     setIsPlaying(false);
-    setAutoAdvance(false); // manual pause always exits "Play Surah" chaining
+    // autoAdvance is intentionally left alone — pausing (in-app button OR the
+    // OS media notification) must never cancel "Play Surah" chaining. resume()
+    // needs to pick the chain back up. Only stop() or picking a different
+    // ayah should end chaining.
     setActiveAyahNumber((current) => {
       const ayah = findAyah(current);
       if (ayah) updateNowPlaying(ayah, false);
@@ -252,6 +282,8 @@ export function useQuranAudioPlayer(surah) {
     autoAdvance,
     reciterId,
     changeReciter,
+    pause,
+    resume,
     toggleAyah,
     playSurahFromStart,
     stop,

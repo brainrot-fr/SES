@@ -115,7 +115,7 @@
 
 .quran-surah-header__ar {
   font-family: 'QPCHafs';
-  font-size: 1.6rem;
+  font-size: 3rem;
   color: var(--text-large);
   margin: 0 0 0.25rem;
 }
@@ -378,7 +378,7 @@
   direction: rtl;
   text-align: justify;
   font-size: 1.7rem;
-  line-height: 2.6;
+  line-height: 1.6;
   color: var(--text-large);
   margin: 1rem 0;
 }

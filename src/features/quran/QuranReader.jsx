@@ -43,6 +43,7 @@ export default function QuranReader({ initialSurah, onBack }) {
   const {
     activeAyahNumber, isPlaying, autoAdvance,
     reciterId, changeReciter,
+    pause, resume,
     toggleAyah, playSurahFromStart, stop,
   } = useQuranAudioPlayer(surah);
 
@@ -103,12 +104,6 @@ export default function QuranReader({ initialSurah, onBack }) {
 
       {surah && (
         <section className="quran-body">
-          <header className="quran-surah-header">
-            <h2 className="quran-surah-header__ar">{surah.name}</h2>
-            <p className="quran-surah-header__en">
-              {surah.englishName} · {surah.englishNameTranslation}
-            </p>
-          </header>
 
           <div className="quran-reciter">
             <span className="quran-reciter__label">{t('quranReciter')}</span>
@@ -148,7 +143,12 @@ export default function QuranReader({ initialSurah, onBack }) {
               {t('quranReadingMode')}
             </button>
           </div>
-
+              <header className="quran-surah-header">
+            <h2 className="quran-surah-header__ar">{surah.name}</h2>
+            <p className="quran-surah-header__en">
+              {surah.englishName} · {surah.englishNameTranslation}
+            </p>
+          </header>
           {viewMode === 'verse' && (
             <button
               className="quran-translation-toggle"
@@ -234,11 +234,15 @@ export default function QuranReader({ initialSurah, onBack }) {
 
           <button
             className="quran-nav__play-surah"
-            onClick={() => (autoAdvance ? stop() : playSurahFromStart())}
+            onClick={() => {
+              if (autoAdvance && isPlaying) pause();
+              else if (autoAdvance && !isPlaying) resume();
+              else playSurahFromStart();
+            }}
             disabled={!surah}
-            aria-label={autoAdvance ? t('quranPause') : t('quranPlaySurah')}
+            aria-label={autoAdvance && isPlaying ? t('quranPause') : t('quranPlaySurah')}
           >
-            {autoAdvance ? (
+            {autoAdvance && isPlaying ? (
               <>
                 <PauseIcon className="quran-nav__icon" title={t('quranPause')} />
                 <span className="quran-nav__play-text">{t('quranPause')}</span>

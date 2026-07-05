@@ -1,21 +1,25 @@
 /**
  * Quran Data Access
  * ------------------
- * Arabic text is fetched live from Al Quran Cloud (api.alquran.cloud) — free,
- * keyless, no rate limit, sourced from Tanzil/Quran Academy. Audio streams
- * from the same project's CDN using the global ayah number the text response
- * already includes, so no extra request is needed to resolve a reciter's file.
+ * Ayah text is bundled locally (src/data/quran.json, generated once via
+ * scripts/fetch-quran-text.mjs) — no network fetch, no cache, works fully
+ * offline. To refresh it later (e.g. a correction upstream), just re-run
+ * that script.
  *
- * Translations are NOT fetched here — see quranTranslations.js. That data is
- * always local, same as nuqoolObject, since no API carries the exact Urdu
- * wording this app needs.
+ * Audio is NOT bundled and NOT cached at the application level — a full
+ * multi-reciter audio set would be enormous, so it stays streamed live from
+ * the CDN. If a reciter's audio is silent, useQuranAudioPlayer automatically
+ * falls back through lower bitrates.
  */
 
-const API_BASE = 'https://api.alquran.cloud/v1';
+import quranData from '../../data/quran.json';
+
 const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
-const AUDIO_BITRATE = 128;
-const CACHE_PREFIX = 'ses-quran-cache-v3-';
+// Not every reciter is hosted at every bitrate on this CDN — some 404 at
+// 128kbps. Try highest quality first, then step down.
+const AUDIO_BITRATES = [128, 64, 48, 32];
 const RECITER_STORAGE_KEY = 'ses-quran-reciter';
+const RECITER_BITRATE_KEY = 'ses-quran-reciter-bitrate';
 
 const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 const NO_BISMILLAH_STRIP = [1, 9]; // Al-Fatiha: Bismillah IS ayah 1 · At-Tawbah: has none to strip
@@ -43,83 +47,57 @@ export function saveReciter(id) {
   localStorage.setItem(RECITER_STORAGE_KEY, id);
 }
 
-export function buildAudioUrl(globalAyahNumber, reciterId = getSavedReciter()) {
-  return `${AUDIO_CDN}/${AUDIO_BITRATE}/${reciterId}/${globalAyahNumber}.mp3`;
+export function buildAudioUrl(globalAyahNumber, reciterId = getSavedReciter(), bitrate = getReciterBitrate(reciterId)) {
+  return `${AUDIO_CDN}/${bitrate}/${reciterId}/${globalAyahNumber}.mp3`;
 }
 
-/*
- * readCache and writeCache are simple localStorage cache helpers. They keep
- * network usage down by storing API responses per surah or surah list.
- */
-
-function readCache(key) {
+/* The bitrate that has actually worked for this reciter, once discovered. */
+export function getReciterBitrate(reciterId) {
   try {
-    const raw = localStorage.getItem(CACHE_PREFIX + key);
-    return raw ? JSON.parse(raw) : null;
+    const map = JSON.parse(localStorage.getItem(RECITER_BITRATE_KEY) || '{}');
+    return map[reciterId] || AUDIO_BITRATES[0];
   } catch {
-    return null;
+    return AUDIO_BITRATES[0];
   }
 }
 
-function writeCache(key, value) {
+export function setReciterBitrate(reciterId, bitrate) {
   try {
-    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(value));
+    const map = JSON.parse(localStorage.getItem(RECITER_BITRATE_KEY) || '{}');
+    map[reciterId] = bitrate;
+    localStorage.setItem(RECITER_BITRATE_KEY, JSON.stringify(map));
   } catch {
-    /* Storage full or unavailable — fine, it's just a cache */
+    /* fine, it's just a tiny preference map — not Quran data */
   }
+}
+
+export function nextAudioBitrate(currentBitrate) {
+  const idx = AUDIO_BITRATES.indexOf(currentBitrate);
+  return idx >= 0 && idx < AUDIO_BITRATES.length - 1 ? AUDIO_BITRATES[idx + 1] : null;
 }
 
 /**
  * Metadata for all 114 surahs (name, ayah count) — used for the surah picker.
- * Cached indefinitely since this data never changes.
+ * Reads straight from the bundled offline data. Kept async so call sites
+ * (QuranSurahList.jsx) need no changes.
  */
 export async function fetchSurahList() {
-  const cached = readCache('surah-list');
-  if (cached) return cached;
-
-  const res = await fetch(`${API_BASE}/surah`);
-  if (!res.ok) throw new Error(`Failed to load surah list (${res.status})`);
-  const { data } = await res.json();
-
-  const list = data.map((s) => ({
-    number: s.number,
-    name: s.name,
-    englishName: s.englishName,
-    englishNameTranslation: s.englishNameTranslation,
-    revelationType: s.revelationType,
-    numberOfAyahs: s.numberOfAyahs,
-  }));
-
-  writeCache('surah-list', list);
-  return list;
+  return quranData.surahList;
 }
 
 /**
- * One surah's Arabic text, with each ayah's audio URL pre-built.
- * Cached per-surah so re-visiting doesn't re-fetch.
+ * One surah's Arabic text, with each ayah's audio URL resolved by the
+ * caller via buildAudioUrl. Reads straight from the bundled offline data.
  */
 export async function fetchSurah(surahNumber) {
-  const cached = readCache(`surah-${surahNumber}`);
-  if (cached) return cached;
+  const raw = quranData.surahs[surahNumber];
+  if (!raw) throw new Error(`Surah ${surahNumber} not found in bundled data`);
 
-  const res = await fetch(`${API_BASE}/surah/${surahNumber}/quran-uthmani`);
-  if (!res.ok) throw new Error(`Failed to load Surah ${surahNumber} (${res.status})`);
-  const { data } = await res.json();
-
-  const surah = {
-    number: data.number,
-    name: data.name,
-    englishName: data.englishName,
-    englishNameTranslation: data.englishNameTranslation,
-    revelationType: data.revelationType,
-    numberOfAyahs: data.numberOfAyahs,
-    ayahs: data.ayahs.map((a) => ({
-      number: a.number,
-      numberInSurah: a.numberInSurah,
-      text: a.numberInSurah === 1 ? stripBismillah(a.text, data.number) : a.text,
+  return {
+    ...raw,
+    ayahs: raw.ayahs.map((a) => ({
+      ...a,
+      text: a.numberInSurah === 1 ? stripBismillah(a.text, raw.number) : a.text,
     })),
   };
-
-  writeCache(`surah-${surahNumber}`, surah);
-  return surah;
 }

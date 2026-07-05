@@ -1,6 +1,18 @@
 /**
  * Naql Notifications Module
- * Handles scheduling daily naql notifications and responding to taps
+ * Handles scheduling daily naql notifications and responding to taps.
+ *
+ * Deliberately kept close to the version that was proven reliable:
+ * - No custom notification channel (uses Android's default channel).
+ *   Custom channels are immutable once created and can be silently disabled
+ *   per-channel in system settings without the app-level permission changing —
+ *   that's a real, invisible-from-JS failure mode, so we don't use one here.
+ * - allowWhileIdle is always true. We don't gate it on
+ *   checkExactNotificationSetting()/changeExactNotificationSetting() — if
+ *   that setting isn't actually granted, every notification silently
+ *   downgrades to non-exact instead, which is a much quieter failure than
+ *   just declaring SCHEDULE_EXACT_ALARM in the manifest (already done) and
+ *   letting the OS do its best.
  */
 
 import { Capacitor } from '@capacitor/core';
@@ -9,31 +21,27 @@ import { App } from '@capacitor/app';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
-/* 
+/*
 * CONSTANTS
 */
 
 const ID_BASE = 90000;
 const ID_RANGE = 10000;
 const DAYS_AHEAD = 10;
-const RESCHEDULE_THRESHOLD_DAYS = 3; // refresh once fewer than this many days of coverage remain
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 50; // stay well clear of Android's per-app alarm cap
 
 const TIMES_OF_DAY = [
   { hour: 5,  minute: 0 },
   { hour: 8,  minute: 0 },
   { hour: 11, minute: 0 },
   { hour: 14, minute: 0 },
+  { hour: 15, minute: 25 },
   { hour: 17, minute: 0 },
   { hour: 20, minute: 0 },
 ];
 
 const PREVIEW_LENGTH = 100;
 const FULL_LENGTH = 800;
-
-const CHANNEL_ID = 'naql-notifications';
-const CHANNEL_NAME = 'Nuqool reminders';
-const CHANNEL_DESC = 'Daily Naql reminders and alerts';
 
 /*
  *
@@ -50,11 +58,6 @@ function decodeReactEscapedHtml(str) {
     .replace(/&amp;/g, '&');
 }
 
-/*
- * Convert React JSX content into a plain-text notification body.
- * This avoids sending HTML tags to the native notification payload.
- */
-
 function jsxToPlainText(node, maxLength) {
   const html = renderToStaticMarkup(node);
   const withoutTags = html.replace(/<[^>]*>/g, ' ');
@@ -64,49 +67,10 @@ function jsxToPlainText(node, maxLength) {
 
 const naqlNumbers = Object.keys(nuqoolObject)
   .map(Number)
-  .filter((n) => jsxToPlainText(nuqoolObject[n], FULL_LENGTH).length > 0)
-  .sort((a, b) => a - b);
+  .filter((n) => jsxToPlainText(nuqoolObject[n], FULL_LENGTH).length > 0);
 
-function getNaqlIndexForSchedule(day, slot) {
-  return (day * TIMES_OF_DAY.length + slot) % naqlNumbers.length;
-}
-
-/* Pick a Naql number deterministically based on the schedule slot. */
-function pickScheduledNaql(day, slot) {
-  return naqlNumbers[getNaqlIndexForSchedule(day, slot)];
-}
-
-/* Use a random Naql number for quick test notifications. */
 function pickRandomNaql() {
   return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
-}
-
-/*
- *
- * EXACT ALARM PERMISSION (Android 12+)
- *
- * SCHEDULE_EXACT_ALARM in the manifest only makes this permission
- * available — it does not grant it. If the user has it off (or later
- * switches it off), scheduled notifications using allowWhileIdle can be
- * silently dropped or wiped entirely. A near-immediate test notification
- * doesn't hit this wall since it never has to survive Doze; the daily
- * batch does.
- *
- */
-
-async function ensureExactAlarmPermission() {
-  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') {
-    return true;
-  }
-  try {
-    const current = await LocalNotifications.checkExactNotificationSetting();
-    if (current.exact_alarm === 'granted') return true;
-    const result = await LocalNotifications.changeExactNotificationSetting();
-    return result.exact_alarm === 'granted';
-  } catch (err) {
-    console.warn('[naqlNotifications] exact alarm setting check failed', err);
-    return false;
-  }
 }
 
 /*
@@ -115,79 +79,72 @@ async function ensureExactAlarmPermission() {
  *
  */
 
+async function cancelInBatches(notifications) {
+  for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
+    const batch = notifications.slice(i, i + BATCH_SIZE);
+    await LocalNotifications.cancel({ notifications: batch.map((n) => ({ id: n.id })) });
+  }
+}
+
+async function scheduleInBatches(notifications) {
+  const scheduled = [];
+  for (let i = 0; i < notifications.length; i += BATCH_SIZE) {
+    const batch = notifications.slice(i, i + BATCH_SIZE);
+    const result = await LocalNotifications.schedule({ notifications: batch });
+    scheduled.push(...result.notifications);
+  }
+  return scheduled;
+}
+
 async function cancelPendingNaqlNotifications() {
   try {
     const pending = await LocalNotifications.getPending();
     const ours = pending.notifications.filter(
       (n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE
     );
-    for (let i = 0; i < ours.length; i += BATCH_SIZE) {
-      const batch = ours.slice(i, i + BATCH_SIZE);
-      await LocalNotifications.cancel({ notifications: batch.map((n) => ({ id: n.id })) });
+    if (ours.length > 0) {
+      console.log(`[naqlNotifications] cancelling ${ours.length} old notifications`);
+      await cancelInBatches(ours);
     }
   } catch (err) {
     console.error('[naqlNotifications] error during cancel', err);
-  }
-}
-
-function coverageEndDate(pendingList) {
-  const ours = pendingList.filter((n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE);
-  if (ours.length === 0) return null;
-  const latest = ours.reduce((max, n) => {
-    const at = new Date(n.schedule?.at || 0).getTime();
-    return at > max ? at : max;
-  }, 0);
-  return latest ? new Date(latest) : null;
-}
-
-async function needsRescheduling() {
-  try {
-    const pending = await LocalNotifications.getPending();
-    const end = coverageEndDate(pending.notifications);
-    if (!end) return true;
-    const rescheduleBy = new Date();
-    rescheduleBy.setDate(rescheduleBy.getDate() + RESCHEDULE_THRESHOLD_DAYS);
-    return end < rescheduleBy;
-  } catch (err) {
-    console.error('[naqlNotifications] error checking coverage', err);
-    return true; // if we can't tell, reschedule rather than go silent
+    // not fatal
   }
 }
 
 export async function scheduleDailyNaqlNotifications() {
-  if (!Capacitor.isNativePlatform()) return;
+  if (!Capacitor.isNativePlatform()) {
+    console.log('[naqlNotifications] not native platform, skipping');
+    return;
+  }
 
   try {
-    if (Capacitor.getPlatform() === 'android') {
-      try {
-        await LocalNotifications.createChannel({
-          id: CHANNEL_ID,
-          name: CHANNEL_NAME,
-          description: CHANNEL_DESC,
-          importance: 4,
-          visibility: 1,
-        });
-      } catch (channelErr) {
-        console.warn('[naqlNotifications] failed to create Android channel', channelErr);
-      }
-    }
+    console.log('[naqlNotifications] starting schedule check');
 
     let perm = await LocalNotifications.checkPermissions();
     if (perm.display !== 'granted') {
       perm = await LocalNotifications.requestPermissions();
       if (perm.display !== 'granted') {
-        console.warn('[naqlNotifications] notification permission denied, nothing scheduled');
+        console.warn('[naqlNotifications] permission denied, nothing scheduled');
         return;
       }
     }
 
-    const exactAlarmsAvailable = await ensureExactAlarmPermission();
-    if (!exactAlarmsAvailable) {
-      console.warn('[naqlNotifications] exact alarms not granted — scheduling without allowWhileIdle; delivery may drift in Doze.');
-    }
+    // If anything is already scheduled for today, today's batch is still
+    // good — skip. Once today's slots have all fired and nothing pending
+    // matches today's date, the next app open will extend the window again.
+    const pending = await LocalNotifications.getPending();
+    const todayNotifications = pending.notifications.filter((n) => {
+      const scheduled = new Date(n.schedule?.at || 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return scheduled >= today && scheduled < tomorrow;
+    });
 
-    if (!(await needsRescheduling())) {
-      console.log('[naqlNotifications] existing schedule has enough runway, skipping');
+    if (todayNotifications.length > 0) {
+      console.log(`[naqlNotifications] notifications already scheduled for today (${todayNotifications.length}), skipping reschedule`);
       return;
     }
 
@@ -201,26 +158,36 @@ export async function scheduleDailyNaqlNotifications() {
         target.setHours(time.hour, time.minute, 0, 0);
         if (target.getTime() <= Date.now()) return;
 
-        const naqlNumber = pickScheduledNaql(day, slot);
+        const naqlNumber = pickRandomNaql();
         notifications.push({
           id: ID_BASE + day * TIMES_OF_DAY.length + slot,
           title: `Naql ${naqlNumber}`,
           body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
           largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-          schedule: { at: target, allowWhileIdle: exactAlarmsAvailable },
+          schedule: { at: target, allowWhileIdle: true },
           extra: { naqlNumber },
-          channelId: CHANNEL_ID,
         });
       });
     }
 
     if (notifications.length) {
       try {
-        const result = await LocalNotifications.schedule({ notifications });
-        console.log(`[naqlNotifications] scheduled ${result.notifications.length} notifications`);
+        const scheduled = await scheduleInBatches(notifications);
+        console.log('[naqlNotifications] scheduled', scheduled.length, 'notifications');
+        await logPendingSummary();
       } catch (scheduleErr) {
         console.error('[naqlNotifications] schedule call failed', scheduleErr);
-        await handleScheduleError(scheduleErr);
+        if (scheduleErr?.toString?.().includes('500')) {
+          console.error('[naqlNotifications] hit alarm limit, attempting full clear');
+          try {
+            const allPending = await LocalNotifications.getPending();
+            await cancelInBatches(allPending.notifications);
+            console.log('[naqlNotifications] cleared all notifications');
+          } catch (clearErr) {
+            console.error('[naqlNotifications] failed to clear alarms', clearErr);
+          }
+        }
+        // don't re-throw — a failed reschedule should not crash the app
       }
     }
   } catch (err) {
@@ -228,30 +195,8 @@ export async function scheduleDailyNaqlNotifications() {
   }
 }
 
-async function handleScheduleError(err) {
-
-  /*
-   * Different OEM WebViews/plugin versions phrase batch-scheduling
-   * failures differently, so we don't try to pattern-match a specific
-   * error string anymore — if the whole batch failed, just clear
-   * whatever partial state exists and let the next resume retry clean.
-   */
-
-  console.error('[naqlNotifications] full scheduling error', err);
-  try {
-    const allPending = await LocalNotifications.getPending();
-    const ours = allPending.notifications.filter(
-      (n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE
-    );
-    for (let i = 0; i < ours.length; i += BATCH_SIZE) {
-      const batch = ours.slice(i, i + BATCH_SIZE);
-      await LocalNotifications.cancel({ notifications: batch.map((n) => ({ id: n.id })) });
-    }
-  } catch (clearErr) {
-    console.error('[naqlNotifications] failed to clear after error', clearErr);
-  }
-}
-
+// Fire-and-forget test helper — no allowWhileIdle, no Doze concerns,
+// safe to call repeatedly while iterating.
 export async function scheduleTestNotification(secondsFromNow = 10) {
   if (!Capacitor.isNativePlatform()) return;
 
@@ -264,36 +209,71 @@ export async function scheduleTestNotification(secondsFromNow = 10) {
   }
 
   const naqlNumber = pickRandomNaql();
-  const notification = {
-    id: 1,
-    title: `Naql ${naqlNumber}`,
-    body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-    largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-    schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
-    extra: { naqlNumber },
-    channelId: CHANNEL_ID,
-  };
+  await LocalNotifications.schedule({
+    notifications: [{
+      id: 1,
+      title: `Naql ${naqlNumber}`,
+      body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
+      largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+      schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
+      extra: { naqlNumber },
+    }],
+  });
+}
 
-  await LocalNotifications.schedule({ notifications: [notification] });
+/*
+ * Dumps what's actually pending right now, so you can see it instead of
+ * guessing. Safe to call any time — read-only.
+ */
+export async function logNotificationDebugInfo() {
+  if (!Capacitor.isNativePlatform()) {
+    console.log('[naqlNotifications] not running on a native platform');
+    return null;
+  }
+  const permission = await LocalNotifications.checkPermissions();
+  const pending = await LocalNotifications.getPending();
+  const ours = pending.notifications
+    .filter((n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE)
+    .sort((a, b) => new Date(a.schedule?.at) - new Date(b.schedule?.at));
+
+  const summary = {
+    permissionDisplay: permission.display,
+    pendingCount: ours.length,
+    pending: ours.map((n) => ({ id: n.id, naql: n.extra?.naqlNumber, at: n.schedule?.at })),
+  };
+  console.log('[naqlNotifications] debug summary', summary);
+  return summary;
+}
+
+async function logPendingSummary() {
+  try {
+    const pending = await LocalNotifications.getPending();
+    const ours = pending.notifications
+      .filter((n) => n.id >= ID_BASE && n.id < ID_BASE + ID_RANGE)
+      .sort((a, b) => new Date(a.schedule?.at) - new Date(b.schedule?.at));
+    console.log(
+      `[naqlNotifications] ${ours.length} pending, next: ${ours[0]?.schedule?.at}, last: ${ours[ours.length - 1]?.schedule?.at}`
+    );
+  } catch (err) {
+    console.warn('[naqlNotifications] could not read back pending list', err);
+  }
 }
 
 export function onNaqlNotificationTapped(onOpenNaql) {
   if (!Capacitor.isNativePlatform()) return () => {};
-  let handle;
 
-  /* Listen for a notification tap action and forward the requested Naql number. */
+  let handle;
   LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
     const naqlNumber = action.notification?.extra?.naqlNumber;
     if (naqlNumber != null) onOpenNaql(naqlNumber);
   }).then((h) => { handle = h; });
+
   return () => handle?.remove();
 }
 
 /**
  * Call once from App.jsx. Schedules immediately, and re-checks every time
- * the app returns to the foreground — Capacitor's own docs recommend this
- * exact pattern, since the OS can wipe exact alarms out from under you if
- * the user flips the "Alarms & reminders" setting off.
+ * the app returns to the foreground.
  */
 export function initNaqlNotificationLifecycle(onOpenNaql) {
   scheduleDailyNaqlNotifications();

@@ -64,7 +64,7 @@ export default function QuranReader({ initialSurah, onBack }) {
     playAyahFromHere,
     currentTime,
     duration,
-    seek,
+    seekToSurahFraction,
     stop,
   } = useQuranAudioPlayer(surah);
 
@@ -124,6 +124,11 @@ export default function QuranReader({ initialSurah, onBack }) {
 
   const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
   const hasMore = surah ? visibleCount < surah.ayahs.length : false;
+
+  const totalAyahs = surah ? surah.ayahs.length : 0;
+  const surahProgress = activeAyahNumber && totalAyahs
+    ? Math.min(1, ((activeAyahNumber - 1) + (duration ? currentTime / duration : 0)) / totalAyahs)
+    : 0;
 
   useEffect(() => {
     ayahRefs.current[activeAyahNumber]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -345,7 +350,7 @@ export default function QuranReader({ initialSurah, onBack }) {
           <div className="quran-player">
             <div className="quran-player__meta">
               <span className="quran-player__track">
-                {surah?.englishName} · {t('quranAyahLabel')} {activeAyahNumber}
+                {surah?.englishName} · {t('quranAyahLabel')} {activeAyahNumber} / {totalAyahs}
               </span>
               <span className="quran-player__reciter">
                 {RECITERS.find((r) => r.id === reciterId)?.name}
@@ -355,12 +360,12 @@ export default function QuranReader({ initialSurah, onBack }) {
             <input
               type="range"
               className="quran-player__range"
-              style={{ '--progress': `${duration ? (currentTime / duration) * 100 : 0}%` }}
+              style={{ '--progress': `${surahProgress * 100}%` }}
               min={0}
-              max={duration || 0}
-              step={0.1}
-              value={Math.min(currentTime, duration || 0)}
-              onChange={(e) => seek(Number(e.target.value))}
+              max={1}
+              step={0.001}
+              value={surahProgress}
+              onChange={(e) => seekToSurahFraction(Number(e.target.value))}
               aria-label={t('quranSeek')}
             />
 

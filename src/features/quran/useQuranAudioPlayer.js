@@ -337,6 +337,51 @@ export function useQuranAudioPlayer(surah) {
   }, []);
 
   /*
+   * Seek to a position within the whole surah rather than just the
+   * currently loaded ayah's audio file. Ayahs are separate audio files
+   * fetched lazily, so we don't know each one's real duration up front —
+   * each ayah is treated as an equal-width slice of the bar instead.
+   */
+  const seekToSurahFraction = useCallback(
+    (fraction) => {
+      const ayahs = surahRef.current?.ayahs;
+      if (!ayahs || ayahs.length === 0) return;
+
+      const clampedFraction = Math.max(0, Math.min(fraction, 1));
+      const raw = clampedFraction * ayahs.length;
+      const index = Math.min(ayahs.length - 1, Math.floor(raw));
+      const withinAyah = raw - index;
+      const targetAyah = ayahs[index];
+      if (!targetAyah) return;
+
+      const audio = audioRef.current;
+
+      if (targetAyah.numberInSurah === activeAyahNumber) {
+        seek(withinAyah * (audio.duration || 0));
+        return;
+      }
+
+      const wasPlaying = isPlaying;
+      pendingReciterRestartRef.current = false;
+
+      const onLoaded = () => {
+        audio.removeEventListener("loadedmetadata", onLoaded);
+        const targetTime = withinAyah * (audio.duration || 0);
+        audio.currentTime = targetTime;
+        setCurrentTime(targetTime);
+      };
+      audio.addEventListener("loadedmetadata", onLoaded);
+
+      audio.src = buildAudioUrl(targetAyah.number, reciterId);
+      if (wasPlaying) audio.play().catch(() => {});
+      setActiveAyahNumber(targetAyah.numberInSurah);
+      setIsPlaying(wasPlaying);
+      updateNowPlaying(targetAyah, wasPlaying);
+    },
+    [activeAyahNumber, isPlaying, reciterId, seek, updateNowPlaying],
+  );
+
+  /*
    * Native audio "ended" event handler. When in auto-advance mode, move to the next ayah.
    * Otherwise, stop playback and clear the active state.
    */
@@ -406,6 +451,7 @@ export function useQuranAudioPlayer(surah) {
     currentTime,
     duration,
     seek,
+    seekToSurahFraction,
     stop,
   };
 }

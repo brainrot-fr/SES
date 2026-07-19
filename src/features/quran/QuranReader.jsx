@@ -11,10 +11,19 @@ const NO_SEPARATE_BISMILLAH = [1, 9];
 const STORAGE_KEY = 'ses-current-surah';
 const VIEW_MODE_KEY = 'ses-quran-view-mode';
 const TRANSLATION_KEY = 'ses-show-translation';
-const AYAH_BATCH_SIZE = 20;
+const AYAH_BATCH_SIZE = 40;
 
 const ARABIC_DIGITS = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 const toArabicNumber = (n) => String(n).split('').map((d) => ARABIC_DIGITS[Number(d)]).join('');
+
+function formatTime(seconds) {
+  if (!seconds || !isFinite(seconds)) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+import { Menu, MenuItem } from '@mui/material';
 
 export default function QuranReader({ initialSurah, onBack }) {
   const { t } = useLang();
@@ -42,11 +51,37 @@ export default function QuranReader({ initialSurah, onBack }) {
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
 
   const {
-    activeAyahNumber, isPlaying, autoAdvance,
-    reciterId, changeReciter,
-    pause, resume,
-    toggleAyah, playSurahFromStart, stop,
+    activeAyahNumber,
+    isPlaying,
+    autoAdvance,
+    reciterId,
+    changeReciter,
+    pause,
+    resume,
+    toggleAyah,
+    playSurahFromStart,
+    playAyahOnly,
+    playAyahFromHere,
+    currentTime,
+    duration,
+    seek,
+    stop,
   } = useQuranAudioPlayer(surah);
+
+  const [ayahMenu, setAyahMenu] = useState(null); // { anchorEl, ayah } | null
+
+  useEffect(() => { setAyahMenu(null); }, [currentSurah]);
+
+  const handleAyahClick = (event, ayah) => {
+    if (activeAyahNumber === ayah.numberInSurah) {
+      if (isPlaying) pause();
+      else resume();
+      return;
+    }
+    setAyahMenu({ anchorEl: event.currentTarget, ayah });
+  };
+
+  const closeAyahMenu = () => setAyahMenu(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +152,6 @@ export default function QuranReader({ initialSurah, onBack }) {
 
       {surah && (
         <section className="quran-body">
-
           <div className="quran-reciter">
             <span className="quran-reciter__label">{t('quranReciter')}</span>
             <div className="quran-reciter__chips" role="radiogroup" aria-label={t('quranReciter')}>
@@ -156,12 +190,14 @@ export default function QuranReader({ initialSurah, onBack }) {
               {t('quranReadingMode')}
             </button>
           </div>
+
           <header className="quran-surah-header">
             <h2 className="quran-surah-header__ar">{surah.name}</h2>
             <p className="quran-surah-header__en">
               {surah.englishName} · {surah.englishNameTranslation}
             </p>
           </header>
+
           {viewMode === 'verse' && (
             <button
               className="quran-translation-toggle"
@@ -185,9 +221,12 @@ export default function QuranReader({ initialSurah, onBack }) {
                     role="button"
                     tabIndex={0}
                     className={`quran-reading__ayah ${isThisPlaying ? 'quran-reading__ayah--playing' : ''}`}
-                    onClick={() => toggleAyah(ayah)}
+                    onClick={(e) => handleAyahClick(e, ayah)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAyah(ayah); }
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleAyahClick(e, ayah);
+                      }
                     }}
                     ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)}
                   >
@@ -204,13 +243,35 @@ export default function QuranReader({ initialSurah, onBack }) {
                 const translation = translationForAyah(ayah.numberInSurah);
                 const isThisPlaying = isPlaying && activeAyahNumber === ayah.numberInSurah;
                 return (
-                  <div key={ayah.number} ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)} className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}>
+                  <div
+                    key={ayah.number}
+                    ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)}
+                    className={`quran-ayah ${isThisPlaying ? 'quran-ayah--playing' : ''}`}
+                  >
                     <div className="quran-ayah__row">
                       <span className="quran-ayah__num">{ayah.numberInSurah}</span>
-                      <p className="quran-ayah__text">{ayah.text}</p>
+
+                      <p
+                        className="quran-ayah__text"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => handleAyahClick(e, ayah)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleAyahClick(e, ayah);
+                          }
+                        }}
+                      >
+                        {ayah.text}
+                      </p>
+
                       <button
                         className="quran-ayah__play"
-                        onClick={() => toggleAyah(ayah)}
+                        onClick={() => {
+                          if (activeAyahNumber === ayah.numberInSurah) toggleAyah(ayah);
+                          else playAyahOnly(ayah);
+                        }}
                         aria-label={isThisPlaying ? t('quranPause') : t('quranPlayAyah')}
                       >
                         {isThisPlaying ? (
@@ -220,6 +281,7 @@ export default function QuranReader({ initialSurah, onBack }) {
                         )}
                       </button>
                     </div>
+
                     {showTranslation && translation && (
                       <div className="quran-ayah__translation">
                         <p className="quran-ayah__ur">{translation.ur}</p>
@@ -277,9 +339,77 @@ export default function QuranReader({ initialSurah, onBack }) {
           >
             <NextIcon className="quran-nav__icon" title={t('quranNextSurahLabel')} />
           </button>
-
         </div>
+
+        {activeAyahNumber && (
+          <div className="quran-player">
+            <div className="quran-player__meta">
+              <span className="quran-player__track">
+                {surah?.englishName} · {t('quranAyahLabel')} {activeAyahNumber}
+              </span>
+              <span className="quran-player__reciter">
+                {RECITERS.find((r) => r.id === reciterId)?.name}
+              </span>
+            </div>
+
+            <input
+              type="range"
+              className="quran-player__range"
+              style={{ '--progress': `${duration ? (currentTime / duration) * 100 : 0}%` }}
+              min={0}
+              max={duration || 0}
+              step={0.1}
+              value={Math.min(currentTime, duration || 0)}
+              onChange={(e) => seek(Number(e.target.value))}
+              aria-label={t('quranSeek')}
+            />
+
+            <div className="quran-player__time">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          </div>
+        )}
       </nav>
+
+      <Menu
+        open={!!ayahMenu}
+        anchorEl={ayahMenu?.anchorEl}
+        onClose={closeAyahMenu}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'var(--panel)',
+              color: 'var(--text-small)',
+              border: '1px solid var(--border)',
+              borderRadius: '10px',
+              minWidth: 200,
+            },
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            playAyahOnly(ayahMenu.ayah);
+            closeAyahMenu();
+          }}
+          sx={{ fontSize: '0.85rem' }}
+        >
+          {t('quranPlayThisAyah')}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            playAyahFromHere(ayahMenu.ayah);
+            closeAyahMenu();
+          }}
+          sx={{ fontSize: '0.85rem' }}
+        >
+          {t('quranPlayFromHere')}
+        </MenuItem>
+      </Menu>
+
       {showBackToTop && (
         <button
           className="quran-back-to-top"

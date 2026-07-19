@@ -20,7 +20,14 @@
   font-family: 'QPCHafs';
   src: url('./assets/fonts/QPC\ Hafs\ \(Official\ Uthmani\ script\ font\)\ -\ TTF.ttf') format('truetype');
 }
-
+@font-face {
+  font-family: 'CormorantGaramond-Medium';
+  src: url('./assets/fonts/CormorantGaramond-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Indopak';
+  src: url('./assets/fonts/Indopak\ Nastaleeq\ -\ TTF.ttf') format('truetype');
+}
 /* LIGHT */
 :root {
   --bg: #FBF7F0;
@@ -48,14 +55,14 @@ html[data-theme="dark"] {
   --bg: #18130F;
   --text-large: #f5e982;
   --text-small: #e9e4b8;
-  --muted: #A39F8A;
+  --muted: #898678;
 
   --panel: #2E2117;
   --panel-2: #18110c;
 
   --border: #5C4A30;
 
-  --primary: #ffead0;
+  --primary: #FFFFF0;
   --primary-2: #faf5ee;
 
   --shadow: #0000008c;

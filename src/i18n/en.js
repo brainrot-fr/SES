@@ -14,9 +14,7 @@ export default {
   /* Nav */
   navNuqool:    'Nuqool',
   navTimeline:  'Timeline',
-
   goBack: 'Back',
-  quranBackToTop: 'Back to top',
 
   /* Page titles (header) */
   titleNuqool:   'Nuqool e Imam Mahdi A.S',
@@ -74,4 +72,10 @@ export default {
   quranReadingMode:      'Reading',
   quranSearchPlaceholder:'Search surah name or number…',
   quranNoResults:        'No surahs match your search.',
+  quranBackToTop: 'Back to top',
+  
+  quranPlayThisAyah: 'Play this ayah',
+  quranPlayFromHere: 'Play from here',
+  quranAyahLabel:    'Ayah',
+  quranSeek:         'Playback position',
 };

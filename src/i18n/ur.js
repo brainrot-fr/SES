@@ -72,4 +72,9 @@ export default {
   quranReadingMode:      'مطالعہ',
   quranSearchPlaceholder:'سورت کا نام یا نمبر تلاش کریں…',
   quranNoResults:        'کوئی سورت نہیں ملی۔',
+
+  quranPlayThisAyah: 'یہ آیت چلائیں',
+  quranPlayFromHere: 'یہاں سے چلائیں',
+  quranAyahLabel:    'آیت',
+  quranSeek:         'پلے بیک کی پوزیشن',
 };

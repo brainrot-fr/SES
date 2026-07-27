@@ -12,6 +12,41 @@
 @import '@fontsource/space-grotesk/700.css';
 @import '@fontsource/sora/400.css';
 @import '@fontsource/sora/600.css';
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-2: var(--primary-2);
+  --color-primary-soft: var(--primary-soft);
+  --color-heading: var(--text-large);
+  --color-body: var(--text-small);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-border: var(--border);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
+
 @font-face {
   font-family: 'QPC V4 Tajweed';
   src: url('./assets/fonts/QPC-V4-Tajweed.ttf') format('truetype');
@@ -30,46 +65,75 @@
 }
 /* LIGHT */
 :root {
-  --bg: #FBF7F0;
-  --text-large: #7A1E1E;
-  --text-small: #3D3D00;
-  --muted: #616156;
+  --bg: #FAFAF9;
+  --text-large: #16181C;
+  --text-small: #3B3E42;
+  --muted: #6B6F76;
 
-  --panel: #ffead0;
-  --panel-2: #faf5ee;
+  --surface-0: #FAFAF9;
+  --surface-1: #FFFFFF;
+  --surface-2: #F3F3F1;
+  --surface-3: #ECECE9;
 
-  --border: #7A6A3A;
+  --primary: #185FA5;
+  --primary-2: #378ADD;
+  --primary-soft: #E6F1FB;
+  --on-primary: #FFFFFF;
 
-  --primary: #7A2D2D;
-  --primary-2: #9B4D4D;
+  --hairline: rgba(20, 20, 20, 0.10);
+  --ring: rgba(24, 95, 165, 0.30);
 
-  --shadow: rgba(0, 0, 0, 0.18);
-  --ring: rgba(145, 79, 79, 0.35);
+  --shadow-sm: 0 1px 2px rgba(20, 20, 20, 0.04);
+  --shadow-md: 0 2px 6px rgba(20, 20, 20, 0.06);
+  --shadow-lg: 0 6px 16px rgba(20, 20, 20, 0.08);
 
-  --danger: #C23333;
-  --success: #198754;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px;
+  --space-4: 16px; --space-5: 24px; --space-6: 32px;
+
+  --danger: #CF222E;
+  --success: #1A7F37;
+
+  --panel: var(--surface-1);
+  --panel-2: var(--surface-2);
+  --border: var(--hairline);
+  --shadow: rgba(20, 20, 20, 0.08);
 }
 
-/* DARK */
 html[data-theme="dark"] {
-  --bg: #18130F;
-  --text-large: #f5e982;
-  --text-small: #e9e4b8;
-  --muted: #898678;
+  --bg: #1A1A19;
+  --text-large: #FFFFFF;
+  --text-small: #C3C2B7;
+  --muted: #C0C0B5;
 
-  --panel: #2E2117;
-  --panel-2: #18110c;
+  --surface-0: #1A1A19;
+  --surface-1: #2C2C2A;
+  --surface-2: #393936;
+  --surface-3: #444440;
 
-  --border: #5C4A30;
+  --primary: #2A78D6;
+  --primary-2: #5B9CE8;
+  --primary-soft: #032042;
+  --on-primary: #FFFFFF;
 
-  --primary: #FFFFF0;
-  --primary-2: #faf5ee;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --ring: rgba(42, 120, 214, 0.35);
 
-  --shadow: #0000008c;
-  --ring: rgba(240, 163, 163, 0.28);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.45);
 
-  --danger: #FF5A5A;
-  --success: #5CD08A;
+  --danger: #FF7B72;
+  --success: #3FB950;
+
+  --panel: var(--surface-1);
+  --panel-2: var(--surface-2);
+  --border: var(--hairline);
+  --shadow: rgba(0, 0, 0, 0.35);
 }
 
 *,

@@ -64,6 +64,8 @@ export default function QuranReader({ initialSurah, onBack }) {
     playAyahFromHere,
     currentTime,
     duration,
+    surahElapsedTime,
+    surahTotalTime,
     seekToSurahFraction,
     stop,
   } = useQuranAudioPlayer(surah);
@@ -370,8 +372,8 @@ export default function QuranReader({ initialSurah, onBack }) {
             />
 
             <div className="quran-player__time">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
+              <span>{formatTime(surahElapsedTime)}</span>
+              <span>{formatTime(surahTotalTime)}</span>
             </div>
           </div>
         )}

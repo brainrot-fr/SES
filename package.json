@@ -13,12 +13,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@capacitor/app": "^8.1.0",
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/local-notifications": "^8.2.0",
     "@capawesome-team/capacitor-android-foreground-service": "^8.1.0",
-    "@capgo/capacitor-media-session": "^8.0.28",
+    "@capgo/capacitor-media-session": "^8.0.29",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/readex-pro": "^5.2.11",

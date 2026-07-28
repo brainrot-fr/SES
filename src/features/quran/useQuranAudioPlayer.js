@@ -7,7 +7,7 @@
  * - Integrates with native media session and Android foreground service.
  */
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import { MediaSession } from "@capgo/capacitor-media-session";
 import { ForegroundService } from "@capawesome-team/capacitor-android-foreground-service";
@@ -328,6 +328,53 @@ export function useQuranAudioPlayer(surah) {
     setDuration(0);
   }, [activeAyahNumber]);
 
+  /*
+   * Each ayah is a separate audio file fetched on demand, so the true
+   * length of the whole surah isn't known upfront (see quranApi.js — we
+   * deliberately avoid prefetching a surah's audio just to read duration).
+   * Instead, remember each ayah's duration as it's discovered during
+   * normal playback (no extra network cost) and use the running average
+   * to estimate ayahs that haven't loaded yet. The surah-wide elapsed/
+   * total time gets more accurate the further you listen.
+   */
+  const [ayahDurations, setAyahDurations] = useState({});
+
+  useEffect(() => {
+    setAyahDurations({});
+  }, [surah?.number, reciterId]);
+
+  useEffect(() => {
+    if (activeAyahNumber == null || !duration) return;
+    setAyahDurations((prev) => (
+      prev[activeAyahNumber] === duration ? prev : { ...prev, [activeAyahNumber]: duration }
+    ));
+  }, [activeAyahNumber, duration]);
+
+  const averageKnownDuration = useMemo(() => {
+    const known = Object.values(ayahDurations);
+    if (known.length) return known.reduce((sum, d) => sum + d, 0) / known.length;
+    return duration || 0;
+  }, [ayahDurations, duration]);
+
+  const surahTotalTime = useMemo(() => {
+    const count = surah?.ayahs?.length ?? 0;
+    if (!count) return 0;
+    let total = 0;
+    for (let n = 1; n <= count; n += 1) {
+      total += ayahDurations[n] ?? averageKnownDuration;
+    }
+    return total;
+  }, [surah, ayahDurations, averageKnownDuration]);
+
+  const surahElapsedTime = useMemo(() => {
+    if (activeAyahNumber == null) return 0;
+    let total = currentTime;
+    for (let n = 1; n < activeAyahNumber; n += 1) {
+      total += ayahDurations[n] ?? averageKnownDuration;
+    }
+    return total;
+  }, [activeAyahNumber, currentTime, ayahDurations, averageKnownDuration]);
+
   const seek = useCallback((time) => {
     const audio = audioRef.current;
     if (!audio || !isFinite(audio.duration) || audio.duration <= 0) return;
@@ -450,6 +497,8 @@ export function useQuranAudioPlayer(surah) {
     playAyahFromHere,
     currentTime,
     duration,
+    surahElapsedTime,
+    surahTotalTime,
     seek,
     seekToSurahFraction,
     stop,

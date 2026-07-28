@@ -13,7 +13,7 @@ const MoonIcon = () => (
 );
 
 export default function Sidebar({
-  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification,
+  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification, isAnonymous, onBackupData,
 }) {
   const { t, resetLang } = useLang();
 
@@ -65,6 +65,14 @@ export default function Sidebar({
           >
             🔔 {t('testNotification')}
           </button>
+          {isAnonymous && (
+            <button
+              className="flex items-center gap-2.5 w-full mt-2 px-4 py-2.5 bg-surface-3 border-0 rounded-md text-body cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
+              onClick={onBackupData}
+            >
+              ☁️ {t('authBackupData')}
+            </button>
+          )}
         </div>
       </aside>
     </>

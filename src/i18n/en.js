@@ -14,11 +14,13 @@ export default {
   /* Nav */
   navNuqool:    'Nuqool',
   navTimeline:  'Timeline',
+  navMurshid:   'Murshid',
   goBack: 'Back',
 
   /* Page titles (header) */
   titleNuqool:   'Nuqool e Imam Mahdi A.S',
   titleTimeline: 'Timeline',
+  titleMurshid:  'Murshid',
 
   /* Sidebar */
   menu: 'Menu',
@@ -78,4 +80,22 @@ export default {
   quranPlayFromHere: 'Play from here',
   quranAyahLabel:    'Ayah',
   quranSeek:         'Playback position',
+
+  murshidTarbiyat: 'Silsila-e-Tarbiyat',
+  murshidFaqiri:   'Silsila-e-Faqiri',
+
+  /* Auth / backup */
+  authBackupData: 'Back up my data',
+  authUpgradeTitle: 'Back up your data',
+  authUpgradeDesc: 'Add your email so your progress and preferences survive a reinstall. This is optional — skip it and everything still works.',
+  authUpgradeEmailPlaceholder: 'you@example.com',
+  authUpgradeSendCode: 'Send code',
+  authUpgradeSending: 'Sending…',
+  authUpgradeWaitingDesc: "We've sent a confirmation link to",
+  authUpgradeWaitingHint: 'Tap the link in that email to finish backing up your data. You can close this and keep using the app in the meantime.',
+  authUpgradeCloseWhileWaiting: 'Close',
+  authUpgradeSuccess: 'Your data is now backed up to this email.',
+  authUpgradeClose: 'Done',
+  authUpgradeSkip: 'Not now',
+  authUpgradeError: 'Something went wrong. Please try again.',
 };

@@ -20,6 +20,7 @@
     "@capacitor/local-notifications": "^8.2.0",
     "@capawesome-team/capacitor-android-foreground-service": "^8.1.0",
     "@capgo/capacitor-media-session": "^8.0.29",
+    "@supabase/supabase-js": "^2.58.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource/readex-pro": "^5.2.11",

@@ -14,6 +14,7 @@ export default {
   /* Nav */
   navNuqool:   'نقول',
   navTimeline: 'واقعات',
+  navMurshid:  'مرشد',
 
   goBack: 'واپس',
   quranBackToTop: 'اوپر جائیں',
@@ -21,6 +22,7 @@ export default {
   /* Page titles */
   titleNuqool:   'نقول امام مہدی علیہ السلام',
   titleTimeline: 'سلسلہ واقعات',
+  titleMurshid:  'مرشد',
 
   /* Sidebar */
   menu: 'مینو',
@@ -77,4 +79,21 @@ export default {
   quranPlayFromHere: 'یہاں سے چلائیں',
   quranAyahLabel:    'آیت',
   quranSeek:         'پلے بیک کی پوزیشن',
+
+  murshidTarbiyat: 'سلسلہ تربیت',
+  murshidFaqiri:   'سلسلہ فقیری',
+
+  authBackupData: 'ڈیٹا محفوظ کریں',
+  authUpgradeTitle: 'اپنا ڈیٹا محفوظ کریں',
+  authUpgradeDesc: 'اپنی ای میل شامل کریں تاکہ ری انسٹال کے بعد بھی آپ کی ترجیحات محفوظ رہیں۔ یہ اختیاری ہے۔',
+  authUpgradeEmailPlaceholder: 'you@example.com',
+  authUpgradeSendCode: 'کوڈ بھیجیں',
+  authUpgradeSending: 'بھیجا جا رہا ہے…',
+  authUpgradeWaitingDesc: 'ہم نے تصدیقی لنک بھیج دیا ہے',
+  authUpgradeWaitingHint: 'ڈیٹا محفوظ کرنے کے لیے ای میل میں دیا گیا لنک دبائیں۔ آپ اس دوران ایپ استعمال کرتے رہ سکتے ہیں۔',
+  authUpgradeCloseWhileWaiting: 'بند کریں',
+  authUpgradeSuccess: 'آپ کا ڈیٹا اب اس ای میل پر محفوظ ہو گیا ہے۔',
+  authUpgradeClose: 'مکمل',
+  authUpgradeSkip: 'ابھی نہیں',
+  authUpgradeError: 'کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔',
 };

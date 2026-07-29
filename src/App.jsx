@@ -26,6 +26,8 @@ import {
   initNaqlNotificationLifecycle,
   scheduleTestNotification,
 } from "./notifications/naqlNotifications";
+import SettingsDashboard from "./features/settings/SettingsDashboard";
+``;
 
 /* ── Icons ──────────────────────────────────────────────────── */
 const SunIcon = () => (
@@ -295,7 +297,14 @@ export default function App() {
     { id: "quran", label: t("navQuran"), icon: <BookIcon /> },
     { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
     { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
+    { id: "settings", label: t("Settings"), icon: <MoreIcon /> },
   ];
+
+  /* Curated subset — shown in the bottom tab bar. Keep this short;
+  everything else lives behind the center "More" button. */
+  const primaryNavItems = navItems.filter((it) =>
+    ["nuqool", "quran"].includes(it.id),
+  );
 
   /* Localized page titles for the current route. */
   const pageTitles = {
@@ -329,6 +338,13 @@ export default function App() {
         return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
       case "murshid":
         return <Murshid />;
+      case "settings":
+        return (
+          <SettingsDashboard
+            darkMode={darkMode}
+            onThemeToggle={() => setDarkMode((d) => !d)}
+          />
+        );
       default:
         return (
           <Quran selectedSurah={quranSurah} onSelectSurah={setQuranSurah} />
@@ -409,7 +425,7 @@ export default function App() {
 
       <main className="app-main">{renderPage()}</main>
       <BottomNav
-        items={navItems}
+        items={primaryNavItems}
         activePage={currentPage}
         onNavigate={(id) => setCurrentPage(id)}
         onMore={() => setSidebarOpen(true)}

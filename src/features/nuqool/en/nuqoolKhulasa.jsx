@@ -1,18 +1,29 @@
+/**
+ * nuqoolKhulasa.jsx
+ * Optional Naql summary/lightbox content.
+ *
+ * - Provides expandable Khulasa details for selected Naql items.
+ * - Uses a lightbox plugin to display full-size reference images.
+ */
+
 import React, { useState, useCallback } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
-// Constants live in nuqool.jsx — import from there, don't duplicate them here
+/* Constants live in nuqool.jsx — import from there, don't duplicate them here */
 import { KHUDA_T, R_SAWS, MAS, HBM, BM } from './nuqool.jsx';
 import './nuqoolKhulasa.css';
 import naql2 from '../../../assets/nuqool/en/Naql 2.jpeg';
 
 function ImageSummary({ label, src, alt }) {
   const [open, setOpen] = useState(false);
+
+  /* Open the image lightbox without letting the default summary action interfere. */
   const openLightbox = useCallback((event) => {
     event.preventDefault();
     setOpen(true);
   }, []);
+
   const closeLightbox = useCallback(() => setOpen(false), []);
 
   return (

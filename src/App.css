@@ -1,3 +1,11 @@
+/*
+ * App.css
+ * Shared app shell styling.
+ *
+ * - Styles the sticky header and responsive bottom navigation.
+ * - Positions toast notifications and main content area.
+ */
+
 .app-root {
   min-height: 100vh;
 }
@@ -58,4 +66,64 @@
   z-index: 1100;
   min-width: 240px;
   text-align: center;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -2px 12px var(--shadow);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.5rem 0.25rem 0.4rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.bottom-nav__icon {
+  display: flex;
+}
+
+.bottom-nav__label {
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.bottom-nav__item--active {
+  color: var(--primary);
+}
+
+.app-main {
+  padding-bottom: 64px;
+}
+
+.bottom-nav__icon--center {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: var(--panel);
+  border-radius: 50%;
+  margin-top: -20px;
+  box-shadow: 0 4px 10px var(--shadow);
+}
+
+.app-header__btn--placeholder {
+  visibility: hidden;
 }

@@ -1,11 +1,23 @@
+/**
+ * naqlDashboard.jsx
+ * The Naql browsing user interface.
+ *
+ * - Shows the current Naql text block with navigation and quick jump controls.
+ * - Persists the current Naql number to localStorage.
+ * - Responds to notification requests to open a specific Naql.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './naqlDashboard.css';
 import { nuqoolObject } from './nuqool.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 import { useLang } from '../../../context/LanguageContext.jsx';
+import { PrevIcon, NextIcon } from '../../../components/icons/MediaIcons.jsx';
 
-// When you have Urdu naql content ready:
-// import { nuqoolObject as nuqoolUr } from '../ur/nuqool.jsx';
+/*
+ * When you have Urdu naql content ready:
+ * import { nuqoolObject as nuqoolUr } from '../ur/nuqool.jsx';
+ */
 
 const TOTAL = Object.keys(nuqoolObject).length;
 const STORAGE_KEY = 'ses-current-naql';
@@ -13,8 +25,12 @@ const STORAGE_KEY = 'ses-current-naql';
 export default function NaqlDashboard({ openNaqlRequest }) {
   const { t, lang } = useLang();
 
-  // When Urdu content exists, swap here:
-  // const naqlContent = lang === 'ur' ? nuqoolUr : nuqoolObject;
+  /*
+   * When Urdu content exists, swap here:
+   * const naqlContent = lang === 'ur' ? nuqoolUr : nuqoolObject;
+   * Use the current language's Naql content.
+   */
+
   const naqlContent = nuqoolObject;
 
   const [currentNaql, setCurrentNaql] = useState(() => {
@@ -25,17 +41,20 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   const topRef = useRef(null);
 
   const goTo = useCallback(
+    /* Keep the selected Naql number within the valid range. */
     (n) => setCurrentNaql(Math.max(1, Math.min(TOTAL, n))),
     []
   );
 
   useEffect(() => {
+    /* Persist the selected Naql number so it is restored on the next visit. */
     localStorage.setItem(STORAGE_KEY, String(currentNaql));
     setInputVal(String(currentNaql));
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentNaql]);
 
   useEffect(() => {
+    /* If a notification tap requests a specific Naql, jump there. */
     if (openNaqlRequest?.number) goTo(openNaqlRequest.number);
   }, [openNaqlRequest, goTo]);
 
@@ -65,9 +84,9 @@ export default function NaqlDashboard({ openNaqlRequest }) {
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql - 1)}
             disabled={currentNaql === 1}
-            aria-label="Previous naql"
+            aria-label={t('prevNaql')}
           >
-            {t('prevNaql')}
+            <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
           </button>
 
           <div className="naql-nav__position">
@@ -89,9 +108,9 @@ export default function NaqlDashboard({ openNaqlRequest }) {
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql + 1)}
             disabled={currentNaql === TOTAL}
-            aria-label="Next naql"
+            aria-label={t('nextNaql')}
           >
-            {t('nextNaql')}
+            <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
           </button>
         </div>
 

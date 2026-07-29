@@ -1,5 +1,4 @@
 import { useLang } from '../context/LanguageContext';
-import './sidebar.css';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -20,19 +19,24 @@ export default function Sidebar({
 
   return (
     <>
-      {isOpen && <div className="backdrop" onClick={onClose} />}
+      {isOpen && <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-[900]" onClick={onClose} />}
 
-      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-        <div className="sidebar__header">
+      <aside className={`fixed top-0 left-0 h-screen w-[260px] flex flex-col bg-surface-2 text-body shadow-lg border-r border-hairline transition-transform duration-200 ease-in-out z-[1000] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-hairline font-semibold text-heading">
           <span>{t('menu')}</span>
-          <button className="sidebar__close" onClick={onClose} aria-label="Close menu">✕</button>
+          <button className="bg-transparent border-0 text-body text-lg cursor-pointer px-2 py-1 rounded-md leading-none hover:bg-surface-3" onClick={onClose} aria-label="Close menu">✕</button>
         </div>
 
-        <nav className="sidebar__nav" aria-label="Main navigation">
+        <nav className="flex-1 overflow-y-auto flex flex-col gap-1 p-3" aria-label="Main navigation">
           {items.map(it => (
             <button
               key={it.id}
-              className={`sidebar__link ${activePage === it.id ? 'sidebar__link--active' : ''}`}
+              className={`text-left w-full cursor-pointer text-sm px-4 py-3 rounded-md transition-all duration-150 ${
+                activePage === it.id
+                  ? 'bg-primary-soft text-primary border-1'
+                  : 'text-body hover:bg-primary-soft hover:translate-x-0.5'
+              }`}
               onClick={() => onNavigate(it.id)}
               aria-current={activePage === it.id ? 'page' : undefined}
             >
@@ -41,15 +45,24 @@ export default function Sidebar({
           ))}
         </nav>
 
-        <div className="sidebar__footer">
-          <button className="sidebar__theme-btn" onClick={onThemeToggle}>
+        <div className="flex-shrink-0 p-4 border-t border-hairline">
+          <button
+            className="flex items-center gap-2.5 w-full px-4 py-3 bg-surface-3 border-0 rounded-md text-body cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
+            onClick={onThemeToggle}
+          >
             <span aria-hidden="true">{darkMode ? <SunIcon /> : <MoonIcon />}</span>
             {darkMode ? t('toLightMode') : t('toDarkMode')}
           </button>
-          <button className="sidebar__lang-btn" onClick={resetLang}>
+          <button
+            className="flex items-center gap-2.5 w-full mt-2 px-4 py-2.5 bg-surface-3 border-0 rounded-md text-body cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
+            onClick={resetLang}
+          >
             🌐 {t('changeLang')}
           </button>
-          <button className="sidebar__test-btn" onClick={onTestNotification}>
+          <button
+            className="flex items-center gap-2.5 w-full mt-2 px-4 py-2.5 bg-surface-3 border-0 rounded-md text-primary cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
+            onClick={onTestNotification}
+          >
             🔔 {t('testNotification')}
           </button>
         </div>

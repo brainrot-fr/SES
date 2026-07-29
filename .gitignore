@@ -1,5 +1,6 @@
 .env
 android/
+!android/app/src/main/AndroidManifest.xml
 dist/
 .npm
 *.log
@@ -8,3 +9,4 @@ dist-electron/
 release/
 node_modules/
 electron/
+scripts/

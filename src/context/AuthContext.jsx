@@ -20,6 +20,7 @@ import {
   isAnonymousUser,
   requestEmailUpgrade,
   listenForEmailUpgradeConfirmation,
+  signInWithPassword,
 } from "../features/auth/authSession";
 
 const Ctx = createContext(null);
@@ -67,7 +68,11 @@ export function AuthProvider({ children }) {
   const isAnonymous = isAnonymousUser(user);
 
   const startEmailUpgrade = useCallback(
-    (email) => requestEmailUpgrade(email),
+    (email, password) => requestEmailUpgrade(email, password),
+    [],
+  );
+  const signIn = useCallback(
+    (email, password) => signInWithPassword(email, password),
     [],
   );
 
@@ -82,6 +87,7 @@ export function AuthProvider({ children }) {
         upgradeConfirmed,
         upgradeError,
         clearUpgradeConfirmed: () => setUpgradeConfirmed(false),
+        signIn,
       }}
     >
       {children}

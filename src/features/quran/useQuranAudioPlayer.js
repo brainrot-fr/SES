@@ -104,12 +104,30 @@ export function useQuranAudioPlayer(surah) {
   const [activeAyahNumber, setActiveAyahNumber] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(false);
-
   const [reciterId, setReciterId] = useState(getSavedReciter());
+
+  const activeAyahNumberRef = useRef(activeAyahNumber);
+  const isPlayingRef = useRef(isPlaying);
+  const autoAdvanceRef = useRef(autoAdvance);
+  const reciterIdRef = useRef(reciterId);
 
   const pendingReciterRestartRef = useRef(false);
   const playRef = useRef(() => {});
   const playSurahFromStartRef = useRef(() => {});
+  const stopRef = useRef(() => {});
+
+  useEffect(() => {
+    activeAyahNumberRef.current = activeAyahNumber;
+  }, [activeAyahNumber]);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+  useEffect(() => {
+    autoAdvanceRef.current = autoAdvance;
+  }, [autoAdvance]);
+  useEffect(() => {
+    reciterIdRef.current = reciterId;
+  }, [reciterId]);
 
   const surahRef = useRef(surah);
 
@@ -132,38 +150,38 @@ export function useQuranAudioPlayer(surah) {
    * updateNowPlaying syncs the current ayah and reciter with native media controls
    * and the Android foreground notification.
    */
-  const updateNowPlaying = useCallback(
-    (ayah, playing) => {
-      if (!isNative() || !surahRef.current) return;
-      const label = `${surahRef.current.englishName} — Ayah ${ayah.numberInSurah}`;
-      const reciterName =
-        RECITERS.find((r) => r.id === reciterId)?.name ?? RECITERS[0].name;
-      MediaSession.setMetadata({
-        title: label,
-        artist: reciterName,
-        album: surahRef.current.englishName,
-      }).catch(() => {});
-      MediaSession.setPlaybackState({
-        playbackState: playing ? "playing" : "paused",
-      }).catch(() => {});
-      updateForeground(label, playing ? "Playing" : "Paused");
-    },
-    [reciterId],
-  );
+  const updateNowPlaying = useCallback((ayah, playing) => {
+    if (!isNative() || !surahRef.current) return;
+    const label = `${surahRef.current.englishName} — Ayah ${ayah.numberInSurah}`;
+    const reciterName =
+      RECITERS.find((r) => r.id === reciterIdRef.current)?.name ??
+      RECITERS[0].name;
+    MediaSession.setMetadata({
+      title: label,
+      artist: reciterName,
+      album: surahRef.current.englishName,
+    }).catch(() => {});
+    MediaSession.setPlaybackState({
+      playbackState: playing ? "playing" : "paused",
+    }).catch(() => {});
+    updateForeground(label, playing ? "Playing" : "Paused");
+  }, []);
 
   /* Start playback for a selected ayah and optionally keep auto-advancing. */
   const play = useCallback(
     (ayah, chain = false) => {
       pendingReciterRestartRef.current = false;
       const audio = audioRef.current;
-      audio.src = buildAudioUrl(ayah.number, reciterId);
+      // Always read the latest reciter from the ref so a mid-flight
+      // changeReciter cannot leave us with a stale URL.
+      audio.src = buildAudioUrl(ayah.number, reciterIdRef.current);
       audio.play().catch(() => {});
       setActiveAyahNumber(ayah.numberInSurah);
       setIsPlaying(true);
       setAutoAdvance(chain);
       updateNowPlaying(ayah, true);
     },
-    [reciterId, updateNowPlaying],
+    [updateNowPlaying],
   );
 
   useEffect(() => {
@@ -183,21 +201,24 @@ export function useQuranAudioPlayer(surah) {
       const currentBitrate = match ? Number(match[1]) : null;
       const fallback = currentBitrate ? nextAudioBitrate(currentBitrate) : null;
       if (!fallback) {
-        console.warn("[quranAudio] no working bitrate found for", reciterId);
+        console.warn(
+          "[quranAudio] no working bitrate found for",
+          reciterIdRef.current,
+        );
         return;
       }
-      const ayah = findAyah(activeAyahNumber);
+      const ayah = findAyah(activeAyahNumberRef.current);
       if (!ayah) return;
       console.warn(
-        `[quranAudio] ${reciterId} failed at ${currentBitrate}kbps, trying ${fallback}kbps`,
+        `[quranAudio] ${reciterIdRef.current} failed at ${currentBitrate}kbps, trying ${fallback}kbps`,
       );
-      setReciterBitrate(reciterId, fallback);
-      audio.src = buildAudioUrl(ayah.number, reciterId, fallback);
-      if (isPlaying) audio.play().catch(() => {});
+      setReciterBitrate(reciterIdRef.current, fallback);
+      audio.src = buildAudioUrl(ayah.number, reciterIdRef.current, fallback);
+      if (isPlayingRef.current) audio.play().catch(() => {});
     };
     audio.addEventListener("error", handleError);
     return () => audio.removeEventListener("error", handleError);
-  }, [reciterId, activeAyahNumber, isPlaying, findAyah]);
+  }, [findAyah]);
 
   const pause = useCallback(() => {
     audioRef.current.pause();
@@ -217,7 +238,7 @@ export function useQuranAudioPlayer(surah) {
   const resume = useCallback(() => {
     if (pendingReciterRestartRef.current) {
       pendingReciterRestartRef.current = false;
-      if (autoAdvance) {
+      if (autoAdvanceRef.current) {
         playSurahFromStartRef.current();
       } else {
         setActiveAyahNumber((current) => {
@@ -237,11 +258,19 @@ export function useQuranAudioPlayer(surah) {
       }
       return current;
     });
-  }, [findAyah, updateNowPlaying, autoAdvance]);
+  }, [findAyah, updateNowPlaying]);
 
   /* Stop playback completely and clear the active ayah state. */
   const stop = useCallback(() => {
-    audioRef.current.pause();
+    const audio = audioRef.current;
+    audio.pause();
+    // Drop the old resource so late network / ended / error events cannot
+    // fire against a stale surah or activeAyahNumber. Do NOT call load() —
+    // on Android WebView that itself can re-emit error/ended and re-enter
+    // the handlers while we are already tearing down.
+    if (audio.src) {
+      audio.removeAttribute("src");
+    }
     setIsPlaying(false);
     setAutoAdvance(false);
     setActiveAyahNumber(null);
@@ -250,6 +279,10 @@ export function useQuranAudioPlayer(surah) {
     }
     stopForeground();
   }, []);
+
+  useEffect(() => {
+    stopRef.current = stop;
+  }, [stop]);
 
   /*
    * Toggle playback for a single ayah: pause/resume if currently selected,
@@ -293,12 +326,32 @@ export function useQuranAudioPlayer(surah) {
     (direction) => {
       setActiveAyahNumber((current) => {
         const next = findAyah((current ?? 0) + direction);
-        if (next) play(next, autoAdvance);
+        if (next) playRef.current(next, autoAdvanceRef.current);
         return current;
       });
     },
-    [autoAdvance, findAyah, play],
+    [findAyah],
   );
+
+  /*
+   * Single "ended" handler. Uses refs so it always sees the latest values
+   * and is never re-subscribed on every ayah change (which previously left
+   * two listeners racing when a Surah finished).
+   */
+  useEffect(() => {
+    const audio = audioRef.current;
+    const handleEnded = () => {
+      if (!autoAdvanceRef.current) {
+        stopRef.current();
+        return;
+      }
+      const next = findAyah((activeAyahNumberRef.current ?? 0) + 1);
+      if (next) playRef.current(next, true);
+      else stopRef.current();
+    };
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, [findAyah]);
 
   /*
    * Playback position for the progress bar. Reset on ayah change so the
@@ -345,14 +398,17 @@ export function useQuranAudioPlayer(surah) {
 
   useEffect(() => {
     if (activeAyahNumber == null || !duration) return;
-    setAyahDurations((prev) => (
-      prev[activeAyahNumber] === duration ? prev : { ...prev, [activeAyahNumber]: duration }
-    ));
+    setAyahDurations((prev) =>
+      prev[activeAyahNumber] === duration
+        ? prev
+        : { ...prev, [activeAyahNumber]: duration },
+    );
   }, [activeAyahNumber, duration]);
 
   const averageKnownDuration = useMemo(() => {
     const known = Object.values(ayahDurations);
-    if (known.length) return known.reduce((sum, d) => sum + d, 0) / known.length;
+    if (known.length)
+      return known.reduce((sum, d) => sum + d, 0) / known.length;
     return duration || 0;
   }, [ayahDurations, duration]);
 
@@ -403,12 +459,12 @@ export function useQuranAudioPlayer(surah) {
 
       const audio = audioRef.current;
 
-      if (targetAyah.numberInSurah === activeAyahNumber) {
+      if (targetAyah.numberInSurah === activeAyahNumberRef.current) {
         seek(withinAyah * (audio.duration || 0));
         return;
       }
 
-      const wasPlaying = isPlaying;
+      const wasPlaying = isPlayingRef.current;
       pendingReciterRestartRef.current = false;
 
       const onLoaded = () => {
@@ -419,33 +475,14 @@ export function useQuranAudioPlayer(surah) {
       };
       audio.addEventListener("loadedmetadata", onLoaded);
 
-      audio.src = buildAudioUrl(targetAyah.number, reciterId);
+      audio.src = buildAudioUrl(targetAyah.number, reciterIdRef.current);
       if (wasPlaying) audio.play().catch(() => {});
       setActiveAyahNumber(targetAyah.numberInSurah);
       setIsPlaying(wasPlaying);
       updateNowPlaying(targetAyah, wasPlaying);
     },
-    [activeAyahNumber, isPlaying, reciterId, seek, updateNowPlaying],
+    [seek, updateNowPlaying],
   );
-
-  /*
-   * Native audio "ended" event handler. When in auto-advance mode, move to the next ayah.
-   * Otherwise, stop playback and clear the active state.
-   */
-  useEffect(() => {
-    const audio = audioRef.current;
-    const handleEnded = () => {
-      if (!autoAdvance) {
-        stop();
-        return;
-      }
-      const next = findAyah((activeAyahNumber ?? 0) + 1);
-      if (next) play(next, true);
-      else stop();
-    };
-    audio.addEventListener("ended", handleEnded);
-    return () => audio.removeEventListener("ended", handleEnded);
-  }, [autoAdvance, activeAyahNumber, findAyah, play, stop]);
 
   /*
    * Bind native media session action handlers for lock-screen controls.

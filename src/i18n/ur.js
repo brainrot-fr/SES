@@ -96,4 +96,15 @@ export default {
   authUpgradeClose: 'مکمل',
   authUpgradeSkip: 'ابھی نہیں',
   authUpgradeError: 'کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔',
+  authUpgradePasswordPlaceholder: 'پاس ورڈ بنائیں',
+  authUpgradePasswordHint: 'دوسرے آلات پر سائن ان کے لیے یہ پاس ورڈ استعمال کریں۔',
+  authUpgradePasswordTooShort: 'پاس ورڈ کم از کم ۸ حروف کا ہونا چاہیے۔',
+
+  signInMenuLabel: 'موجودہ اکاؤنٹ میں سائن ان کریں',
+  signInTitle: 'سائن ان',
+  signInDesc: 'سائن ان کرنے سے اس ڈیوائس کا مقامی ڈیٹا آپ کے اکاؤنٹ کے ڈیٹا سے بدل جائے گا۔',
+  signInPasswordPlaceholder: 'پاس ورڈ',
+  signInSubmit: 'سائن ان کریں',
+  signInSubmitting: 'سائن ان ہو رہا ہے…',
+  signInError: 'سائن ان نہیں ہو سکا۔ ای میل اور پاس ورڈ چیک کریں۔',
 };

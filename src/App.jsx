@@ -21,6 +21,7 @@ import Onboarding from "./components/Onboarding";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
 import AuthUpgradeDialog from "./features/auth/AuthUpgradeDialog";
+import SignInDialog from "./features/auth/SignInDialog";
 import {
   initNaqlNotificationLifecycle,
   scheduleTestNotification,
@@ -212,6 +213,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("quran");
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [signInDialogOpen, setSignInDialogOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("ses-theme-v2") === "dark",
   );
@@ -383,11 +385,20 @@ export default function App() {
           setAuthDialogOpen(true);
           setSidebarOpen(false);
         }}
+        onSignIn={() => {
+          setSignInDialogOpen(true);
+          setSidebarOpen(false);
+        }}
       />
 
       <AuthUpgradeDialog
         open={authDialogOpen}
         onClose={() => setAuthDialogOpen(false)}
+      />
+
+      <SignInDialog
+        open={signInDialogOpen}
+        onClose={() => setSignInDialogOpen(false)}
       />
 
       {toastMessage && (

@@ -18,6 +18,7 @@ export default function AuthUpgradeDialog({ open, onClose }) {
 
   const [step, setStep] = useState("email"); // 'email' | 'waiting' | 'done'
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,6 +34,7 @@ export default function AuthUpgradeDialog({ open, onClose }) {
   const reset = () => {
     setStep("email");
     setEmail("");
+    setPassword("");
     setError(null);
     setBusy(false);
   };
@@ -45,9 +47,13 @@ export default function AuthUpgradeDialog({ open, onClose }) {
   const handleSendCode = async (e) => {
     e.preventDefault();
     setError(null);
+    if (password.length < 8) {
+      setError(t("authUpgradePasswordTooShort"));
+      return;
+    }
     setBusy(true);
     try {
-      await startEmailUpgrade(email.trim());
+      await startEmailUpgrade(email.trim(), password);
       setStep("waiting");
     } catch (err) {
       setError(err.message || t("authUpgradeError"));
@@ -107,6 +113,24 @@ export default function AuthUpgradeDialog({ open, onClose }) {
             placeholder={t("authUpgradeEmailPlaceholder")}
             style={inputStyle}
           />
+          <input
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("authUpgradePasswordPlaceholder")}
+            style={{ ...inputStyle, marginTop: "0.5rem" }}
+          />
+          <p
+            style={{
+              color: "var(--muted)",
+              fontSize: "0.78rem",
+              marginTop: "0.35rem",
+            }}
+          >
+            {t("authUpgradePasswordHint")}
+          </p>
           {error && <p style={errorStyle}>{error}</p>}
           <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
             <button
@@ -123,16 +147,16 @@ export default function AuthUpgradeDialog({ open, onClose }) {
         </form>
       )}
 
-      {step === 'waiting' && (
+      {step === "waiting" && (
         <div>
-          <p style={{ color: 'var(--text-small)', fontSize: '0.9rem' }}>
-            {t('authUpgradeWaitingDesc')} <strong>{email}</strong>
+          <p style={{ color: "var(--text-small)", fontSize: "0.9rem" }}>
+            {t("authUpgradeWaitingDesc")} <strong>{email}</strong>
           </p>
-          <p style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>
-            {t('authUpgradeWaitingHint')}
+          <p style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+            {t("authUpgradeWaitingHint")}
           </p>
           <button onClick={handleClose} style={secondaryBtnStyle}>
-            {t('authUpgradeCloseWhileWaiting')}
+            {t("authUpgradeCloseWhileWaiting")}
           </button>
         </div>
       )}

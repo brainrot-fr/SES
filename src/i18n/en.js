@@ -98,4 +98,15 @@ export default {
   authUpgradeClose: 'Done',
   authUpgradeSkip: 'Not now',
   authUpgradeError: 'Something went wrong. Please try again.',
+  authUpgradePasswordPlaceholder: 'Create a password',
+  authUpgradePasswordHint: 'Use this password to sign in on other devices.',
+  authUpgradePasswordTooShort: 'Password must be at least 8 characters.',
+
+  signInMenuLabel: 'Sign in to existing account',
+  signInTitle: 'Sign in',
+  signInDesc: "Signing in replaces this device's local data with your account's data. Anything not already backed up on this device will be lost.",
+  signInPasswordPlaceholder: 'Password',
+  signInSubmit: 'Sign in',
+  signInSubmitting: 'Signing in…',
+  signInError: 'Could not sign in. Check your email and password.',
 };

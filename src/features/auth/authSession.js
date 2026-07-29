@@ -62,12 +62,26 @@ export async function getCurrentSession() {
  * identity. Supabase emails a confirmation link to `email` — nothing is
  * confirmed until that link is tapped, which lands back in the app via
  * the deep link handler below rather than a code the user types in. */
-export async function requestEmailUpgrade(email) {
+export async function requestEmailUpgrade(email, password) {
   const { error } = await supabase.auth.updateUser(
-    { email },
+    { email, password },
     { emailRedirectTo: getEmailRedirectTo() }
   );
   if (error) throw error;
+}
+
+/*
+ * Sign in on a *different* device using the email+password set above.
+ * This deliberately replaces whatever anonymous session already exists on
+ * this device — signing into a real account means "become this identity,"
+ * not "merge with it." Any local-only data tied to the old anonymous
+ * session on this device is left behind (nothing was cloud-synced under
+ * it yet, per feat-userObject.md's uninstall-wipes-everything model).
+ */
+export async function signInWithPassword(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.session;
 }
 
 /*

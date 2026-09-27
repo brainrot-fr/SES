@@ -1,0 +1,133 @@
+.dashboard {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.dashboard__welcome {
+  padding: 1rem 0 1.4rem;
+}
+
+.dashboard__eyebrow,
+.dashboard__section-label {
+  margin: 0 0 0.4rem;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard__welcome h1 {
+  margin: 0;
+  color: var(--text-large);
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+}
+
+.dashboard__date {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+}
+
+.dashboard__ayah {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--panel), var(--panel-2));
+  color: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+.dashboard__arabic {
+  color: var(--text-large);
+  font-family: 'QPCHafs', serif;
+  font-size: clamp(1.7rem, 6vw, 2.4rem);
+  line-height: 1.8;
+  text-align: center;
+}
+
+.dashboard__reference {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.dashboard__ayah-link {
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: end;
+}
+
+.dashboard__section {
+  margin-top: 1.75rem;
+}
+
+.dashboard__section h2 {
+  margin: 0 0 0.85rem;
+  color: var(--text-large);
+  font-size: 1.1rem;
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard__card {
+  position: relative;
+  display: flex;
+  min-height: 142px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.dashboard__card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard__card-icon {
+  font-size: 1.4rem;
+}
+
+.dashboard__card-title {
+  color: var(--text-large);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.dashboard__card-description {
+  padding-inline-end: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.dashboard__card-arrow {
+  position: absolute;
+  inset-inline-end: 1rem;
+  bottom: 1rem;
+  color: var(--primary);
+}
+
+@media (min-width: 640px) {
+  .dashboard__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

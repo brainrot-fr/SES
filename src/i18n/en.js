@@ -15,13 +15,30 @@ export default {
   navNuqool: "Nuqool",
   navTimeline: "Timeline",
   navMurshid: "Murshid",
+  navDashboard: "Home",
+  navSocial: "Social",
   goBack: "Back",
 
   /* Page titles (header) */
   titleNuqool: "Nuqool e Imam Mahdi A.S",
   titleTimeline: "Timeline",
   titleMurshid: "Murshid",
+  titleDashboard: "Home",
+  titleSocial: "Social",
   titleSettings: "Settings",
+
+  /* Dashboard */
+  dashboardWelcome: "Assalamu alaikum",
+  dashboardAyahOfDay: "Ayah of the day",
+  dashboardOpenAyah: "Open",
+  dashboardReadQuran: "Read in Quran →",
+  dashboardExplore: "Explore",
+  dashboardNuqoolDesc: "Read the sayings and narrations.",
+  dashboardQuranDesc: "Read and listen to the Quran.",
+  dashboardTimelineDesc: "Explore the historical timeline.",
+  dashboardMurshidDesc: "Explore the spiritual paths.",
+  dashboardSocialDesc: "Share and read community posts.",
+  dashboardSettingsDesc: "Manage your account and preferences.",
 
   /* Sidebar */
   menu: "Menu",
@@ -77,6 +94,22 @@ export default {
   quranSearchPlaceholder: "Search surah name or number…",
   quranNoResults: "No surahs match your search.",
   quranBackToTop: "Back to top",
+
+  /* Social */
+  socialIntro: "Share reflections and media with the community.",
+  socialSharePrompt: "Share something with the community",
+  socialPostPlaceholder: "Write a post…",
+  socialAddMedia: "Add image or video",
+  socialRemoveMedia: "Remove",
+  socialPost: "Post",
+  socialPosting: "Posting…",
+  socialPostFailed: "Could not create your post.",
+  socialFeedFailed: "Could not load posts.",
+  socialLoading: "Loading…",
+  socialEmpty: "No posts yet. Start the conversation.",
+  socialLoadMore: "Load more",
+  socialImage: "Community post image",
+  socialVideo: "Community post video",
 
   quranPlayThisAyah: "Play this ayah",
   quranPlayFromHere: "Play from here",

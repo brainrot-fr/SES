@@ -22,6 +22,8 @@ import {
   scheduleTestNotification,
 } from "./notifications/naqlNotifications";
 import SettingsDashboard from "./features/settings/SettingsDashboard";
+import Dashboard from "./features/dashboard/Dashboard";
+import SocialFeed from "./features/social/SocialFeed";
 
 /* ── Icons (unchanged — keep all your existing icon components here) ── */
 const SunIcon = () => (
@@ -70,17 +72,26 @@ const MoreIcon = () => (
   </svg>
 );
 
+const SocialIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.2-.66L4 20l1.66-4.1A7.5 7.5 0 1 1 20 11.5Z" />
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01" />
+  </svg>
+);
+
 const BackIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
     <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6 7-7-7 7-7" />
   </svg>
 );
 
-function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
-  const mid = Math.ceil(items.length / 2);
-  const before = items.slice(0, mid);
-  const after = items.slice(mid);
+const MenuIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
 
+function BottomNav({ items, activePage, onNavigate }) {
   const renderItem = (it) => (
     <button
       key={it.id}
@@ -95,11 +106,7 @@ function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
 
   return (
     <nav className="bottom-nav" aria-label="Primary navigation">
-      {before.map(renderItem)}
-      <button className="bottom-nav__item bottom-nav__item--center" onClick={onMore} aria-label={moreLabel}>
-        <span className="bottom-nav__icon bottom-nav__icon--center"><MoreIcon /></span>
-      </button>
-      {after.map(renderItem)}
+      {items.map(renderItem)}
     </nav>
   );
 }
@@ -141,7 +148,7 @@ export default function App() {
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
 
   // top-level "section" for nav highlighting, derived from the URL
-  const currentPage = location.pathname.split("/")[1] || "quran";
+  const currentPage = location.pathname.split("/")[1] || "dashboard";
   const canGoBack = currentPage === "quran" && /^\/quran\/\d+/.test(location.pathname);
 
   const sidebarOpenRef = useRef(sidebarOpen);
@@ -193,20 +200,24 @@ export default function App() {
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
+    { id: "dashboard", label: t("navDashboard"), icon: <BookIcon /> },
     { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon /> },
     { id: "quran", label: t("navQuran"), icon: <BookIcon /> },
     { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
     { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
-    { id: "settings", label: t("Settings"), icon: <MoreIcon /> },
+    { id: "social", label: t("navSocial"), icon: <SocialIcon /> },
+    { id: "settings", label: t("titleSettings"), icon: <MoreIcon /> },
   ];
 
-  const primaryNavItems = navItems.filter((it) => ["nuqool", "quran"].includes(it.id));
+  const primaryNavItems = navItems.filter((it) => ["nuqool", "quran", "social"].includes(it.id));
 
   const pageTitles = {
+    dashboard: t("titleDashboard"),
     nuqool: t("titleNuqool"),
     quran: t("titleQuran"),
     timeline: t("titleTimeline"),
     murshid: t("titleMurshid"),
+    social: t("titleSocial"),
     settings: t("titleSettings"),
   };
 
@@ -228,7 +239,9 @@ export default function App() {
             <BackIcon />
           </button>
         ) : (
-          <span className="app-header__btn app-header__btn--placeholder" aria-hidden="true" />
+          <button className="app-header__btn" onClick={() => setSidebarOpen(true)} aria-label={t("openMenu")}>
+            <MenuIcon />
+          </button>
         )}
 
         <span className="app-header__title">{pageTitles[currentPage] ?? t("appTitle")}</span>
@@ -265,18 +278,20 @@ export default function App() {
 
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Navigate to="/quran" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
           <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
           <Route path="/quran" element={<QuranRoute />} />
           <Route path="/quran/:surahNumber" element={<QuranRoute />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/murshid" element={<Murshid />} />
+          <Route path="/social" element={<SocialFeed />} />
           <Route
             path="/settings"
             element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
           />
-          <Route path="*" element={<Navigate to="/quran" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
 
@@ -284,8 +299,6 @@ export default function App() {
         items={primaryNavItems}
         activePage={currentPage}
         onNavigate={(id) => navigate(`/${id}`)}
-        onMore={() => setSidebarOpen(true)}
-        moreLabel={t("menu")}
       />
     </div>
   );

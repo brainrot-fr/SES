@@ -1,0 +1,168 @@
+.social-feed {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+.social-feed__intro h1 {
+  margin: 0;
+  color: var(--text-large);
+  font-size: 1.5rem;
+}
+
+.social-feed__intro p {
+  margin: 0.4rem 0 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.social-composer,
+.social-post {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.social-composer__label {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: var(--text-large);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.social-composer textarea {
+  display: block;
+  width: 100%;
+  resize: vertical;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text-small);
+  font: inherit;
+}
+
+.social-composer__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.social-composer__file {
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.social-composer__file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.social-composer__controls > button,
+.social-feed__more {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.social-composer__controls > button:disabled,
+.social-feed__more:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.social-composer__filename {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.social-composer__filename button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+.social-error {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.social-post__header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.social-post__avatar {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.social-post__author {
+  color: var(--text-large);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.social-post__date {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.social-post__body {
+  margin: 0.8rem 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.social-post__media {
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--bg);
+}
+
+.social-feed__empty {
+  padding: 1.5rem 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.social-feed__more {
+  display: block;
+  margin: 1rem auto 0;
+}

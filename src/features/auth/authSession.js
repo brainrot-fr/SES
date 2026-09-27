@@ -1,11 +1,9 @@
 /**
  * authSession.js
- * Identity logic per feat-userObject.md: anonymous by default, upgradeable
- * to a real email later, never mandatory.
+ * Identity logic for required email accounts.
  *
- * - Silently creates an anonymous Supabase identity on first launch.
- * - Everything downstream (region, Murshid choice, device tokens) attaches
- *   to this identity, whether or not it's ever upgraded.
+ * - Existing anonymous identities can be upgraded in place.
+ * - New users register with email and password.
  * - Upgrade path uses Supabase's email-change flow: updateUser({ email })
  *   sends a 6-digit code to the new address; verifyOtp with type
  *   'email_change' confirms it and converts the anonymous user in place —
@@ -26,20 +24,6 @@ const AUTH_CALLBACK_URL = 'ses://auth-callback';
  * to be registered as Redirect URLs in the Supabase dashboard. */
 function getEmailRedirectTo() {
   return Capacitor.isNativePlatform() ? AUTH_CALLBACK_URL : window.location.origin;
-}
-
-/* Reuse an existing session if one is already on-device; only create a new
- * anonymous identity if this is truly the first launch. */
-export async function ensureAnonymousSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) return session;
-
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error) {
-    console.error('[auth] anonymous sign-in failed', error);
-    throw error;
-  }
-  return data.session;
 }
 
 export function isAnonymousUser(user) {
@@ -82,6 +66,40 @@ export async function signInWithPassword(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data.session;
+}
+
+export async function signUpWithPassword(email, password) {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (isAnonymousUser(session?.user)) {
+    const { error } = await supabase.auth.updateUser(
+      { email, password },
+      { emailRedirectTo: getEmailRedirectTo() }
+    );
+    if (error) throw error;
+    return { confirmationRequired: true };
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: getEmailRedirectTo() },
+  });
+  if (error) throw error;
+  return { confirmationRequired: !data.session };
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
+  if (error) throw error;
+}
+
+export async function deleteAccount() {
+  const { error } = await supabase.functions.invoke('delete-account');
+  if (error) throw error;
+
+  const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
+  if (signOutError) throw signOutError;
 }
 
 /*

@@ -1,4 +1,6 @@
 .env
+.idea/
+.vscode
 android/
 !android/app/src/main/AndroidManifest.xml
 dist/
@@ -10,3 +12,6 @@ release/
 node_modules/
 electron/
 scripts/
+!scripts/
+scripts/*
+!scripts/fetch-quran-text.mjs

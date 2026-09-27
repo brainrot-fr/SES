@@ -6,17 +6,43 @@
  */
 
 import { useState } from "react";
+import { Dialog } from "@mui/material";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
-import AuthUpgradeDialog from "../auth/AuthUpgradeDialog";
-import SignInDialog from "../auth/SignInDialog";
+import './settingsdashboard.css'
 
 export default function SettingsDashboard({ darkMode, onThemeToggle }) {
   const { t, lang, resetLang } = useLang();
-  const { user, isAnonymous, ready } = useAuth();
+  const { user, ready, signOut, deleteAccount } = useAuth();
 
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const [signInDialogOpen, setSignInDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountBusy, setAccountBusy] = useState(false);
+  const [accountError, setAccountError] = useState("");
+
+  const handleSignOut = async () => {
+    setAccountBusy(true);
+    setAccountError("");
+    try {
+      await signOut();
+    } catch (error) {
+      setAccountError(error.message || t("settingsActionError"));
+    } finally {
+      setAccountBusy(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setAccountBusy(true);
+    setAccountError("");
+    try {
+      await deleteAccount();
+    } catch (error) {
+      setAccountError(error.message || t("settingsActionError"));
+      setDeleteDialogOpen(false);
+    } finally {
+      setAccountBusy(false);
+    }
+  };
 
   return (
     <div className="max-w-[520px] mx-auto p-4 pb-24">
@@ -28,30 +54,29 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
 
         {!ready ? (
           <p className="text-sm text-muted">{t("settingsLoading")}</p>
-        ) : isAnonymous ? (
-          <div className="bg-surface-1 border border-hairline rounded-md p-4">
-            <p className="text-sm text-body m-0 mb-3">
-              {t("settingsAnonymousDesc")}
-            </p>
-            <div className="flex gap-2">
+        ) : (
+          <div className="bg-surface-2 border border-hairline rounded-md p-4">
+            <p className="text-sm text-muted m-0 mb-1">{t("settingsSignedInAs")}</p>
+            <p className="text-sm font-semibold text-heading m-0 break-all">{user?.email}</p>
+            <div className="mt-4 flex flex-col gap-2">
               <button
-                className="flex-1 py-2.5 px-4 rounded-md text-sm font-semibold bg-primary text-on-primary cursor-pointer"
-                onClick={() => setAuthDialogOpen(true)}
+                type="button"
+                disabled={accountBusy}
+                className="w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-left text-sm font-semibold text-body disabled:opacity-60"
+                onClick={handleSignOut}
               >
-                {t("authBackupData")}
+                {t("settingsLogout")}
               </button>
               <button
-                className="flex-1 py-2.5 px-4 rounded-md text-sm font-semibold bg-surface-3 text-body cursor-pointer"
-                onClick={() => setSignInDialogOpen(true)}
+                type="button"
+                disabled={accountBusy}
+                className="w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-left text-sm font-semibold text-danger disabled:opacity-60"
+                onClick={() => { setAccountError(""); setDeleteDialogOpen(true); }}
               >
-                {t("signInMenuLabel")}
+                {t("settingsDeleteAccount")}
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="bg-surface-1 border border-hairline rounded-md p-4">
-            <p className="text-sm text-muted m-0 mb-1">{t("settingsSignedInAs")}</p>
-            <p className="text-sm font-semibold text-heading m-0">{user?.email}</p>
+            {accountError && <p className="mb-0 mt-3 text-sm text-danger" role="alert">{accountError}</p>}
           </div>
         )}
       </section>
@@ -81,14 +106,41 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
         </div>
       </section>
 
-      <AuthUpgradeDialog
-        open={authDialogOpen}
-        onClose={() => setAuthDialogOpen(false)}
-      />
-      <SignInDialog
-        open={signInDialogOpen}
-        onClose={() => setSignInDialogOpen(false)}
-      />
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !accountBusy && setDeleteDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        sx={{
+          "& .MuiDialog-paper": {
+            bgcolor: "var(--panel)",
+            color: "var(--text-small)",
+            borderRadius: "12px",
+            p: 3,
+          },
+        }}
+      >
+        <h2 className="m-0 text-lg font-bold text-heading">{t("settingsDeleteConfirmTitle")}</h2>
+        <p className="mb-5 mt-3 text-sm leading-relaxed text-muted">{t("settingsDeleteWarning")}</p>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={accountBusy}
+            className="rounded-md border border-hairline bg-surface-2 px-4 py-2.5 text-sm font-semibold text-body"
+            onClick={() => setDeleteDialogOpen(false)}
+          >
+            {t("settingsDeleteCancel")}
+          </button>
+          <button
+            type="button"
+            disabled={accountBusy}
+            className="rounded-md border-0 bg-danger px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            onClick={handleDeleteAccount}
+          >
+            {t("settingsDeleteConfirm")}
+          </button>
+        </div>
+      </Dialog>
     </div>
   );
 }

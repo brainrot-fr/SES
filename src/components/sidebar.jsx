@@ -13,7 +13,7 @@ const MoonIcon = () => (
 );
 
 export default function Sidebar({
-  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification, isAnonymous, onBackupData, onSignIn,
+  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification,
 }) {
   const { t, resetLang } = useLang();
 

@@ -2,9 +2,8 @@
  * AuthContext.jsx
  * App-wide identity state, mirroring the shape of LanguageContext.
  *
- * - Establishes (or resumes) the anonymous session once on mount.
- * - Exposes the current user, whether it's still anonymous, and the two
- *   upgrade steps (request code / confirm code) for the backup-data flow.
+ * - Restores any existing Supabase session once on mount.
+ * - Exposes auth state and account operations to the app.
  */
 
 import {
@@ -15,12 +14,15 @@ import {
   useCallback,
 } from "react";
 import {
-  ensureAnonymousSession,
+  getCurrentSession,
   onAuthStateChange,
   isAnonymousUser,
   requestEmailUpgrade,
   listenForEmailUpgradeConfirmation,
   signInWithPassword,
+  signUpWithPassword,
+  signOut as signOutSession,
+  deleteAccount as deleteAccountSession,
 } from "../features/auth/authSession";
 
 const Ctx = createContext(null);
@@ -36,10 +38,10 @@ export function AuthProvider({ children }) {
 
     (async () => {
       try {
-        const s = await ensureAnonymousSession();
+        const s = await getCurrentSession();
         if (!cancelled) setSession(s);
       } catch (err) {
-        console.error("[AuthProvider] failed to establish session", err);
+        console.error("[AuthProvider] failed to load session", err);
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -75,6 +77,12 @@ export function AuthProvider({ children }) {
     (email, password) => signInWithPassword(email, password),
     [],
   );
+  const signUp = useCallback(
+    (email, password) => signUpWithPassword(email, password),
+    [],
+  );
+  const signOut = useCallback(() => signOutSession(), []);
+  const deleteAccount = useCallback(() => deleteAccountSession(), []);
 
   return (
     <Ctx.Provider
@@ -88,6 +96,9 @@ export function AuthProvider({ children }) {
         upgradeError,
         clearUpgradeConfirmed: () => setUpgradeConfirmed(false),
         signIn,
+        signUp,
+        signOut,
+        deleteAccount,
       }}
     >
       {children}

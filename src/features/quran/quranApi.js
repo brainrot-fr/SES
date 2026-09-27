@@ -22,11 +22,29 @@ const RECITER_STORAGE_KEY = 'ses-quran-reciter';
 const RECITER_BITRATE_KEY = 'ses-quran-reciter-bitrate';
 
 const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
+const normalizeArabicForMatch = (text) =>
+  text
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[ـ\s]/gu, '')
+    .replace(/[ٱأإآ]/gu, 'ا');
+const NORMALIZED_BISMILLAH = normalizeArabicForMatch(BISMILLAH);
 const NO_BISMILLAH_STRIP = [1, 9]; // Al-Fatiha: Bismillah IS ayah 1 · At-Tawbah: has none to strip
 
 function stripBismillah(text, surahNumber) {
   if (NO_BISMILLAH_STRIP.includes(surahNumber)) return text;
-  return text.startsWith(BISMILLAH) ? text.slice(BISMILLAH.length).trim() : text;
+
+  let normalizedPrefix = '';
+  let prefixLength = 0;
+  for (const character of text) {
+    normalizedPrefix += normalizeArabicForMatch(character);
+    prefixLength += character.length;
+    if (normalizedPrefix.length >= NORMALIZED_BISMILLAH.length) break;
+  }
+
+  return normalizedPrefix === NORMALIZED_BISMILLAH
+    ? text.slice(prefixLength).trimStart()
+    : text;
 }
 
 export const RECITERS = [

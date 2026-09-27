@@ -27,6 +27,14 @@ const isNative = () => Capacitor.isNativePlatform();
 const isAndroid = () => Capacitor.getPlatform() === "android";
 
 let channelReady = false;
+let foregroundServiceStarted = false;
+let foregroundServiceQueue = Promise.resolve();
+
+function enqueueForegroundOperation(operation) {
+  const result = foregroundServiceQueue.then(operation, operation);
+  foregroundServiceQueue = result.catch(() => {});
+  return result;
+}
 
 /*
  * Ensure the Android foreground service channel exists before starting playback.
@@ -49,45 +57,53 @@ async function ensureForegroundChannel() {
 }
 
 async function startForeground(title, body) {
-  if (!isAndroid()) return;
-  try {
-    await ensureForegroundChannel();
-    await ForegroundService.startForegroundService({
-      id: FG_NOTIFICATION_ID,
-      title,
-      body,
-      smallIcon: "ic_stat_icon_config_sample", // Capacitor's default bundled icon — swap for your own later
-      notificationChannelId: FG_CHANNEL_ID,
-      silent: true,
-    });
-  } catch (err) {
-    console.warn("[quranAudio] startForegroundService failed", err);
-  }
+  await ensureForegroundChannel();
+  await ForegroundService.startForegroundService({
+    id: FG_NOTIFICATION_ID,
+    title,
+    body,
+    smallIcon: "ic_stat_icon_config_sample", // Capacitor's default bundled icon — swap for your own later
+    notificationChannelId: FG_CHANNEL_ID,
+    silent: true,
+  });
+  foregroundServiceStarted = true;
 }
 
 /* Keep the foreground service notification updated when playback changes. */
 async function updateForeground(title, body) {
   if (!isAndroid()) return;
-  try {
-    await ForegroundService.updateForegroundService({
-      id: FG_NOTIFICATION_ID,
-      title,
-      body,
-      smallIcon: "ic_stat_icon_config_sample",
-    });
-  } catch {
-    await startForeground(title, body);
-  }
+  return enqueueForegroundOperation(async () => {
+    try {
+      if (!foregroundServiceStarted) {
+        await startForeground(title, body);
+        return;
+      }
+      await ForegroundService.updateForegroundService({
+        id: FG_NOTIFICATION_ID,
+        title,
+        body,
+        smallIcon: "ic_stat_icon_config_sample",
+      });
+    } catch (err) {
+      foregroundServiceStarted = false;
+      console.warn("[quranAudio] foreground service update failed", err);
+    }
+  });
 }
 
 /* Stop the Android foreground service when playback ends or is stopped. */
 async function stopForeground() {
   if (!isAndroid()) return;
-  try {
-    await ForegroundService.stopForegroundService();
-  } catch {
-    /* already stopped — fine */
-  }
+  return enqueueForegroundOperation(async () => {
+    if (!foregroundServiceStarted) return;
+    try {
+      await ForegroundService.stopForegroundService();
+    } catch {
+      /* already stopped — fine */
+    } finally {
+      foregroundServiceStarted = false;
+    }
+  });
 }
 
 export function useQuranAudioPlayer(surah) {
@@ -112,6 +128,7 @@ export function useQuranAudioPlayer(surah) {
   const reciterIdRef = useRef(reciterId);
 
   const pendingReciterRestartRef = useRef(false);
+  const isStoppingRef = useRef(false);
   const playRef = useRef(() => {});
   const playSurahFromStartRef = useRef(() => {});
   const stopRef = useRef(() => {});
@@ -171,6 +188,7 @@ export function useQuranAudioPlayer(surah) {
   const play = useCallback(
     (ayah, chain = false) => {
       pendingReciterRestartRef.current = false;
+      isStoppingRef.current = false;
       const audio = audioRef.current;
       // Always read the latest reciter from the ref so a mid-flight
       // changeReciter cannot leave us with a stale URL.
@@ -262,15 +280,15 @@ export function useQuranAudioPlayer(surah) {
 
   /* Stop playback completely and clear the active ayah state. */
   const stop = useCallback(() => {
+    if (isStoppingRef.current) return;
+    isStoppingRef.current = true;
+
     const audio = audioRef.current;
     audio.pause();
-    // Drop the old resource so late network / ended / error events cannot
-    // fire against a stale surah or activeAyahNumber. Do NOT call load() —
-    // on Android WebView that itself can re-emit error/ended and re-enter
-    // the handlers while we are already tearing down.
-    if (audio.src) {
-      audio.removeAttribute("src");
-    }
+    // Let Android WebView finish dispatching ended before releasing its source.
+    setTimeout(() => {
+      if (isStoppingRef.current && audio.paused) audio.removeAttribute("src");
+    }, 0);
     setIsPlaying(false);
     setAutoAdvance(false);
     setActiveAyahNumber(null);
@@ -341,6 +359,7 @@ export function useQuranAudioPlayer(surah) {
   useEffect(() => {
     const audio = audioRef.current;
     const handleEnded = () => {
+      if (isStoppingRef.current) return;
       if (!autoAdvanceRef.current) {
         stopRef.current();
         return;
@@ -397,7 +416,14 @@ export function useQuranAudioPlayer(surah) {
   }, [surah?.number, reciterId]);
 
   useEffect(() => {
-    if (activeAyahNumber == null || !duration) return;
+    if (
+      activeAyahNumber == null ||
+      !Number.isFinite(duration) ||
+      duration <= 0 ||
+      audioRef.current.readyState < 1
+    ) {
+      return;
+    }
     setAyahDurations((prev) =>
       prev[activeAyahNumber] === duration
         ? prev

@@ -40,9 +40,13 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_CLOUDINARY_CLOUD_NAME: ${{ secrets.VITE_CLOUDINARY_CLOUD_NAME }}
+          VITE_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.VITE_CLOUDINARY_UPLOAD_PRESET }}
         run: |
           test -n "$VITE_SUPABASE_URL" || { echo "Missing VITE_SUPABASE_URL repository secret"; exit 1; }
           test -n "$VITE_SUPABASE_ANON_KEY" || { echo "Missing VITE_SUPABASE_ANON_KEY repository secret"; exit 1; }
+          test -n "$VITE_CLOUDINARY_CLOUD_NAME" || { echo "Missing VITE_CLOUDINARY_CLOUD_NAME repository secret"; exit 1; }
+          test -n "$VITE_CLOUDINARY_UPLOAD_PRESET" || { echo "Missing VITE_CLOUDINARY_UPLOAD_PRESET repository secret"; exit 1; }
 
       - run: npm ci
 
@@ -51,6 +55,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_CLOUDINARY_CLOUD_NAME: ${{ secrets.VITE_CLOUDINARY_CLOUD_NAME }}
+          VITE_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.VITE_CLOUDINARY_UPLOAD_PRESET }}
 
       - run: npx cap sync android
 

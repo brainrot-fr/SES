@@ -15,6 +15,7 @@
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/app": "^8.1.1",
+    "@capacitor/browser": "^8.0.4",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@capacitor/local-notifications": "^8.2.0",
@@ -28,8 +29,10 @@
     "@mui/icons-material": "^9.1.1",
     "@mui/lab": "^9.0.0-beta.5",
     "@mui/material": "^9.1.2",
+    "@supabase/supabase-js": "^2.58.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-router-dom": "^7.11.0",
     "yet-another-react-lightbox": "^3.32.0"
   },
   "devDependencies": {
@@ -42,7 +45,7 @@
     "vite": "^8.1.0"
   },
   "build": {
-    "appId": "com.example.ses",
+    "appId": "app.vercel.sesmvp",
     "productName": "Nuqool e Imam Mahdi",
     "directories": {
       "output": "release"

@@ -1,26 +1,29 @@
 /**
  * App.jsx
  * Main application shell for the SES PWA.
- *
- * - Imports the shared context, top-level features, and notification lifecycle.
- * - Manages page state, theme mode, sidebar visibility, toast notifications,
- *   and handling of notification taps.
- * - Renders the sticky header, sidebar, bottom nav, and current page view.
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
-import './App.css';
-import Sidebar from './components/sidebar';
-import NaqlDashboard from './features/nuqool/en/naqlDashboard';
-import Timeline from './features/timeline/timeline';
-import Quran from './features/quran/Quran';
-import Onboarding from './components/Onboarding';
-import { useLang } from './context/LanguageContext';
-import { initNaqlNotificationLifecycle, scheduleTestNotification } from './notifications/naqlNotifications';
+import { useState, useEffect, useRef } from "react";
+import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
+import "./App.css";
+import Sidebar from "./components/sidebar";
+import NaqlDashboard from "./features/nuqool/en/naqlDashboard";
+import Timeline from "./features/timeline/timeline";
+import Quran from "./features/quran/Quran";
+import Murshid from "./features/murshid/Murshid";
+import Onboarding from "./components/Onboarding";
+import AuthGate from "./features/auth/AuthGate";
+import { useLang } from "./context/LanguageContext";
+import { useAuth } from "./context/AuthContext";
+import {
+  initNaqlNotificationLifecycle,
+  scheduleTestNotification,
+} from "./notifications/naqlNotifications";
+import SettingsDashboard from "./features/settings/SettingsDashboard";
 
-/* ── Icons ──────────────────────────────────────────────────── */
+/* ── Icons (unchanged — keep all your existing icon components here) ── */
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
     <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
@@ -33,10 +36,10 @@ const MoonIcon = () => (
   </svg>
 );
 
-const HamburgerIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M14 2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h12zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z" />
-    <path d="M3 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4z" />
+const MurshidIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.8" />
+    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
   </svg>
 );
 
@@ -81,9 +84,9 @@ function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
   const renderItem = (it) => (
     <button
       key={it.id}
-      className={`bottom-nav__item ${activePage === it.id ? 'bottom-nav__item--active' : ''}`}
+      className={`bottom-nav__item ${activePage === it.id ? "bottom-nav__item--active" : ""}`}
       onClick={() => onNavigate(it.id)}
-      aria-current={activePage === it.id ? 'page' : undefined}
+      aria-current={activePage === it.id ? "page" : undefined}
     >
       <span className="bottom-nav__icon">{it.icon}</span>
       <span className="bottom-nav__label">{it.label}</span>
@@ -101,111 +104,119 @@ function BottomNav({ items, activePage, onNavigate, onMore, moreLabel }) {
   );
 }
 
-/* ── Component ──────────────────────────────────────────────── */
+/* ── Small wrapper so QuranReader's initialSurah comes from the URL param ── */
+function QuranRoute() {
+  const { surahNumber } = useParams();
+  const navigate = useNavigate();
+  const n = parseInt(surahNumber, 10);
+  const selectedSurah = !isNaN(n) && n >= 1 && n <= 114 ? n : null;
+
+  return (
+    <Quran
+      selectedSurah={selectedSurah}
+      onSelectSurah={(s) => navigate(s == null ? "/quran" : `/quran/${s}`)}
+    />
+  );
+}
+
+/* ── Small wrapper so NaqlDashboard's openNaqlRequest comes from the URL ── */
+function NuqoolRoute({ openNaqlRequest }) {
+  const { naqlNumber } = useParams();
+  const n = parseInt(naqlNumber, 10);
+  const requestFromUrl = !isNaN(n) ? { number: n, ts: 0 } : null;
+  // openNaqlRequest (from a notification tap) takes priority when fresher
+  const effective = openNaqlRequest?.ts > 0 ? openNaqlRequest : requestFromUrl;
+  return <NaqlDashboard openNaqlRequest={effective} />;
+}
+
 export default function App() {
   const { lang, t } = useLang();
+  const { user, isAnonymous, ready } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState('quran');
-  const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem('ses-theme-v2') === 'dark'
-  );
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("ses-theme-v2") === "dark");
   const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
-  const QURAN_STORAGE_KEY = 'ses-current-surah';
-  const [quranSurah, setQuranSurah] = useState(() => {
-    const n = parseInt(localStorage.getItem(QURAN_STORAGE_KEY), 10);
-    return !isNaN(n) && n >= 1 && n <= 114 ? n : null;
-  });
 
-  const canGoBack = currentPage === 'quran' && quranSurah != null;
-  const canGoBackRef = useRef(canGoBack);
+  // top-level "section" for nav highlighting, derived from the URL
+  const currentPage = location.pathname.split("/")[1] || "quran";
+  const canGoBack = currentPage === "quran" && /^\/quran\/\d+/.test(location.pathname);
+
   const sidebarOpenRef = useRef(sidebarOpen);
-  useEffect(() => { canGoBackRef.current = canGoBack; }, [canGoBack]);
   useEffect(() => { sidebarOpenRef.current = sidebarOpen; }, [sidebarOpen]);
 
-  // Android hardware back button: close the sidebar, then step out of the
-  // Quran reader, then exit — same priority order the header back arrow uses.
+  // Android hardware back button: close sidebar, then let the router's own
+  // history stack handle "back" (HashRouter uses the browser history API,
+  // so navigate(-1) pops correctly), then exit if there's nowhere to go.
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
     let handle;
-    CapApp.addListener('backButton', () => {
-      if (sidebarOpenRef.current) { setSidebarOpen(false); return; }
-      if (canGoBackRef.current) { setQuranSurah(null); return; }
+    CapApp.addListener("backButton", () => {
+      if (sidebarOpenRef.current) {
+        setSidebarOpen(false);
+        return;
+      }
+      if (window.history.length > 1 && location.pathname !== "/quran") {
+        navigate(-1);
+        return;
+      }
       CapApp.exitApp();
     }).then((h) => { handle = h; });
     return () => handle?.remove();
-  }, []);
+  }, [navigate, location.pathname]);
 
-  /* Keep the theme preference in sync with <html> and localStorage. */
   useEffect(() => {
-    document.documentElement.dataset.theme = darkMode ? 'dark' : '';
-    localStorage.setItem('ses-theme-v2', darkMode ? 'dark' : 'light');
+    document.documentElement.dataset.theme = darkMode ? "dark" : "";
+    localStorage.setItem("ses-theme-v2", darkMode ? "dark" : "light");
   }, [darkMode]);
 
-  /* Show toast messages for a short duration and then clear them. */
   useEffect(() => {
     if (!toastMessage) return undefined;
     const timeout = window.setTimeout(() => setToastMessage(null), 4000);
     return () => window.clearTimeout(timeout);
   }, [toastMessage]);
 
-  /*
-   * Initialize the Naql notification lifecycle once on mount.
-   * This schedules notifications and listens for taps from the native OS.
-   */
-
   useEffect(() => {
     const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
-      setCurrentPage('nuqool');
+      navigate(`/nuqool/${naqlNumber}`);
       setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
     });
     return cleanup;
-  }, []);
-
-  /*
-   * Gate the whole app behind language selection. The onboarding
-   * screen is shown only until the user picks a language.
-   */
+  }, [navigate]);
 
   if (!lang) return <Onboarding />;
+  if (!ready) {
+    return <div className="min-h-screen flex items-center justify-center bg-bg text-sm text-muted">{t("settingsLoading")}</div>;
+  }
+  if (!user || isAnonymous) return <AuthGate />;
 
-  /* Navigation items shown both in the sidebar and bottom tab bar. */
   const navItems = [
-    { id: 'nuqool', label: t('navNuqool'), icon: <ScrollIcon /> },
-    { id: 'quran', label: t('navQuran'), icon: <BookIcon /> },
-    { id: 'timeline', label: t('navTimeline'), icon: <ClockIcon /> },
+    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon /> },
+    { id: "quran", label: t("navQuran"), icon: <BookIcon /> },
+    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
+    { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
+    { id: "settings", label: t("Settings"), icon: <MoreIcon /> },
   ];
 
-  /* Localized page titles for the current route. */
+  const primaryNavItems = navItems.filter((it) => ["nuqool", "quran"].includes(it.id));
+
   const pageTitles = {
-    nuqool: t('titleNuqool'),
-    quran: t('titleQuran'),
-    timeline: t('titleTimeline'),
+    nuqool: t("titleNuqool"),
+    quran: t("titleQuran"),
+    timeline: t("titleTimeline"),
+    murshid: t("titleMurshid"),
+    settings: t("titleSettings"),
   };
 
-  /* Trigger a short test notification and surface success/failure as a toast. */
   const handleTestNotification = async () => {
-
-    /*
-     * Attempt a near-term local notification for testing purposes.
-     * Any failure is shown to the user rather than crashing the app.
-     */
-
     try {
       await scheduleTestNotification(10);
-      setToastMessage(t('notificationScheduled'));
+      setToastMessage(t("notificationScheduled"));
     } catch (err) {
-      console.error('[App] test notification failed', err);
-      setToastMessage(t('notificationScheduleFailed'));
-    }
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'timeline': return <Timeline />;
-      case 'nuqool': return <NaqlDashboard openNaqlRequest={openNaqlRequest} />;
-      default: return <Quran selectedSurah={quranSurah} onSelectSurah={setQuranSurah} />;
+      console.error("[App] test notification failed", err);
+      setToastMessage(t("notificationScheduleFailed"));
     }
   };
 
@@ -213,26 +224,20 @@ export default function App() {
     <div className="app-root">
       <header className="app-header">
         {canGoBack ? (
-          <button
-            className="app-header__btn"
-            onClick={() => setQuranSurah(null)}
-            aria-label={t('goBack')}
-          >
+          <button className="app-header__btn" onClick={() => navigate("/quran")} aria-label={t("goBack")}>
             <BackIcon />
           </button>
         ) : (
           <span className="app-header__btn app-header__btn--placeholder" aria-hidden="true" />
         )}
 
-        <span className="app-header__title">
-          {pageTitles[currentPage] ?? t('appTitle')}
-        </span>
+        <span className="app-header__title">{pageTitles[currentPage] ?? t("appTitle")}</span>
 
         <button
           className="app-header__btn"
-          onClick={() => setDarkMode(d => !d)}
-          aria-label={darkMode ? t('toLightMode') : t('toDarkMode')}
-          title={darkMode ? t('toLightMode') : t('toDarkMode')}
+          onClick={() => setDarkMode((d) => !d)}
+          aria-label={darkMode ? t("toLightMode") : t("toDarkMode")}
+          title={darkMode ? t("toLightMode") : t("toDarkMode")}
         >
           {darkMode ? <SunIcon /> : <MoonIcon />}
         </button>
@@ -243,9 +248,12 @@ export default function App() {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         darkMode={darkMode}
-        onThemeToggle={() => setDarkMode(d => !d)}
+        onThemeToggle={() => setDarkMode((d) => !d)}
         activePage={currentPage}
-        onNavigate={(id) => { setCurrentPage(id); setSidebarOpen(false); }}
+        onNavigate={(id) => {
+          navigate(`/${id}`);
+          setSidebarOpen(false);
+        }}
         onTestNotification={handleTestNotification}
       />
 
@@ -256,14 +264,28 @@ export default function App() {
       )}
 
       <main className="app-main">
-        {renderPage()}
+        <Routes>
+          <Route path="/" element={<Navigate to="/quran" replace />} />
+          <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+          <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+          <Route path="/quran" element={<QuranRoute />} />
+          <Route path="/quran/:surahNumber" element={<QuranRoute />} />
+          <Route path="/timeline" element={<Timeline />} />
+          <Route path="/murshid" element={<Murshid />} />
+          <Route
+            path="/settings"
+            element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
+          />
+          <Route path="*" element={<Navigate to="/quran" replace />} />
+        </Routes>
       </main>
+
       <BottomNav
-        items={navItems}
+        items={primaryNavItems}
         activePage={currentPage}
-        onNavigate={(id) => setCurrentPage(id)}
+        onNavigate={(id) => navigate(`/${id}`)}
         onMore={() => setSidebarOpen(true)}
-        moreLabel={t('menu')}
+        moreLabel={t("menu")}
       />
     </div>
   );

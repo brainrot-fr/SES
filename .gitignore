@@ -1,6 +1,7 @@
 .env
-android/
-!android/app/src/main/AndroidManifest.xml
+.idea
+.vscode
+.claude
 dist/
 .npm
 *.log
@@ -10,3 +11,6 @@ release/
 node_modules/
 electron/
 scripts/
+!scripts/
+scripts/*
+!scripts/fetch-quran-text.mjs

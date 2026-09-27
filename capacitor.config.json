@@ -1,6 +1,7 @@
 {
-  "appId": "com.example.ses",
+  "appId": "app.vercel.sesmvp",
   "appName": "ses",
   "webDir": "dist",
-  "server": { "androidScheme": "https" }
+  "server": { "androidScheme": "https" },
+  "plugins": {}
 }

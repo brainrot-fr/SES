@@ -44,7 +44,7 @@ export async function getCurrentSession() {
 export async function requestEmailUpgrade(email, password) {
   const { error } = await supabase.auth.updateUser(
     { email, password },
-    { emailRedirectTo: getEmailRedirectTo() }
+    { emailRedirectTo: getAuthRedirectTo() }
   );
   if (error) throw error;
 }
@@ -111,24 +111,24 @@ export async function deleteAccount() {
 }
 
 /*
- * Registers a listener for the app being reopened via the auth-callback
- * deep link. Supabase's redirect appends the session as a URL fragment
- * (#access_token=...&refresh_token=...&type=email_change) rather than a
- * query string — getSessionFromUrl handles that format directly.
- * `onConfirmed` fires once the email change is verified so the UI can show
- * a success state without the user doing anything else.
+ * Handles PKCE code callbacks and token-fragment callbacks for email
+ * confirmations. `onEmailUpgradeConfirmed` fires after an email change is
+ * verified so the UI can show a success state without further input.
  */
-export function listenForEmailUpgradeConfirmation(onConfirmed, onError) {
+export function listenForAuthRedirect(onEmailUpgradeConfirmed, onError) {
   if (!Capacitor.isNativePlatform()) {
-    return listenForWebEmailUpgradeConfirmation(onConfirmed, onError);
+    return listenForWebEmailUpgradeConfirmation(onEmailUpgradeConfirmed, onError);
   }
 
   let handle;
-  App.addListener('appUrlOpen', async ({ url }) => {
-    if (!url.startsWith(AUTH_CALLBACK_URL)) return;
+  let disposed = false;
+  const handledUrls = new Set();
+
+  const processCallback = async (url) => {
+    if (!url?.startsWith(AUTH_CALLBACK_URL) || handledUrls.has(url)) return;
+    handledUrls.add(url);
+
     try {
-      // Supabase Auth v2 expects the fragment to be parsed from a URL object;
-      // swap the custom scheme for https so the URL constructor accepts it.
       const parsed = new URL(url.replace('ses://', 'https://'));
       const authError = parsed.searchParams.get('error_description') || parsed.searchParams.get('error');
       if (authError) throw new Error(authError);
@@ -137,20 +137,48 @@ export function listenForEmailUpgradeConfirmation(onConfirmed, onError) {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
-        await Browser.close();
+        await Browser.close().catch(() => {});
         return;
       }
 
-      const { data, error } = await supabase.auth.getSessionFromUrl({ url: parsed.toString() });
+      const params = new URLSearchParams(parsed.hash.slice(1));
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (!access_token || !refresh_token) return;
+
+      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (error) throw error;
-      onConfirmed(data.session);
+      if (params.get('type') === 'email_change') onEmailUpgradeConfirmed(data.session);
+      await Browser.close().catch(() => {});
     } catch (err) {
-      console.error('[auth] failed to complete email upgrade', err);
+      console.error('[auth] failed to complete auth redirect', err);
       onError?.(err);
     }
-  }).then((h) => { handle = h; });
+  };
 
-  return () => handle?.remove();
+  const listenerPromise = App.addListener('appUrlOpen', ({ url }) => {
+    void processCallback(url);
+  });
+  listenerPromise.then((h) => {
+    handle = h;
+    if (disposed) handle.remove();
+  });
+
+  (async () => {
+    try {
+      await listenerPromise;
+      const launchUrl = await App.getLaunchUrl();
+      if (launchUrl?.url) await processCallback(launchUrl.url);
+    } catch (err) {
+      console.error('[auth] failed to read app launch URL', err);
+      onError?.(err);
+    }
+  })();
+
+  return () => {
+    disposed = true;
+    handle?.remove();
+  };
 }
 
 /*

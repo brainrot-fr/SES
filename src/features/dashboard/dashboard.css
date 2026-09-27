@@ -1,7 +1,7 @@
 .dashboard {
-  width: min(100% - 2rem, 1040px);
+  width: min(100%, 1240px);
   margin: 0 auto;
-  padding: 1.6rem 0 2.5rem;
+  padding: 1.6rem 1rem 2.5rem;
 }
 
 .dashboard__welcome {
@@ -300,8 +300,8 @@
 
 @media (width < 480px) {
   .dashboard {
-    width: min(100% - 1.25rem, 1040px);
-    padding-top: 1rem;
+    width: 100%;
+    padding: 1rem 0.625rem 2rem;
   }
 
   .dashboard__welcome {

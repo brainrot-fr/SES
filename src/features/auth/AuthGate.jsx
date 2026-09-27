@@ -10,6 +10,7 @@ export default function AuthGate() {
   const { t, lang } = useLang();
   const { signIn, signInGoogle, signUp } = useAuth();
   const [mode, setMode] = useState('signup');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +25,11 @@ export default function AuthGate() {
       if (mode === 'signin') {
         await signIn(email.trim(), password);
       } else {
-        const result = await signUp(email.trim(), password);
+        if (username.trim().length < 2) {
+          setError(t('authUsernameTooShort'));
+          return;
+        }
+        const result = await signUp(username.trim(), email.trim(), password);
         setConfirmationSent(result.confirmationRequired);
       }
     } catch (authError) {
@@ -95,6 +100,18 @@ export default function AuthGate() {
           </div>
         ) : (
           <form className="auth-gate__form" onSubmit={handleSubmit}>
+            {mode === 'signup' && (
+              <TextField
+                id="auth-username"
+                label={t('authUsernameLabel')}
+                type="text"
+                required
+                maxLength={40}
+                autoComplete="nickname"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+              />
+            )}
             <TextField
               id="auth-email"
               label={t('authEmailLabel')}

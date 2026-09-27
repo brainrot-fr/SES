@@ -705,41 +705,7 @@
 @media (min-width: 1024px) {
   .quran-layout--reader {
     display: grid;
-    grid-template-columns: minmax(16rem, 21rem) minmax(0, 1fr);
-    align-items: start;
-    gap: var(--space-4);
-  }
-
-  .quran-layout__surahs {
-    position: sticky;
-    top: var(--space-4);
-    max-height: calc(100dvh - var(--space-8));
-    overflow-y: auto;
-    border-inline-end: 1px solid var(--border);
-  }
-
-  .quran-layout__surahs .quran-list {
-    width: 100%;
-    gap: var(--space-2);
-    padding: var(--space-3);
-  }
-
-  .quran-layout__surahs .quran-list__header h1 {
-    font-size: var(--text-xl);
-  }
-
-  .quran-layout__surahs .quran-list__header > p:last-child {
-    font-size: var(--text-sm);
-  }
-
-  .quran-layout__surahs .quran-list__item {
-    min-height: 60px;
-    gap: var(--space-2);
-    padding: var(--space-2);
-  }
-
-  .quran-layout__surahs .quran-list__meta {
-    display: none;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .quran-layout__reader .quran-container {

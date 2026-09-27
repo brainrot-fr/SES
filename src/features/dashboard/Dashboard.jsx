@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import quranData from "../../data/quran.json";
+import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
 import Card from "../../components/ui/Card";
@@ -29,10 +30,19 @@ function getIslamicDate(date, lang) {
 
 export default function Dashboard() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [today] = useState(() => new Date());
   const [ayah] = useState(() => getDailyAyah(today));
   const [islamicDate] = useState(() => getIslamicDate(today, lang));
+  const username =
+    user?.user_metadata?.username ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0];
+  const welcome = username
+    ? t("dashboardWelcomeNamed").replace("{username}", username)
+    : t("dashboardWelcome");
 
   const cards = [
     { id: "nuqool", title: t("navNuqool"), description: t("dashboardNuqoolDesc") },
@@ -48,7 +58,7 @@ export default function Dashboard() {
       <section className="dashboard__welcome">
         <div className="dashboard__welcome-copy">
           <p className="dashboard__eyebrow">{t("dashboardEyebrow")}</p>
-          <h1>{t("dashboardWelcome")}</h1>
+          <h1>{welcome}</h1>
           <p className="dashboard__subtitle">{t("dashboardSubtitle")}</p>
         </div>
         <div className="dashboard__date">

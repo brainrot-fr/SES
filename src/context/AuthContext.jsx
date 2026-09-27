@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
   );
   const signInGoogle = useCallback(() => signInWithGoogle(), []);
   const signUp = useCallback(
-    (email, password) => signUpWithPassword(email, password),
+    (username, email, password) => signUpWithPassword(username, email, password),
     [],
   );
   const signOut = useCallback(() => signOutSession(), []);

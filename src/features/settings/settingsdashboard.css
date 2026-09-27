@@ -92,7 +92,14 @@
 }
 
 .settings-dashboard__delete {
+  border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--border));
+  border-radius: var(--radius-md);
   color: var(--danger);
+}
+
+.settings-dashboard__delete:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface-1));
 }
 
 .settings-dashboard__error {

@@ -61,6 +61,25 @@ function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
   );
 }
 
+function DesktopNav({ items, activePage, onNavigate, label }) {
+  return (
+    <nav className="desktop-nav" aria-label={label}>
+      {items.map((item) => (
+        <button
+          type="button"
+          key={item.id}
+          className={`desktop-nav__item${activePage === item.id ? " desktop-nav__item--active" : ""}`}
+          onClick={() => onNavigate(item.id)}
+          aria-current={activePage === item.id ? "page" : undefined}
+        >
+          <span className="desktop-nav__icon">{item.icon}</span>
+          <span className="desktop-nav__label">{item.label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 /* ── Small wrapper so QuranReader's initialSurah comes from the URL param ── */
 function QuranRoute() {
   const { surahNumber, ayahNumber } = useParams();
@@ -181,7 +200,7 @@ export default function App() {
           <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate("/quran")} label={t("goBack")} />
         ) : (
           <IconButton
-            className="app-header__btn"
+            className="app-header__btn app-header__menu-btn"
             icon="menu"
             size={18}
             onClick={() => setSidebarOpen(true)}
@@ -246,6 +265,12 @@ export default function App() {
         onNavigate={(id) => navigate(`/${id}`)}
         label={t("primaryNavigation")}
         inert={sidebarOpen}
+      />
+      <DesktopNav
+        items={navItems}
+        activePage={currentPage === "reels" ? "social" : currentPage}
+        onNavigate={(id) => navigate(`/${id}`)}
+        label={t("primaryNavigation")}
       />
     </div>
   );

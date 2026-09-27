@@ -5,7 +5,7 @@
 
 export default {
   /* App shell */
-  appTitle: "Nuqool e Imam Mahdi A.S",
+  appTitle: "SES",
   openMenu: "Open menu",
   closeMenu: "Close menu",
   mainNavigation: "Main navigation",
@@ -38,6 +38,7 @@ export default {
   dashboardSubtitle: "A little time for faith, learning, and community.",
   dashboardIslamicDate: "Islamic date",
   dashboardWelcome: "Assalamu alaikum",
+  dashboardWelcomeNamed: "Assalamu alaikum, {username}",
   dashboardAyahOfDay: "Ayah of the day",
   dashboardOpenAyah: "Open",
   dashboardReadQuran: "Read in Quran",
@@ -271,6 +272,8 @@ export default {
   authHaveAccount: "Already have an account? Sign in",
   authNeedAccount: "New here? Create an account",
   authEmailLabel: "Email address",
+  authUsernameLabel: "Your name",
+  authUsernameTooShort: "Please enter a name with at least 2 characters.",
   authPasswordLabel: "Password",
   authConfirmationTitle: "Check your email",
   authConfirmationDescription: "Use the confirmation link sent to",

@@ -42,7 +42,7 @@
   },
   "build": {
     "appId": "app.vercel.sesmvp",
-    "productName": "Nuqool e Imam Mahdi",
+    "productName": "SES",
     "directories": {
       "output": "release"
     },

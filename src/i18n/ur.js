@@ -5,7 +5,7 @@
 
 export default {
   /* App shell */
-  appTitle: "نقول امام مہدی علیہ السلام",
+  appTitle: "SES",
   openMenu: "مینو کھولیں",
   closeMenu: "مینو بند کریں",
   mainNavigation: "مرکزی نیویگیشن",
@@ -73,6 +73,7 @@ export default {
   socialViewLabel: "کمیونٹی کا مواد",
   socialPostsTab: "پوسٹس",
   dashboardWelcome: "السلام علیکم",
+  dashboardWelcomeNamed: "السلام علیکم، {username}",
   dashboardEyebrow: "آپ کی غور و فکر کی جگہ",
   dashboardSubtitle: "ایمان، علم اور کمیونٹی کے لیے چند لمحے۔",
   dashboardIslamicDate: "اسلامی تاریخ",
@@ -266,6 +267,8 @@ export default {
   authHaveAccount: "پہلے سے اکاؤنٹ ہے؟ سائن ان کریں",
   authNeedAccount: "نئے صارف ہیں؟ اکاؤنٹ بنائیں",
   authEmailLabel: "ای میل پتہ",
+  authUsernameLabel: "آپ کا نام",
+  authUsernameTooShort: "کم از کم ۲ حروف پر مشتمل نام درج کریں۔",
   authPasswordLabel: "پاس ورڈ",
   authConfirmationTitle: "اپنی ای میل دیکھیں",
   authConfirmationDescription: "اس پتے پر بھیجا گیا تصدیقی لنک کھولیں:",

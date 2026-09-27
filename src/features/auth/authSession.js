@@ -76,12 +76,17 @@ export async function signInWithGoogle() {
   if (native) await Browser.open({ url: data.url });
 }
 
-export async function signUpWithPassword(email, password) {
+export async function signUpWithPassword(username, email, password) {
+  const trimmedUsername = username.trim();
+  if (trimmedUsername.length < 2 || trimmedUsername.length > 40) {
+    throw new Error('Username must be between 2 and 40 characters.');
+  }
   const { data: { session } } = await supabase.auth.getSession();
+  const userMetadata = { username: trimmedUsername };
 
   if (isAnonymousUser(session?.user)) {
     const { error } = await supabase.auth.updateUser(
-      { email, password },
+      { email, password, data: userMetadata },
       { emailRedirectTo: getAuthRedirectTo() }
     );
     if (error) throw error;
@@ -91,7 +96,10 @@ export async function signUpWithPassword(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: getAuthRedirectTo() },
+    options: {
+      data: userMetadata,
+      emailRedirectTo: getAuthRedirectTo(),
+    },
   });
   if (error) throw error;
   return { confirmationRequired: !data.session };

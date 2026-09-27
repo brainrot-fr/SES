@@ -28,6 +28,7 @@ export default function PostCard({ post, isOwn, onDelete }) {
             src={post.media_url}
             controls
             playsInline
+            preload="none"
             aria-label={t("socialVideo")}
             onError={() => setMediaError(true)}
           />

@@ -65,17 +65,17 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   };
 
   return (
-    <div className="naql-container">
+    <section className="naql-container" aria-labelledby="naql-title">
       <div ref={topRef} className="naql-scroll-anchor" />
 
-      <section className="naql-body">
+      <article className="naql-body">
         <h1 className="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
-        <h2 className="naql-title">{t('naql')} {currentNaql}:</h2>
+        <h2 id="naql-title" className="naql-title">{t('naql')} {currentNaql}</h2>
         <div className="naql-content">
           {naqlContent[currentNaql]}
           {nuqoolKhulasaObject?.[currentNaql]}
         </div>
-      </section>
+      </article>
 
       <nav className="naql-nav">
         {/* Row 1: prev / input / next */}
@@ -139,6 +139,6 @@ export default function NaqlDashboard({ openNaqlRequest }) {
           ))}
         </div>
       </nav>
-    </div>
+    </section>
   );
 }

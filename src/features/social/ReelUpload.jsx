@@ -1,0 +1,162 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { useLang } from "../../context/LanguageContext";
+import AppIcon from "../../components/icons/AppIcon";
+import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
+import { createPost } from "./postsApi";
+import { REEL_TAGS } from "./reelRanking";
+import "./socialFeed.css";
+
+export default function ReelUpload() {
+  const { user } = useAuth();
+  const { t } = useLang();
+  const navigate = useNavigate();
+  const inputRef = useRef(null);
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [caption, setCaption] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+  }, [preview]);
+
+  const chooseVideo = (event) => {
+    const selected = event.target.files?.[0];
+    setError("");
+    if (!selected) return;
+    if (!selected.type.startsWith("video/")) {
+      setError(t("reelsVideoOnly"));
+      event.target.value = "";
+      return;
+    }
+    try {
+      validateMediaFile(selected);
+      if (preview) URL.revokeObjectURL(preview);
+      setFile(selected);
+      setPreview(URL.createObjectURL(selected));
+    } catch (validationError) {
+      setError(validationError instanceof MediaValidationError && validationError.message === "videoTooLarge"
+        ? t("socialVideoTooLarge")
+        : t("reelsVideoOnly"));
+      event.target.value = "";
+    }
+  };
+
+  const removeVideo = () => {
+    setFile(null);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview("");
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!file || busy) return;
+    setBusy(true);
+    setError("");
+    setProgress(0);
+    try {
+      const media = await uploadPostMedia(file, { onProgress: setProgress });
+      const taggedCaption = [
+        caption.trim(),
+        selectedTags.map((topic) => `#${topic}`).join(" "),
+      ].filter(Boolean).join("\n\n");
+      await createPost({ body: taggedCaption, media, user });
+      navigate("/reels", { replace: true });
+    } catch (uploadError) {
+      console.error("[Reels] failed to publish reel", uploadError);
+      setError(uploadError.message || t("reelsUploadFailed"));
+    } finally {
+      setBusy(false);
+      setProgress(0);
+    }
+  };
+
+  return (
+    <main className="reel-upload-page">
+      <header className="reel-upload-page__header">
+        <Link to="/reels" className="social-reels__top-action" aria-label={t("goBack")}><AppIcon name="back" /></Link>
+        <h1>{t("reelsCreate")}</h1>
+        <span className="reel-upload-page__spacer" />
+      </header>
+      <form className="reel-upload" onSubmit={submit}>
+        <div className="reel-upload__intro">
+          <span className="reel-upload__icon"><AppIcon name="reels" size={25} /></span>
+          <div>
+            <p className="social-feed__eyebrow">{t("reelsUploadEyebrow")}</p>
+            <h2>{t("reelsUploadTitle")}</h2>
+            <p>{t("reelsUploadHint")}</p>
+          </div>
+        </div>
+        {preview ? (
+          <div className="reel-upload__preview">
+            <video src={preview} controls playsInline muted aria-label={t("reelsVideoPreview")} />
+            <button type="button" className="reel-upload__remove" onClick={removeVideo} disabled={busy} aria-label={t("socialRemoveMedia")}>
+              <AppIcon name="close" size={19} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="reel-upload__picker" onClick={() => inputRef.current?.click()}>
+            <span><AppIcon name="play" size={27} /></span>
+            <strong>{t("reelsChooseVideo")}</strong>
+            <small>{t("reelsVideoRequirements")}</small>
+          </button>
+        )}
+        <input ref={inputRef} className="reel-upload__file-input" type="file" accept="video/*" onChange={chooseVideo} disabled={busy} aria-label={t("reelsChooseVideo")} />
+        <label className="reel-upload__caption-label" htmlFor="reel-caption">{t("reelsCaptionLabel")}</label>
+        <textarea
+          id="reel-caption"
+          value={caption}
+          onChange={(event) => setCaption(event.target.value)}
+          placeholder={t("reelsCaptionPlaceholder")}
+          maxLength={2000}
+          rows={3}
+          disabled={busy}
+        />
+        <fieldset className="reel-upload__topics" disabled={busy}>
+          <legend>{t("reelsTopicsLabel")}</legend>
+          <p aria-live="polite">
+            {selectedTags.length >= 3 ? t("reelsTopicsLimit") : t("reelsTopicsHint")}
+          </p>
+          <div className="reel-upload__topic-list">
+            {REEL_TAGS.map(({ topic, slug, label }) => {
+              const selected = selectedTags.includes(slug);
+              return (
+                <button
+                  key={topic}
+                  type="button"
+                  className={`reel-upload__topic${selected ? " reel-upload__topic--selected" : ""}`}
+                  aria-pressed={selected}
+                  disabled={!selected && selectedTags.length >= 3}
+                  onClick={() => setSelectedTags((current) => selected
+                    ? current.filter((tag) => tag !== slug)
+                    : [...current, slug])}
+                >
+                  #{t(label)}
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+        <p className="reel-upload__guideline">{t("reelsCommunityGuideline")}</p>
+        {busy && (
+          <div className="social-composer__progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label={t("socialUploadProgress")}>
+            <div className="social-composer__progress-bar" style={{ width: `${Math.round(progress * 100)}%` }} />
+          </div>
+        )}
+        {error && <p className="social-error" role="alert">{error}</p>}
+        <div className="reel-upload__actions">
+          {!preview && <button type="button" className="reel-upload__secondary" onClick={() => inputRef.current?.click()}>{t("reelsChooseVideo")}</button>}
+          <button type="submit" className="reel-upload__submit" disabled={!file || busy}>
+            {busy ? t("socialPosting") : t("reelsPublish")}
+          </button>
+        </div>
+      </form>
+    </main>
+  );
+}

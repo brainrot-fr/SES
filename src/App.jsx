@@ -8,6 +8,7 @@ import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "re
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import "./App.css";
+import AppIcon from "./components/icons/AppIcon";
 import Sidebar from "./components/sidebar";
 import NaqlDashboard from "./features/nuqool/en/naqlDashboard";
 import Timeline from "./features/timeline/timeline";
@@ -24,8 +25,9 @@ import {
 import SettingsDashboard from "./features/settings/SettingsDashboard";
 import Dashboard from "./features/dashboard/Dashboard";
 import SocialFeed from "./features/social/SocialFeed";
+import ReelUpload from "./features/social/ReelUpload";
 
-/* ── Icons (unchanged — keep all your existing icon components here) ── */
+/* Shared navigation icon components. */
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
     <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
@@ -38,62 +40,28 @@ const MoonIcon = () => (
   </svg>
 );
 
-const MurshidIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.8" />
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
-  </svg>
-);
+const MurshidIcon = () => <AppIcon name="user" size={20} />;
 
-const BookIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z" />
-  </svg>
-);
+const BookIcon = () => <AppIcon name="book" size={20} />;
 
-const ScrollIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M8 3H6a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2m0-5h10a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2M8 3v18M6 8h2m8 0a2 2 0 1 1-4 0m4 0V3m-4 5V3m0 18h10a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2H8" />
-  </svg>
-);
+const ScrollIcon = () => <AppIcon name="nuqool" size={20} />;
 
-const ClockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
-  </svg>
-);
+const ClockIcon = () => <AppIcon name="timeline" size={20} />;
 
-const MoreIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-    <circle cx="5" cy="12" r="1.8" />
-    <circle cx="12" cy="12" r="1.8" />
-    <circle cx="19" cy="12" r="1.8" />
-  </svg>
-);
+const MoreIcon = () => <AppIcon name="settings" size={20} />;
 
-const SocialIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.2-.66L4 20l1.66-4.1A7.5 7.5 0 1 1 20 11.5Z" />
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01" />
-  </svg>
-);
+const SocialIcon = () => <AppIcon name="social" size={20} />;
 
-const BackIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m6 7-7-7 7-7" />
-  </svg>
-);
+const ReelsIcon = () => <AppIcon name="reels" size={20} />;
 
-const MenuIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
-    <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
+const BackIcon = () => <AppIcon name="back" size={18} />;
+
+const MenuIcon = () => <AppIcon name="menu" size={18} />;
 
 function BottomNav({ items, activePage, onNavigate }) {
   const renderItem = (it) => (
     <button
+      type="button"
       key={it.id}
       className={`bottom-nav__item ${activePage === it.id ? "bottom-nav__item--active" : ""}`}
       onClick={() => onNavigate(it.id)}
@@ -113,14 +81,17 @@ function BottomNav({ items, activePage, onNavigate }) {
 
 /* ── Small wrapper so QuranReader's initialSurah comes from the URL param ── */
 function QuranRoute() {
-  const { surahNumber } = useParams();
+  const { surahNumber, ayahNumber } = useParams();
   const navigate = useNavigate();
   const n = parseInt(surahNumber, 10);
+  const ayah = parseInt(ayahNumber, 10);
   const selectedSurah = !isNaN(n) && n >= 1 && n <= 114 ? n : null;
+  const selectedAyah = Number.isInteger(ayah) && ayah > 0 ? ayah : null;
 
   return (
     <Quran
       selectedSurah={selectedSurah}
+      selectedAyah={selectedAyah}
       onSelectSurah={(s) => navigate(s == null ? "/quran" : `/quran/${s}`)}
     />
   );
@@ -206,10 +177,11 @@ export default function App() {
     { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
     { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
     { id: "social", label: t("navSocial"), icon: <SocialIcon /> },
+    { id: "reels", label: t("navReels"), icon: <ReelsIcon /> },
     { id: "settings", label: t("titleSettings"), icon: <MoreIcon /> },
   ];
 
-  const primaryNavItems = navItems.filter((it) => ["nuqool", "quran", "social"].includes(it.id));
+  const primaryNavItems = navItems.filter((it) => ["dashboard", "nuqool", "quran", "social", "reels"].includes(it.id));
 
   const pageTitles = {
     dashboard: t("titleDashboard"),
@@ -218,6 +190,7 @@ export default function App() {
     timeline: t("titleTimeline"),
     murshid: t("titleMurshid"),
     social: t("titleSocial"),
+    reels: t("navReels"),
     settings: t("titleSettings"),
   };
 
@@ -235,11 +208,18 @@ export default function App() {
     <div className="app-root">
       <header className="app-header">
         {canGoBack ? (
-          <button className="app-header__btn" onClick={() => navigate("/quran")} aria-label={t("goBack")}>
+          <button type="button" className="app-header__btn" onClick={() => navigate("/quran")} aria-label={t("goBack")}>
             <BackIcon />
           </button>
         ) : (
-          <button className="app-header__btn" onClick={() => setSidebarOpen(true)} aria-label={t("openMenu")}>
+          <button
+            type="button"
+            className="app-header__btn"
+            onClick={() => setSidebarOpen(true)}
+            aria-label={t("openMenu")}
+            aria-controls="app-navigation-drawer"
+            aria-expanded={sidebarOpen}
+          >
             <MenuIcon />
           </button>
         )}
@@ -247,6 +227,7 @@ export default function App() {
         <span className="app-header__title">{pageTitles[currentPage] ?? t("appTitle")}</span>
 
         <button
+          type="button"
           className="app-header__btn"
           onClick={() => setDarkMode((d) => !d)}
           aria-label={darkMode ? t("toLightMode") : t("toDarkMode")}
@@ -283,10 +264,13 @@ export default function App() {
           <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
           <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
           <Route path="/quran" element={<QuranRoute />} />
+          <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
           <Route path="/quran/:surahNumber" element={<QuranRoute />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/murshid" element={<Murshid />} />
           <Route path="/social" element={<SocialFeed />} />
+          <Route path="/reels" element={<SocialFeed mode="reels" />} />
+          <Route path="/reels/create" element={<ReelUpload />} />
           <Route
             path="/settings"
             element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}

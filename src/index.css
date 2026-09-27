@@ -8,10 +8,10 @@
 
 @import '@fontsource/readex-pro/400.css';
 @import '@fontsource/readex-pro/600.css';
-@import '@fontsource/space-grotesk/400.css';
-@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/readex-pro/700.css';
 @import '@fontsource/sora/400.css';
 @import '@fontsource/sora/600.css';
+@import '@fontsource/sora/700.css';
 
 @import "tailwindcss";
 
@@ -48,27 +48,29 @@
 }
 
 @font-face {
-  font-family: 'QPC V4 Tajweed';
-  src: url('./assets/fonts/QPC-V4-Tajweed.ttf') format('truetype');
-}
-@font-face {
   font-family: 'QPCHafs';
   src: url('./assets/fonts/QPC\ Hafs\ \(Official\ Uthmani\ script\ font\)\ -\ TTF.ttf') format('truetype');
+  font-display: swap;
 }
 @font-face {
   font-family: 'CormorantGaramond-Medium';
   src: url('./assets/fonts/CormorantGaramond-Medium.ttf') format('truetype');
+  font-display: swap;
 }
 @font-face {
   font-family: 'Indopak';
   src: url('./assets/fonts/Indopak\ Nastaleeq\ -\ TTF.ttf') format('truetype');
+  font-display: swap;
 }
 /* LIGHT */
 :root {
   --bg: #FAFAF9;
+  --font-body: 'Readex Pro', 'Sora', sans-serif;
+  --font-display: 'Sora', 'Readex Pro', sans-serif;
   --text-large: #16181C;
   --text-small: #3B3E42;
   --muted: #6B6F76;
+  --ayah-glow: #DCECF9;
 
   --surface-0: #FAFAF9;
   --surface-1: #FFFFFF;
@@ -106,6 +108,7 @@
 
 html[data-theme="dark"] {
   --bg: #1A1A19;
+  --ayah-glow: #34414D;
   --text-large: #FFFFFF;
   --text-small: #C3C2B7;
   --muted: #C0C0B5;
@@ -140,11 +143,31 @@ html[data-theme="dark"] {
 *::before,
 *::after {
   box-sizing: border-box;
-  font-family: 'Sora', 'Readex Pro', 'Google Sans Flex', 'Space Grotesk', sans-serif;
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text-small);
+  line-height: 1.5;
+}
+
+button:not(:disabled),
+a[href],
+label[for],
+summary,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }

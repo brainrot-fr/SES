@@ -7,10 +7,9 @@
  */
 
 .app-root {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* ── Sticky top bar ── */
 .app-header {
   position: sticky;
   top: 0;
@@ -18,37 +17,49 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1rem;
-  background: var(--panel);
+  min-height: 58px;
+  padding: calc(0.35rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0.35rem max(1rem, env(safe-area-inset-left, 0px));
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .app-header__btn {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 1.2rem;
   color: var(--text-small);
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 0;
+  border-radius: 50%;
   line-height: 1;
-  transition: background 150ms;
+  transition: background-color 180ms, color 180ms;
 }
 
-.app-header__btn:hover {
+.app-header__btn:hover,
+.app-header__btn:focus-visible {
   background: var(--panel-2);
+  color: var(--primary);
 }
 
 .app-header__title {
+  overflow: hidden;
+  padding: 0 0.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-large);
-  letter-spacing: 0.03em;
 }
 
 .app-main {
-  max-width: 800px;
+  width: 100%;
+  min-height: calc(100dvh - 58px);
+  padding: 0 0 calc(76px + env(safe-area-inset-bottom, 0px));
   margin: 0 auto;
 }
 
@@ -71,42 +82,115 @@
 .bottom-nav {
   position: fixed;
   bottom: 0;
+  z-index: 100;
   left: 0;
   right: 0;
   display: flex;
-  background: var(--panel);
+  align-items: stretch;
+  min-height: 64px;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  backdrop-filter: blur(18px);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -2px 12px var(--shadow);
-  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .bottom-nav__item {
   flex: 1;
+  min-width: 44px;
+  min-height: 60px;
+  margin: 4px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 0.5rem 0.25rem 0.4rem;
+  justify-content: center;
+  gap: 4px;
+  padding: 0.4rem 0.15rem;
+  border-radius: 16px;
   background: transparent;
   border: none;
   cursor: pointer;
   color: var(--muted);
   font-family: inherit;
+  transition: color 180ms, background-color 180ms;
 }
 
 .bottom-nav__icon {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 
 .bottom-nav__label {
-  font-size: 0.64rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
   font-weight: 600;
 }
 
 .bottom-nav__item--active {
   color: var(--primary);
+  background: var(--primary-soft);
 }
 
-.app-main {
-  padding-bottom: 64px;
+.bottom-nav__item:focus-visible,
+.social-feed button:focus-visible,
+.dashboard button:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .app-header {
+    min-height: 64px;
+    padding-inline: 1.5rem;
+  }
+
+  .app-main {
+    width: min(1100px, calc(100% - 200px));
+    min-height: calc(100dvh - 64px);
+    padding-bottom: 2rem;
+  }
+
+  .bottom-nav {
+    top: 50%;
+    inset-inline-start: 1rem;
+    inset-inline-end: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 72px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    padding: 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-50%);
+  }
+
+  .bottom-nav__item {
+    flex: none;
+    min-height: 64px;
+    border-radius: 16px;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.62rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

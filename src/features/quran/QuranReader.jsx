@@ -41,7 +41,7 @@ import { Menu, MenuItem } from "@mui/material";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 
-export default function QuranReader({ initialSurah, onBack }) {
+export default function QuranReader({ initialSurah, initialAyah, onBack }) {
   const { t } = useLang();
 
   const [currentSurah, setCurrentSurah] = useState(() => {
@@ -78,6 +78,7 @@ export default function QuranReader({ initialSurah, onBack }) {
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
   const ayahRefs = useRef({});
+  const deepLinkHandledRef = useRef(false);
 
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
   const changeQuranZoom = (amount) => {
@@ -195,6 +196,31 @@ export default function QuranReader({ initialSurah, onBack }) {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [surah]);
+
+  useEffect(() => {
+    if (!surah || surah.number !== currentSurah || !initialAyah) return;
+
+    const targetAyah = initialAyah;
+    if (targetAyah > surah.ayahs.length) {
+      deepLinkHandledRef.current = true;
+      return;
+    }
+
+    if (deepLinkHandledRef.current) return;
+    if (visibleCount < targetAyah) {
+      setVisibleCount(targetAyah);
+      return;
+    }
+
+    deepLinkHandledRef.current = true;
+    const frame = requestAnimationFrame(() => {
+      ayahRefs.current[targetAyah]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [currentSurah, initialAyah, surah, visibleCount]);
 
   useEffect(() => {
     if (activeAyahNumber && activeAyahNumber > visibleCount) {

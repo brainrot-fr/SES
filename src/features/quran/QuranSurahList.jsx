@@ -38,19 +38,27 @@ export default function QuranSurahList({ onOpenSurah }) {
 
   return (
     <div className="quran-list">
-      <input
-        type="text"
-        className="quran-list__search"
-        placeholder={t('quranSearchPlaceholder')}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+      <header className="quran-list__header">
+        <p className="quran-list__eyebrow">{t("titleQuran")}</p>
+        <h1>{t("titleQuran")}</h1>
+        <p>{t("quranIntro")}</p>
+      </header>
+      <label className="quran-list__search-label">
+        <span>{t("quranSearchLabel")}</span>
+        <input
+          type="search"
+          className="quran-list__search"
+          placeholder={t('quranSearchPlaceholder')}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </label>
 
       {filteredSurahs.length === 0 ? (
         <div className="quran-state">{t('quranNoResults')}</div>
       ) : (
         filteredSurahs.map((s) => (
-          <button key={s.number} className="quran-list__item" onClick={() => onOpenSurah(s.number)}>
+          <button key={s.number} type="button" className="quran-list__item" onClick={() => onOpenSurah(s.number)}>
             <span className="quran-list__num">{s.number}</span>
             <span className="quran-list__names">
               <span className="quran-list__ar">{s.name}</span>

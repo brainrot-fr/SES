@@ -8,7 +8,7 @@ import {
 } from "../../lib/cloudinaryUpload";
 
 const VALIDATION_ERROR_KEYS = {
-  unsupportedType: "socialMediaUnsupportedType",
+  unsupportedType: "socialPostImagesOnly",
   imageTooLarge: "socialImageTooLarge",
   videoTooLarge: "socialVideoTooLarge",
 };
@@ -43,6 +43,9 @@ export default function PostComposer({ onCreate }) {
     }
 
     try {
+      if (!selected.type.startsWith("image/")) {
+        throw new MediaValidationError("unsupportedType");
+      }
       validateMediaFile(selected);
     } catch (validationError) {
       clearMedia();
@@ -97,11 +100,7 @@ export default function PostComposer({ onCreate }) {
       />
       {previewUrl && (
         <div className="social-composer__preview">
-          {file?.type.startsWith("video/") ? (
-            <video src={previewUrl} className="social-composer__preview-media" controls muted />
-          ) : (
-            <img src={previewUrl} className="social-composer__preview-media" alt="" />
-          )}
+          <img src={previewUrl} className="social-composer__preview-media" alt={t("socialImagePreview")} />
           <button
             type="button"
             className="social-composer__remove"
@@ -109,7 +108,9 @@ export default function PostComposer({ onCreate }) {
             disabled={busy}
             aria-label={t("socialRemoveMedia")}
           >
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
       )}
@@ -128,11 +129,11 @@ export default function PostComposer({ onCreate }) {
       )}
       <div className="social-composer__controls">
         <label className="social-composer__file">
-          <span>{t("socialAddMedia")}</span>
+          <span>{t("socialAddImage")}</span>
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
+            accept="image/*"
             onChange={handleFileChange}
             disabled={busy}
           />

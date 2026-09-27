@@ -18,7 +18,7 @@ import {
   onAuthStateChange,
   isAnonymousUser,
   requestEmailUpgrade,
-  listenForEmailUpgradeConfirmation,
+  listenForAuthRedirect,
   signInWithPassword,
   signInWithGoogle,
   signUpWithPassword,
@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
       setSession(s);
     });
 
-    const stopListening = listenForEmailUpgradeConfirmation(
+    const stopListening = listenForAuthRedirect(
       (s) => {
         setSession(s);
         setUpgradeConfirmed(true);

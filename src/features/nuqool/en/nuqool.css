@@ -10,9 +10,9 @@
     line-height: 2;
     margin: 0.75rem 0;
     text-align: center;
-    background-color: var(--shadow);
-    color: var(--large-text);
-    border-radius: 10px;
+    background-color: var(--primary-soft);
+    color: var(--text-large);
+    border-radius: var(--radius-sm);
     padding: 1rem;
 }
 .hadees {
@@ -22,8 +22,8 @@
     line-height: 2;
     margin: 0.75rem 0;
     text-align: center;
-    background-color: var(--shadow);
-    color: var(--large-text);
-    border-radius: 10px;
+    background-color: var(--primary-soft);
+    color: var(--text-large);
+    border-radius: var(--radius-sm);
     padding: 0.5rem;
 }

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useLang } from "../context/LanguageContext";
 import AppIcon from "./icons/AppIcon";
 
@@ -9,11 +10,65 @@ export default function Sidebar({
   onThemeToggle,
   activePage,
   onNavigate,
-  onTestNotification,
 }) {
-  const { t, resetLang, isRTL } = useLang();
+  const { t, chooseLang, lang, isRTL } = useLang();
+  const drawerRef = useRef(null);
+  const returnFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
   const drawerPosition = isRTL ? "right-0 left-auto" : "left-0";
   const drawerClosedPosition = isRTL ? "translate-x-full" : "-translate-x-full";
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      const target = returnFocusRef.current;
+      if (target instanceof HTMLElement && target.isConnected) {
+        window.requestAnimationFrame(() => target.focus());
+      }
+      returnFocusRef.current = null;
+      return undefined;
+    }
+
+    returnFocusRef.current = document.activeElement;
+    const drawer = drawerRef.current;
+    const getFocusableItems = () => drawer?.querySelectorAll(
+      'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    ) ?? [];
+
+    getFocusableItems()[0]?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusableItems = getFocusableItems();
+      if (focusableItems.length === 0) {
+        event.preventDefault();
+        drawer?.focus();
+        return;
+      }
+
+      const firstItem = focusableItems[0];
+      const lastItem = focusableItems[focusableItems.length - 1];
+      if (event.shiftKey && document.activeElement === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && document.activeElement === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   return (
     <>
@@ -26,10 +81,14 @@ export default function Sidebar({
         />
       )}
       <aside
+        ref={drawerRef}
         id="app-navigation-drawer"
+        role="dialog"
+        aria-modal="true"
         aria-label={t("menu")}
         aria-hidden={!isOpen}
         inert={!isOpen}
+        tabIndex={-1}
         className={`fixed top-0 ${drawerPosition} z-[1000] flex h-dvh w-[280px] max-w-[85vw] flex-col border-hairline bg-surface-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-body shadow-lg transition-transform duration-200 ease-in-out ${isRTL ? "border-l" : "border-r"} ${isOpen ? "translate-x-0" : drawerClosedPosition}`}
       >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-hairline px-4 py-3 font-semibold text-heading">
@@ -75,18 +134,10 @@ export default function Sidebar({
           <button
             type="button"
             className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-body shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
-            onClick={resetLang}
+            onClick={() => chooseLang(lang === "ur" ? "en" : "ur")}
           >
             <AppIcon name="globe" size={19} />
-            {t("changeLang")}
-          </button>
-          <button
-            type="button"
-            className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-primary shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
-            onClick={onTestNotification}
-          >
-            <AppIcon name="bell" size={19} />
-            {t("testNotification")}
+            {lang === "ur" ? t("switchToEnglish") : t("switchToUrdu")}
           </button>
         </div>
       </aside>

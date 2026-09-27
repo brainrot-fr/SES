@@ -3,46 +3,34 @@
  * Main application shell for the SES PWA.
  */
 
-import { useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import "./App.css";
 import AppIcon from "./components/icons/AppIcon";
 import Sidebar from "./components/sidebar";
-import NaqlDashboard from "./features/nuqool/en/naqlDashboard";
-import Timeline from "./features/timeline/timeline";
-import Quran from "./features/quran/Quran";
-import Murshid from "./features/murshid/Murshid";
+import IconButton from "./components/ui/IconButton";
 import Onboarding from "./components/Onboarding";
 import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
-import {
-  initNaqlNotificationLifecycle,
-  scheduleTestNotification,
-} from "./notifications/naqlNotifications";
-import SettingsDashboard from "./features/settings/SettingsDashboard";
-import Dashboard from "./features/dashboard/Dashboard";
-import SocialFeed from "./features/social/SocialFeed";
-import ReelUpload from "./features/social/ReelUpload";
+import { initNaqlNotificationLifecycle } from "./notifications/naqlNotifications";
 
-/* Shared navigation icon components. */
-const SunIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
-  </svg>
-);
+const NaqlDashboard = lazy(() => import("./features/nuqool/en/naqlDashboard"));
+const Timeline = lazy(() => import("./features/timeline/timeline"));
+const Quran = lazy(() => import("./features/quran/Quran"));
+const Murshid = lazy(() => import("./features/murshid/Murshid"));
+const SettingsDashboard = lazy(() => import("./features/settings/SettingsDashboard"));
+const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
+const SocialFeed = lazy(() => import("./features/social/SocialFeed"));
+const ReelUpload = lazy(() => import("./features/social/ReelUpload"));
 
-const MoonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z" />
-  </svg>
-);
+const MurshidIcon = () => <AppIcon name="murshid" size={20} />;
 
-const MurshidIcon = () => <AppIcon name="user" size={20} />;
+const HomeIcon = () => <AppIcon name="home" size={20} />;
 
-const BookIcon = () => <AppIcon name="book" size={20} />;
+const BookIcon = () => <AppIcon name="quran" size={20} />;
 
 const ScrollIcon = () => <AppIcon name="nuqool" size={20} />;
 
@@ -52,13 +40,7 @@ const MoreIcon = () => <AppIcon name="settings" size={20} />;
 
 const SocialIcon = () => <AppIcon name="social" size={20} />;
 
-const ReelsIcon = () => <AppIcon name="reels" size={20} />;
-
-const BackIcon = () => <AppIcon name="back" size={18} />;
-
-const MenuIcon = () => <AppIcon name="menu" size={18} />;
-
-function BottomNav({ items, activePage, onNavigate }) {
+function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
   const renderItem = (it) => (
     <button
       type="button"
@@ -73,7 +55,7 @@ function BottomNav({ items, activePage, onNavigate }) {
   );
 
   return (
-    <nav className="bottom-nav" aria-label="Primary navigation">
+    <nav className="bottom-nav" aria-label={label} inert={inert}>
       {items.map(renderItem)}
     </nav>
   );
@@ -115,12 +97,21 @@ export default function App() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("ses-theme-v2") === "dark");
-  const [toastMessage, setToastMessage] = useState(null);
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
 
   // top-level "section" for nav highlighting, derived from the URL
   const currentPage = location.pathname.split("/")[1] || "dashboard";
   const canGoBack = currentPage === "quran" && /^\/quran\/\d+/.test(location.pathname);
+  const pageTitles = {
+    dashboard: t("titleDashboard"),
+    nuqool: t("titleNuqool"),
+    quran: t("titleQuran"),
+    timeline: t("titleTimeline"),
+    murshid: t("titleMurshid"),
+    social: t("titleSocial"),
+    reels: t("navReels"),
+    settings: t("titleSettings"),
+  };
 
   const sidebarOpenRef = useRef(sidebarOpen);
   useEffect(() => { sidebarOpenRef.current = sidebarOpen; }, [sidebarOpen]);
@@ -151,18 +142,17 @@ export default function App() {
   }, [darkMode]);
 
   useEffect(() => {
-    if (!toastMessage) return undefined;
-    const timeout = window.setTimeout(() => setToastMessage(null), 4000);
-    return () => window.clearTimeout(timeout);
-  }, [toastMessage]);
-
-  useEffect(() => {
     const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
       navigate(`/nuqool/${naqlNumber}`);
       setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
     });
     return cleanup;
   }, [navigate]);
+
+  useEffect(() => {
+    const title = !lang ? t("appTitle") : pageTitles[currentPage] ?? t("appTitle");
+    document.title = title === t("appTitle") ? title : `${title} · ${t("appTitle")}`;
+  }, [currentPage, lang, t]);
 
   if (!lang) return <Onboarding />;
   if (!ready) {
@@ -171,118 +161,91 @@ export default function App() {
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
-    { id: "dashboard", label: t("navDashboard"), icon: <BookIcon /> },
-    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon /> },
+    { id: "dashboard", label: t("navDashboard"), icon: <HomeIcon /> },
     { id: "quran", label: t("navQuran"), icon: <BookIcon /> },
-    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
+    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon /> },
     { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
     { id: "social", label: t("navSocial"), icon: <SocialIcon /> },
-    { id: "reels", label: t("navReels"), icon: <ReelsIcon /> },
+    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
     { id: "settings", label: t("titleSettings"), icon: <MoreIcon /> },
   ];
 
-  const primaryNavItems = navItems.filter((it) => ["dashboard", "nuqool", "quran", "social", "reels"].includes(it.id));
-
-  const pageTitles = {
-    dashboard: t("titleDashboard"),
-    nuqool: t("titleNuqool"),
-    quran: t("titleQuran"),
-    timeline: t("titleTimeline"),
-    murshid: t("titleMurshid"),
-    social: t("titleSocial"),
-    reels: t("navReels"),
-    settings: t("titleSettings"),
-  };
-
-  const handleTestNotification = async () => {
-    try {
-      await scheduleTestNotification(10);
-      setToastMessage(t("notificationScheduled"));
-    } catch (err) {
-      console.error("[App] test notification failed", err);
-      setToastMessage(t("notificationScheduleFailed"));
-    }
-  };
+  const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "murshid", "social"].includes(it.id));
+  const secondaryNavItems = navItems.filter((it) => ["timeline", "settings"].includes(it.id));
 
   return (
     <div className="app-root">
-      <header className="app-header">
+      <a className="app-skip-link" href="#main-content">{t("skipToContent")}</a>
+      <header className="app-header" inert={sidebarOpen}>
         {canGoBack ? (
-          <button type="button" className="app-header__btn" onClick={() => navigate("/quran")} aria-label={t("goBack")}>
-            <BackIcon />
-          </button>
+          <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate("/quran")} label={t("goBack")} />
         ) : (
-          <button
-            type="button"
+          <IconButton
             className="app-header__btn"
+            icon="menu"
+            size={18}
             onClick={() => setSidebarOpen(true)}
-            aria-label={t("openMenu")}
+            label={t("openMenu")}
             aria-controls="app-navigation-drawer"
             aria-expanded={sidebarOpen}
-          >
-            <MenuIcon />
-          </button>
+          />
         )}
 
         <span className="app-header__title">{pageTitles[currentPage] ?? t("appTitle")}</span>
 
-        <button
-          type="button"
+        <IconButton
           className="app-header__btn"
+          icon={darkMode ? "sun" : "moon"}
+          size={18}
           onClick={() => setDarkMode((d) => !d)}
-          aria-label={darkMode ? t("toLightMode") : t("toDarkMode")}
+          label={darkMode ? t("toLightMode") : t("toDarkMode")}
           title={darkMode ? t("toLightMode") : t("toDarkMode")}
-        >
-          {darkMode ? <SunIcon /> : <MoonIcon />}
-        </button>
+        />
       </header>
 
       <Sidebar
-        items={navItems}
+        items={secondaryNavItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         darkMode={darkMode}
         onThemeToggle={() => setDarkMode((d) => !d)}
-        activePage={currentPage}
+        activePage={currentPage === "reels" ? "social" : currentPage}
         onNavigate={(id) => {
           navigate(`/${id}`);
           setSidebarOpen(false);
         }}
-        onTestNotification={handleTestNotification}
       />
 
-      {toastMessage && (
-        <div className="app-toast" role="status" aria-live="polite">
-          {toastMessage}
-        </div>
-      )}
-
-      <main className="app-main">
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-          <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-          <Route path="/quran" element={<QuranRoute />} />
-          <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
-          <Route path="/quran/:surahNumber" element={<QuranRoute />} />
-          <Route path="/timeline" element={<Timeline />} />
-          <Route path="/murshid" element={<Murshid />} />
-          <Route path="/social" element={<SocialFeed />} />
-          <Route path="/reels" element={<SocialFeed mode="reels" />} />
-          <Route path="/reels/create" element={<ReelUpload />} />
-          <Route
-            path="/settings"
-            element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
-          />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+      <main id="main-content" className="app-main" inert={sidebarOpen}>
+        <Suspense fallback={<div className="app-loading" role="status">{t("settingsLoading")}</div>}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+            <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+            <Route path="/quran" element={<QuranRoute />} />
+            <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
+            <Route path="/quran/:surahNumber" element={<QuranRoute />} />
+            <Route path="/timeline" element={<Timeline />} />
+            <Route path="/murshid" element={<Murshid />} />
+            <Route path="/social" element={<SocialFeed />} />
+            <Route path="/reels" element={<SocialFeed mode="reels" />} />
+            <Route path="/reels/create" element={<ReelUpload />} />
+            <Route
+              path="/settings"
+              element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
+            />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Suspense>
       </main>
 
       <BottomNav
         items={primaryNavItems}
-        activePage={currentPage}
+        activePage={currentPage === "reels" ? "social" : currentPage}
         onNavigate={(id) => navigate(`/${id}`)}
+        label={t("primaryNavigation")}
+        inert={sidebarOpen}
       />
     </div>
   );

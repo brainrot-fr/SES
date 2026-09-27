@@ -9,9 +9,13 @@ export default {
   openMenu: "مینو کھولیں",
   closeMenu: "مینو بند کریں",
   mainNavigation: "مرکزی نیویگیشن",
+  primaryNavigation: "مرکزی نیویگیشن",
+  skipToContent: "مواد پر جائیں",
   toLightMode: "روشن موڈ",
   toDarkMode: "تاریک موڈ",
   changeLang: "زبان بدلیں",
+  switchToEnglish: "انگریزی منتخب کریں",
+  switchToUrdu: "اردو منتخب کریں",
 
   /* Nav */
   navNuqool: "نقول",
@@ -33,6 +37,7 @@ export default {
   socialPost: "پوسٹ کریں",
   socialPosting: "پوسٹ ہو رہی ہے…",
   socialPostFailed: "پوسٹ شائع نہیں ہو سکی۔",
+  socialPostSuccess: "آپ کی پوسٹ شیئر ہو گئی۔",
   socialFeedFailed: "پوسٹس لوڈ نہیں ہو سکیں۔",
   socialVisibilityNotice: "آپ کی پوسٹ اور منسلک میڈیا سائن اِن صارفین کو نظر آئے گا۔",
   socialMediaUnsupportedType: "صرف تصاویر اور ویڈیوز کی اجازت ہے۔",
@@ -41,6 +46,9 @@ export default {
   socialUploadProgress: "میڈیا اپ لوڈ کی پیش رفت",
   socialLoading: "لوڈ ہو رہا ہے…",
   socialEmpty: "ابھی کوئی پوسٹ نہیں۔ گفتگو شروع کریں۔",
+  socialEmptyTitle: "گفتگو کا آغاز کریں",
+  socialEmptyDescription: "ابھی کوئی پوسٹ نہیں۔ گفتگو شروع کرنے کے لیے اپنا خیال شیئر کریں۔",
+  socialWriteFirstPost: "پہلی پوسٹ لکھیں",
   socialLoadMore: "مزید دیکھیں",
   socialImage: "کمیونٹی پوسٹ کی تصویر",
   socialVideo: "کمیونٹی پوسٹ کی ویڈیو",
@@ -147,14 +155,15 @@ export default {
 
   /* NaqlDashboard */
   naql: "نقل",
-  prevNaql: "→", // flipped for RTL reading direction
-  nextNaql: "←",
+  prevNaql: "پچھلا نقل",
+  nextNaql: "اگلا نقل",
   goToNaql: "نقل نمبر پر جائیں",
+  naqlQuickJump: "فوری انتخاب",
 
   /* Timeline */
   tlName: "امام مہدی علیہ السلام",
   tlSpan: "۸۴۷ ہجری — ۹۱۰ ہجری",
-  tlDetails: "تفصیل ←",
+  tlDetails: "تفصیل",
   tlClose: "✕",
   tlCloseLabel: "بند کریں",
 
@@ -163,12 +172,17 @@ export default {
   obEnglish: "English",
   obUrdu: "اردو",
   obContinue: "جاری رکھیں",
+  obContinueEn: "Continue",
+  obContinueUr: "جاری رکھیں",
+  obValuePropEn: "Read Nuqool and Quran, and stay connected with your community.",
+  obValuePropUr: "نقول اور قرآن پڑھیں اور اپنی کمیونٹی سے جڑے رہیں۔",
 
   /* Quran */
   navQuran: "قرآن",
   titleQuran: "قرآن مجید",
 
   quranLoading: "لوڈ ہو رہا ہے…",
+  quranClearSearch: "تلاش صاف کریں",
   quranLoadError: "یہ سورت لوڈ نہیں ہو سکی — انٹرنیٹ کنکشن چیک کریں۔",
   quranBackToList: "تمام سورتیں",
   quranPlayAyah: "چلائیں",
@@ -184,11 +198,13 @@ export default {
   quranHideTranslation: "ترجمہ چھپائیں",
 
   quranViewMode: "دیکھنے کا انداز",
+  quranAyahActions: "آیت چلانے کے اختیارات",
   quranVerseByVerse: "آیت بہ آیت",
   quranReadingMode: "مطالعہ",
   quranSearchPlaceholder: "سورت کا نام یا نمبر تلاش کریں…",
   quranSearchLabel: "سورت تلاش کریں",
   quranIntro: "تمام ۱۱۴ سورتیں پڑھیں، سنیں اور دریافت کریں۔",
+  quranSurahNavigation: "سورتوں کی فہرست",
   quranNoResults: "کوئی سورت نہیں ملی۔",
 
   quranPlayThisAyah: "یہ آیت چلائیں",
@@ -204,6 +220,7 @@ export default {
 
   murshidTarbiyat: "سلسلہ تربیت",
   murshidFaqiri: "سلسلہ فقیری",
+  murshidIntro: "یہاں روحانی سلسلوں کو موجودہ درج شدہ معلومات کے مطابق پیش کیا گیا ہے۔",
 
   authBackupData: "ڈیٹا محفوظ کریں",
   authUpgradeTitle: "اپنا ڈیٹا محفوظ کریں",
@@ -249,6 +266,7 @@ export default {
   authHaveAccount: "پہلے سے اکاؤنٹ ہے؟ سائن ان کریں",
   authNeedAccount: "نئے صارف ہیں؟ اکاؤنٹ بنائیں",
   authEmailLabel: "ای میل پتہ",
+  authPasswordLabel: "پاس ورڈ",
   authConfirmationTitle: "اپنی ای میل دیکھیں",
   authConfirmationDescription: "اس پتے پر بھیجا گیا تصدیقی لنک کھولیں:",
   authDataNotice: "آپ کے اکاؤنٹ کی معلومات Supabase کے ذریعے محفوظ طریقے سے سنبھالی جاتی ہیں۔",

@@ -55,13 +55,19 @@
   border-radius: 14px;
   cursor: pointer;
   font-family: inherit;
-  text-align: left;
+  text-align: start;
   transition: box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
 
 .quran-list__item:hover {
   border-color: var(--primary);
   box-shadow: 0 3px 10px var(--shadow);
+}
+
+.quran-list__item--active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .quran-list__num {
@@ -104,7 +110,7 @@
   flex-shrink: 0;
   font-size: 0.78rem;
   color: var(--muted);
-  text-align: right;
+  text-align: end;
 }
 
 /* ── Reader ── */
@@ -231,7 +237,7 @@
   border-radius: 0.5rem;
   border: 1.5px solid var(--primary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 25%, transparent);
-  margin-top: -12px;
+  margin-top: 0;
   font-weight: bolder;
 }
 
@@ -307,7 +313,7 @@
 
 .quran-nav__btn {
   padding: 0.45rem 1rem;
-  min-height: 38px;
+  min-height: 44px;
   background: var(--primary);
   color: var(--on-primary);
   border: none;
@@ -331,7 +337,7 @@
 .quran-nav__play-surah {
   flex: 1;
   padding: 0.45rem 0.75rem;
-  min-height: 38px;
+  min-height: 44px;
   background: var(--panel-2);
   color: var(--text-large);
   border: 1px solid var(--border);
@@ -353,6 +359,10 @@
   display: inline-block;
   vertical-align: middle;
   color: currentColor;
+}
+
+[dir="rtl"] .quran-nav__icon {
+  transform: scaleX(-1);
 }
 
 .quran-nav__play-text {
@@ -459,7 +469,7 @@
 }
 
 .quran-zoom-controls__button:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -518,7 +528,7 @@
   direction: ltr;
   gap: 0.35rem;
   color: var(--primary);
-  font-family: 'Readex Pro', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.68rem;
   vertical-align: middle;
 }
@@ -574,7 +584,7 @@
 
 .quran-back-to-top {
   position: fixed;
-  right: 1rem;
+  inset-inline-end: 1rem;
   bottom: 170px;
   width: 42px;
   height: 42px;
@@ -669,7 +679,7 @@
 }
 
 .quran-player__range:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -690,4 +700,62 @@
   cursor: pointer;
   min-width: 12rem;
   color: var(--text-large);
+}
+
+@media (min-width: 1024px) {
+  .quran-layout--reader {
+    display: grid;
+    grid-template-columns: minmax(16rem, 21rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-4);
+  }
+
+  .quran-layout__surahs {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100dvh - var(--space-8));
+    overflow-y: auto;
+    border-inline-end: 1px solid var(--border);
+  }
+
+  .quran-layout__surahs .quran-list {
+    width: 100%;
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .quran-layout__surahs .quran-list__header h1 {
+    font-size: var(--text-xl);
+  }
+
+  .quran-layout__surahs .quran-list__header > p:last-child {
+    font-size: var(--text-sm);
+  }
+
+  .quran-layout__surahs .quran-list__item {
+    min-height: 60px;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .quran-layout__surahs .quran-list__meta {
+    display: none;
+  }
+
+  .quran-layout__reader .quran-container {
+    padding: var(--space-3);
+    padding-bottom: var(--space-4);
+  }
+
+  .quran-layout__reader .quran-nav {
+    position: sticky;
+    inset-inline: auto;
+    bottom: var(--space-4);
+    width: min(100%, 30rem);
+    margin: var(--space-4) auto;
+  }
+
+  .quran-layout__reader .quran-back-to-top {
+    inset-inline-end: var(--space-4);
+  }
 }

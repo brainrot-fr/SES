@@ -1,21 +1,26 @@
 import { useEffect, useState, useMemo } from 'react';
 import { fetchSurahList } from './quranApi';
 import { useLang } from '../../context/LanguageContext';
+import EmptyState from '../../components/ui/EmptyState';
+import Skeleton from '../../components/ui/Skeleton';
 import './quran.css';
 
-export default function QuranSurahList({ onOpenSurah }) {
+export default function QuranSurahList({ onOpenSurah, activeSurah = null, compact = false }) {
   const { t } = useLang();
   const [surahs, setSurahs] = useState(null);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setSurahs(null);
+    setError(null);
     fetchSurahList()
       .then((list) => { if (!cancelled) setSurahs(list); })
       .catch((err) => { if (!cancelled) setError(err.message); });
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
 
   const filteredSurahs = useMemo(() => {
     if (!surahs) return null;
@@ -30,14 +35,22 @@ export default function QuranSurahList({ onOpenSurah }) {
   }, [surahs, query]);
 
   if (error) {
-    return <div className="quran-state quran-state--error">{t('quranLoadError')}</div>;
+    return (
+      <div className="quran-state quran-state--error" role="alert">
+        <EmptyState
+          icon="retry"
+          title={t('quranLoadError')}
+          action={{ label: t('socialRetry'), onClick: () => setLoadAttempt((attempt) => attempt + 1) }}
+        />
+      </div>
+    );
   }
   if (!surahs) {
-    return <div className="quran-state">{t('quranLoading')}</div>;
+    return <Skeleton variant="list" count={8} label={t('quranLoading')} className="quran-list__skeleton" />;
   }
 
   return (
-    <div className="quran-list">
+    <div className={`quran-list${compact ? ' quran-list--compact' : ''}`}>
       <header className="quran-list__header">
         <p className="quran-list__eyebrow">{t("titleQuran")}</p>
         <h1>{t("titleQuran")}</h1>
@@ -55,13 +68,24 @@ export default function QuranSurahList({ onOpenSurah }) {
       </label>
 
       {filteredSurahs.length === 0 ? (
-        <div className="quran-state">{t('quranNoResults')}</div>
+        <EmptyState
+          icon="book"
+          title={t('quranNoResults')}
+          description={query}
+          action={{ label: t('quranClearSearch'), onClick: () => setQuery('') }}
+        />
       ) : (
         filteredSurahs.map((s) => (
-          <button key={s.number} type="button" className="quran-list__item" onClick={() => onOpenSurah(s.number)}>
+          <button
+            key={s.number}
+            type="button"
+            className={`quran-list__item${activeSurah === s.number ? ' quran-list__item--active' : ''}`}
+            onClick={() => onOpenSurah(s.number)}
+            aria-current={activeSurah === s.number ? 'page' : undefined}
+          >
             <span className="quran-list__num">{s.number}</span>
             <span className="quran-list__names">
-              <span className="quran-list__ar">{s.name}</span>
+              <span className="quran-list__ar" lang="ar" dir="rtl">{s.name}</span>
               <span className="quran-list__en">{s.englishName} · {s.englishNameTranslation}</span>
             </span>
             <span className="quran-list__meta">{s.numberOfAyahs} · {s.revelationType}</span>

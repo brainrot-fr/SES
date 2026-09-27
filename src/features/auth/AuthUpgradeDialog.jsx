@@ -7,9 +7,11 @@
  */
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
+import Modal from "../../components/ui/Modal";
+import TextField from "../../components/ui/TextField";
+import Button from "../../components/ui/Button";
 
 export default function AuthUpgradeDialog({ open, onClose }) {
   const { t } = useLang();
@@ -63,157 +65,86 @@ export default function AuthUpgradeDialog({ open, onClose }) {
   };
 
   return (
-    <Dialog
+    <Modal
       open={open}
       onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-      sx={{
-        "& .MuiDialog-container": {
-          alignItems: { xs: "flex-end", sm: "center" },
-        },
-        "& .MuiBackdrop-root": { backgroundColor: "rgba(0, 0, 0, 0.52)" },
-        "& .MuiDialog-paper": {
-          bgcolor: "var(--panel)",
-          color: "var(--text-small)",
-          borderRadius: { xs: "20px 20px 0 0", sm: "16px" },
-          m: { xs: 0, sm: 4 },
-          width: "100%",
-          p: 3,
-        },
-      }}
+      labelledBy="auth-upgrade-dialog-title"
+      disableClose={busy}
+      className="ui-auth-dialog"
     >
-      <h2
-        style={{
-          margin: "0 0 0.75rem",
-          color: "var(--text-large)",
-          fontSize: "1.1rem",
-        }}
-      >
+      <h2 className="ui-dialog-title" id="auth-upgrade-dialog-title">
         {t("authUpgradeTitle")}
       </h2>
 
       {step === "email" && (
-        <form onSubmit={handleSendCode}>
-          <p
-            style={{
-              color: "var(--text-small)",
-              fontSize: "0.9rem",
-              marginTop: 0,
-            }}
-          >
+        <form className="ui-dialog-form" onSubmit={handleSendCode}>
+          <p className="ui-dialog-copy">
             {t("authUpgradeDesc")}
           </p>
-          <input
+          <TextField
+            id="auth-upgrade-email"
+            label={t("authEmailLabel")}
             type="email"
             required
             autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("authUpgradeEmailPlaceholder")}
-            style={inputStyle}
           />
-          <input
+          <TextField
+            id="auth-upgrade-password"
+            label={t("authPasswordLabel")}
             type="password"
             required
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t("authUpgradePasswordPlaceholder")}
-            style={{ ...inputStyle, marginTop: "0.5rem" }}
           />
-          <p
-            style={{
-              color: "var(--muted)",
-              fontSize: "0.78rem",
-              marginTop: "0.35rem",
-            }}
-          >
+          <p className="ui-dialog-hint">
             {t("authUpgradePasswordHint")}
           </p>
-          {error && <p style={errorStyle}>{error}</p>}
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-            <button
+          {error && <p className="ui-dialog-error" role="alert">{error}</p>}
+          <div className="ui-dialog-actions">
+            <Button
               type="button"
+              variant="secondary"
+              disabled={busy}
               onClick={handleClose}
-              style={secondaryBtnStyle}
             >
               {t("authUpgradeSkip")}
-            </button>
-            <button type="submit" disabled={busy} style={primaryBtnStyle}>
+            </Button>
+            <Button type="submit" busy={busy}>
               {busy ? t("authUpgradeSending") : t("authUpgradeSendCode")}
-            </button>
+            </Button>
           </div>
         </form>
       )}
 
       {step === "waiting" && (
-        <div>
-          <p style={{ color: "var(--text-small)", fontSize: "0.9rem" }}>
+        <div className="ui-dialog-form">
+          <p className="ui-dialog-copy">
             {t("authUpgradeWaitingDesc")} <strong>{email}</strong>
           </p>
-          <p style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
+          <p className="ui-dialog-hint">
             {t("authUpgradeWaitingHint")}
           </p>
-          <button onClick={handleClose} style={secondaryBtnStyle}>
+          <Button type="button" variant="secondary" onClick={handleClose}>
             {t("authUpgradeCloseWhileWaiting")}
-          </button>
+          </Button>
         </div>
       )}
 
       {step === "done" && (
-        <div>
-          <p style={{ color: "var(--text-small)", fontSize: "0.9rem" }}>
+        <div className="ui-dialog-form">
+          <p className="ui-dialog-copy">
             {t("authUpgradeSuccess")}
           </p>
-          <button onClick={handleClose} style={primaryBtnStyle}>
+          <Button type="button" onClick={handleClose}>
             {t("authUpgradeClose")}
-          </button>
+          </Button>
         </div>
       )}
-    </Dialog>
+    </Modal>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "0.7rem 0.9rem",
-  borderRadius: "10px",
-  border: "1px solid var(--border)",
-  background: "var(--panel-2)",
-  color: "var(--text-small)",
-  fontSize: "0.95rem",
-  fontFamily: "inherit",
-  boxSizing: "border-box",
-};
-
-const errorStyle = {
-  color: "var(--danger)",
-  fontSize: "0.82rem",
-  marginTop: "0.5rem",
-  marginBottom: 0,
-};
-
-const primaryBtnStyle = {
-  flex: 1,
-  padding: "0.7rem",
-  background: "var(--primary)",
-  color: "var(--panel)",
-  border: "none",
-  borderRadius: "10px",
-  fontWeight: 700,
-  fontSize: "0.9rem",
-  cursor: "pointer",
-};
-
-const secondaryBtnStyle = {
-  flex: 1,
-  padding: "0.7rem",
-  background: "var(--panel-2)",
-  color: "var(--text-small)",
-  border: "1px solid var(--border)",
-  borderRadius: "10px",
-  fontWeight: 600,
-  fontSize: "0.9rem",
-  cursor: "pointer",
-};

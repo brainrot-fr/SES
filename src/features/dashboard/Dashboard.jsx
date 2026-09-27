@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import quranData from "../../data/quran.json";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
+import Card from "../../components/ui/Card";
 import "./dashboard.css";
 
 function getDailyAyah(date = new Date()) {
@@ -100,10 +101,12 @@ export default function Dashboard() {
           </div>
           <div className="dashboard__grid">
             {cards.map((card) => (
-              <button
+              <Card
+                as="button"
                 type="button"
                 key={card.id}
                 className="dashboard__card"
+                interactive
                 onClick={() => navigate(`/${card.id}`)}
               >
                 <span className="dashboard__card-icon"><AppIcon name={card.id} /></span>
@@ -116,7 +119,7 @@ export default function Dashboard() {
                     <path d="M5 12h14m-6-6 6 6-6 6" />
                   </svg>
                 </span>
-              </button>
+              </Card>
             ))}
           </div>
         </section>

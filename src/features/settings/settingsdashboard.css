@@ -1,0 +1,122 @@
+.settings-dashboard {
+  width: min(100%, 38rem);
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4);
+  padding-block-end: calc(var(--space-8) + var(--bottom-nav-height));
+}
+
+.settings-dashboard__section {
+  margin-block-end: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-dashboard__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+  color: var(--text-large);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.settings-dashboard__heading-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.settings-dashboard__account {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.settings-dashboard__muted,
+.settings-dashboard__email {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+.settings-dashboard__muted {
+  margin-block-end: var(--space-1);
+  color: var(--muted);
+}
+
+.settings-dashboard__email {
+  overflow-wrap: anywhere;
+  color: var(--text-large);
+  font-weight: 600;
+}
+
+.settings-dashboard__preferences {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.settings-dashboard__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-block-start: var(--space-4);
+  gap: var(--space-2);
+}
+
+.settings-dashboard__preference {
+  min-height: 3.5rem;
+  justify-content: space-between;
+  text-align: start;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.settings-dashboard__preference-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.settings-dashboard__preference-value {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.settings-dashboard__delete {
+  color: var(--danger);
+}
+
+.settings-dashboard__error {
+  margin: var(--space-3) 0 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 480px) {
+  .settings-dashboard {
+    padding-inline: var(--space-5);
+  }
+
+  .settings-dashboard__section {
+    padding: var(--space-5);
+  }
+
+  .settings-dashboard__actions {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .settings-dashboard {
+    padding-block-end: var(--space-6);
+  }
+}

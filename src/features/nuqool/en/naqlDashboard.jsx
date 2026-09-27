@@ -23,7 +23,7 @@ const TOTAL = Object.keys(nuqoolObject).length;
 const STORAGE_KEY = 'ses-current-naql';
 
 export default function NaqlDashboard({ openNaqlRequest }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
 
   /*
    * When Urdu content exists, swap here:
@@ -70,10 +70,10 @@ export default function NaqlDashboard({ openNaqlRequest }) {
 
       <article className="naql-body">
         <h1 className="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
-        <h2 id="naql-title" className="naql-title">{t('naql')} {currentNaql}</h2>
+        <h2 id="naql-title" className="naql-title" aria-live="polite">{t('naql')} {currentNaql}</h2>
         <div className="naql-content">
           {naqlContent[currentNaql]}
-          {nuqoolKhulasaObject?.[currentNaql]}
+          {nuqoolKhulasaObject[currentNaql] ?? null}
         </div>
       </article>
 
@@ -114,30 +114,32 @@ export default function NaqlDashboard({ openNaqlRequest }) {
           </button>
         </div>
 
-        {/* Row 2: quick-jump */}
-        <div className="naql-nav__row naql-nav__jumps">
-          {[-50, -10, -5].map(n => (
-            <button
-              key={n}
-              className="naql-nav__jump"
-              onClick={() => goTo(currentNaql + n)}
-              disabled={currentNaql + n < 1}
-            >
-              {n}
-            </button>
-          ))}
-          <div className="naql-nav__divider" />
-          {[5, 10, 50].map(n => (
-            <button
-              key={n}
-              className="naql-nav__jump"
-              onClick={() => goTo(currentNaql + n)}
-              disabled={currentNaql + n > TOTAL}
-            >
-              +{n}
-            </button>
-          ))}
-        </div>
+        <details className="naql-nav__jump-menu">
+          <summary>{t('naqlQuickJump')}</summary>
+          <div className="naql-nav__row naql-nav__jumps">
+            {[-50, -10, -5].map(n => (
+              <button
+                key={n}
+                className="naql-nav__jump"
+                onClick={() => goTo(currentNaql + n)}
+                disabled={currentNaql + n < 1}
+              >
+                {n}
+              </button>
+            ))}
+            <div className="naql-nav__divider" aria-hidden="true" />
+            {[5, 10, 50].map(n => (
+              <button
+                key={n}
+                className="naql-nav__jump"
+                onClick={() => goTo(currentNaql + n)}
+                disabled={currentNaql + n > TOTAL}
+              >
+                +{n}
+              </button>
+            ))}
+          </div>
+        </details>
       </nav>
     </section>
   );

@@ -9,9 +9,13 @@ export default {
   openMenu: "Open menu",
   closeMenu: "Close menu",
   mainNavigation: "Main navigation",
+  primaryNavigation: "Primary navigation",
+  skipToContent: "Skip to content",
   toLightMode: "Switch to light mode",
   toDarkMode: "Switch to dark mode",
   changeLang: "Change Language",
+  switchToEnglish: "Switch to English",
+  switchToUrdu: "Switch to Urdu",
 
   /* Nav */
   navNuqool: "Nuqool",
@@ -58,14 +62,15 @@ export default {
 
   /* NaqlDashboard */
   naql: "Naql",
-  prevNaql: "←",
-  nextNaql: "→",
+  prevNaql: "Previous Naql",
+  nextNaql: "Next Naql",
   goToNaql: "Go to naql number",
+  naqlQuickJump: "Quick jump",
 
   /* Timeline */
   tlName: "Imam Mahdi A.S",
   tlSpan: "847 AH — 910 AH",
-  tlDetails: "Details →",
+  tlDetails: "Details",
   tlClose: "✕",
   tlCloseLabel: "Close details",
 
@@ -74,6 +79,10 @@ export default {
   obEnglish: "English",
   obUrdu: "اردو",
   obContinue: "Continue",
+  obContinueEn: "Continue",
+  obContinueUr: "جاری رکھیں",
+  obValuePropEn: "Read Nuqool and Quran, and stay connected with your community.",
+  obValuePropUr: "نقول اور قرآن پڑھیں اور اپنی کمیونٹی سے جڑے رہیں۔",
 
   /* Quran */
   navQuran: "Quran",
@@ -96,12 +105,15 @@ export default {
   quranHideTranslation: "Hide Translation",
 
   quranViewMode: "View mode",
+  quranAyahActions: "Ayah playback actions",
   quranVerseByVerse: "Verse by Verse",
   quranReadingMode: "Reading",
   quranSearchPlaceholder: "Search surah name or number…",
   quranSearchLabel: "Find a surah",
   quranIntro: "Read, listen, and explore all 114 surahs.",
+  quranSurahNavigation: "Surah navigation",
   quranNoResults: "No surahs match your search.",
+  quranClearSearch: "Clear search",
   quranBackToTop: "Back to top",
 
   /* Social */
@@ -177,6 +189,7 @@ export default {
   socialPost: "Post",
   socialPosting: "Posting…",
   socialPostFailed: "Could not create your post.",
+  socialPostSuccess: "Your post was shared.",
   socialFeedFailed: "Could not load posts.",
   socialVisibilityNotice: "Your post and any attached media will be visible to signed-in members.",
   socialMediaUnsupportedType: "Only images and videos are supported.",
@@ -185,6 +198,9 @@ export default {
   socialUploadProgress: "Media upload progress",
   socialLoading: "Loading…",
   socialEmpty: "No posts yet. Start the conversation.",
+  socialEmptyTitle: "A quiet start",
+  socialEmptyDescription: "There are no posts yet. Share a reflection to begin the conversation.",
+  socialWriteFirstPost: "Write the first post",
   socialLoadMore: "Load more",
   socialImage: "Community post image",
   socialVideo: "Community post video",
@@ -209,6 +225,7 @@ export default {
 
   murshidTarbiyat: "Silsila-e-Tarbiyat",
   murshidFaqiri: "Silsila-e-Faqiri",
+  murshidIntro: "Two spiritual lineages are presented here as they are currently recorded.",
 
   /* Auth / backup */
   authBackupData: "Back up my data",
@@ -254,6 +271,7 @@ export default {
   authHaveAccount: "Already have an account? Sign in",
   authNeedAccount: "New here? Create an account",
   authEmailLabel: "Email address",
+  authPasswordLabel: "Password",
   authConfirmationTitle: "Check your email",
   authConfirmationDescription: "Use the confirmation link sent to",
   authDataNotice: "Your account credentials are handled securely by Supabase.",

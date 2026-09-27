@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import TextField from '../../components/ui/TextField';
+import AppIcon from '../../components/icons/AppIcon';
 
 export default function AuthGate() {
   const { t, lang } = useLang();
@@ -49,25 +53,25 @@ export default function AuthGate() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-bg p-5">
-      <section className="w-full max-w-[400px] rounded-md border border-hairline bg-surface-1 p-6 shadow-md">
-        <p className="m-0 text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+    <main className="auth-gate">
+      <Card as="section" className="auth-gate__card">
+        <p className="auth-gate__eyebrow">
           {t('authRequiredEyebrow')}
         </p>
-        <h1 className="mb-2 mt-2 text-xl font-bold text-heading">
+        <h1 className="auth-gate__title">
           {t('authRequiredTitle')}
         </h1>
-        <p className="mb-5 mt-0 text-sm leading-relaxed text-muted">
+        <p className="auth-gate__description">
           {t('authRequiredDescription')}
         </p>
 
-        <div className="mb-5 grid grid-cols-2 rounded-md bg-surface-2 p-1" role="tablist" aria-label={t('authModeLabel')}>
+        <div className="auth-gate__tabs" role="tablist" aria-label={t('authModeLabel')}>
           <button
             type="button"
             role="tab"
             aria-selected={mode === 'signup'}
             onClick={() => selectMode('signup')}
-            className={`rounded-sm px-3 py-2.5 text-sm font-semibold transition-colors ${mode === 'signup' ? 'bg-surface-1 text-heading shadow-sm' : 'text-muted'}`}
+            className={`auth-gate__tab${mode === 'signup' ? ' auth-gate__tab--active' : ''}`}
           >
             {t('authCreateAccount')}
           </button>
@@ -76,82 +80,82 @@ export default function AuthGate() {
             role="tab"
             aria-selected={mode === 'signin'}
             onClick={() => selectMode('signin')}
-            className={`rounded-sm px-3 py-2.5 text-sm font-semibold transition-colors ${mode === 'signin' ? 'bg-surface-1 text-heading shadow-sm' : 'text-muted'}`}
+            className={`auth-gate__tab${mode === 'signin' ? ' auth-gate__tab--active' : ''}`}
           >
             {t('signInTitle')}
           </button>
         </div>
 
         {confirmationSent ? (
-          <div className="rounded-md border border-hairline bg-surface-2 p-4" role="status">
-            <p className="m-0 text-sm font-semibold text-heading">{t('authConfirmationTitle')}</p>
-            <p className="mb-0 mt-2 text-sm leading-relaxed text-muted">
-              {t('authConfirmationDescription')} <strong className="text-body">{email}</strong>
+          <div className="auth-gate__confirmation" role="status">
+            <p className="auth-gate__confirmation-title">{t('authConfirmationTitle')}</p>
+            <p className="auth-gate__confirmation-copy">
+              {t('authConfirmationDescription')} <strong>{email}</strong>
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <label className="mb-1.5 block text-sm font-semibold text-body" htmlFor="auth-email">
-              {t('authEmailLabel')}
-            </label>
-            <input
+          <form className="auth-gate__form" onSubmit={handleSubmit}>
+            <TextField
               id="auth-email"
+              label={t('authEmailLabel')}
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder={t('authUpgradeEmailPlaceholder')}
-              className="w-full rounded-md border border-hairline bg-surface-1 px-3 py-3 text-sm text-body outline-none focus:ring-2 focus:ring-primary/30"
               dir="ltr"
             />
-            <label className="mb-1.5 mt-4 block text-sm font-semibold text-body" htmlFor="auth-password">
-              {t('signInPasswordPlaceholder')}
-            </label>
-            <input
+            <TextField
               id="auth-password"
+              label={t('authPasswordLabel')}
               type="password"
               required
               minLength={mode === 'signup' ? 8 : undefined}
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-hairline bg-surface-1 px-3 py-3 text-sm text-body outline-none focus:ring-2 focus:ring-primary/30"
               dir="ltr"
             />
-            {error && <p className="mb-0 mt-3 text-sm text-danger" role="alert">{error}</p>}
-            <button
+            {error && <p className="auth-gate__error" role="alert">{error}</p>}
+            <Button
               type="submit"
-              disabled={busy}
-              className="mt-5 w-full rounded-md bg-primary px-4 py-3 text-sm font-bold text-on-primary transition-opacity disabled:cursor-wait disabled:opacity-60"
+              busy={busy}
+              fullWidth
+              className="auth-gate__submit"
             >
               {busy
                 ? t(mode === 'signup' ? 'authCreatingAccount' : 'signInSubmitting')
                 : t(mode === 'signup' ? 'authCreateAccount' : 'signInSubmit')}
-            </button>
+            </Button>
           </form>
         )}
 
-        <button
+        <Button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={busy}
-          className="mt-4 w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-sm font-semibold text-body transition-colors hover:bg-surface-2 disabled:cursor-wait disabled:opacity-60"
+          variant="secondary"
+          fullWidth
+          className="auth-gate__google"
         >
+          <AppIcon name="google" size={18} />
           {t('googleSignIn')}
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
           onClick={() => selectMode(mode === 'signup' ? 'signin' : 'signup')}
-          className="mt-4 w-full border-0 bg-transparent py-2 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          variant="ghost"
+          fullWidth
+          className="auth-gate__mode-link"
         >
           {t(mode === 'signup' ? 'authHaveAccount' : 'authNeedAccount')}
-        </button>
-        <p className="mb-0 mt-3 text-center text-xs text-muted" lang={lang}>
+        </Button>
+        <p className="auth-gate__notice" lang={lang}>
           {t('authDataNotice')}
         </p>
-      </section>
+      </Card>
     </main>
   );
 }

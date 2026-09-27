@@ -1,15 +1,14 @@
-/*
-   Timeline — MUI Lab structure, styled with the app's own tokens
-   All MUI-internal styling (dot, connector, dialog paper) lives in
-   sx in Timeline.jsx, not here — sx is guaranteed to win over MUI's
-   own component styles, whereas plain classes racing MUI's injected
-   styles is exactly what broke this the first time round. 
-*/
-
 .tl-root {
   max-width: 640px;
   margin: 0 auto;
   padding: 1.5rem 1rem 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .tl-root {
+    max-width: none;
+    padding-inline: var(--space-8);
+  }
 }
 
 /* ── Hero ── */
@@ -34,7 +33,46 @@
   margin: 0;
 }
 
-/* ── Card ── */
+.tl-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-3);
+}
+
+.tl-item:not(:last-child)::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 10px;
+  width: 2px;
+  background: var(--primary);
+  content: "";
+}
+
+.tl-item__marker {
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  margin: var(--space-5) auto 0;
+  border: 2px solid var(--bg);
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  outline: 2px solid var(--primary);
+}
+
+.tl-item__content {
+  min-width: 0;
+  padding-block: var(--space-2);
+}
+
 .tl-card {
   display: block;
   width: 100%;
@@ -45,21 +83,21 @@
   -webkit-tap-highlight-color: transparent;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--primary);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
+  border-inline-start: 3px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
   transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
 .tl-card:hover,
 .tl-card:focus-visible {
-  box-shadow: 0 4px 20px var(--shadow);
+  box-shadow: var(--shadow-md);
   transform: translateX(3px);
-  border-left-color: var(--primary-2);
+  border-inline-start-color: var(--primary-2);
 }
 
 .tl-card:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -87,6 +125,9 @@
 }
 
 .tl-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--primary);
@@ -99,7 +140,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 1.25rem 1.25rem 0.75rem;
+  padding: var(--space-4) var(--space-4) var(--space-3);
 }
 
 .tl-dialog__year {
@@ -110,8 +151,8 @@
 
 .tl-dialog__close {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--panel-2);
@@ -126,13 +167,13 @@
 }
 
 .tl-dialog__close:hover {
-  background: var(--danger);
+  background: var(--panel-2);
   border-color: var(--primary);
-  color: var(--panel);
+  color: var(--primary);
 }
 
 .tl-dialog__close:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -147,6 +188,10 @@
 
 .tl-dialog__body {
   padding: 0 1.25rem 1.75rem;
+}
+
+.tl-dialog {
+  max-width: 36rem;
 }
 
 .tl-dialog__body p {

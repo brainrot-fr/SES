@@ -24,7 +24,7 @@
 .naql-body {
   padding: clamp(1.15rem, 4vw, 2rem);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: var(--panel);
   box-shadow: var(--shadow-sm);
 }
@@ -53,7 +53,7 @@
   margin: 1rem 0;
   padding: 0.65rem 0.9rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: var(--panel-2);
   cursor: pointer;
   color: var(--primary);
@@ -78,9 +78,9 @@
   padding: 0.6rem;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   width: min(calc(100% - 2rem), 360px);
-  box-shadow: 0 -2px 12px var(--shadow);
+  box-shadow: var(--shadow-lg);
   z-index: 20;
   justify-self: center;
 }
@@ -118,7 +118,7 @@
   background: var(--primary);
   color: var(--on-primary);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
@@ -127,7 +127,7 @@
 
 .naql-nav__btn:hover:not(:disabled) {
   filter: brightness(1.12);
-  box-shadow: 0 3px 8px var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 
 .naql-nav__btn:disabled {
@@ -143,6 +143,10 @@
   color: currentColor;
 }
 
+[dir="rtl"] .naql-nav__icon {
+  transform: scaleX(-1);
+}
+
 /* Number input */
 .naql-nav__input {
   width: 64px;
@@ -151,7 +155,7 @@
   background: var(--panel-2);
   color: var(--text-small);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   text-align: center;
   outline: none;
@@ -177,17 +181,32 @@
 
 /* ── Quick-jump row ── */
 .naql-nav__jumps {
+  flex-wrap: wrap;
   gap: 0.3rem;
 }
 
+.naql-nav__jump-menu {
+  width: 100%;
+}
+
+.naql-nav__jump-menu > summary {
+  min-height: 44px;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
 .naql-nav__jump {
-  min-width: 40px;
+  min-width: 44px;
   min-height: 44px;
   padding: 0.3rem 0.45rem;
   background: var(--panel-2);
   color: var(--text-small);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.75rem;
   font-weight: 500;
@@ -225,13 +244,26 @@
   line-height: 1.8;
 }
 
-@media (max-width: 380px) {
+@media (width < 480px) {
   .naql-nav__jumps {
     gap: 0.2rem;
   }
 
   .naql-nav__jump {
-    min-width: 36px;
     padding-inline: 0.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .naql-nav {
+    inset-inline-start: calc(200px + (100vw - 200px) / 2);
+    inset-inline-end: auto;
+    bottom: var(--space-4);
+    width: min(360px, calc(100vw - 232px));
+    transform: translateX(-50%);
+  }
+
+  [dir="rtl"] .naql-nav {
+    transform: translateX(50%);
   }
 }

@@ -6,13 +6,15 @@
  * - Sets default font stacks and body background color.
  */
 
-@import '@fontsource/readex-pro/400.css';
-@import '@fontsource/readex-pro/600.css';
-@import '@fontsource/readex-pro/700.css';
-@import '@fontsource/sora/400.css';
-@import '@fontsource/sora/600.css';
-@import '@fontsource/sora/700.css';
+@import '@fontsource/readex-pro/arabic-400.css';
+@import '@fontsource/readex-pro/arabic-600.css';
+@import '@fontsource/readex-pro/arabic-700.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/manrope/latin-700.css';
 
+@import "./styles/tokens.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
@@ -33,6 +35,12 @@
   --color-hairline: var(--hairline);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-on-danger: var(--on-danger);
+  --color-on-success: var(--on-success);
   --color-panel: var(--panel);
   --color-panel-2: var(--panel-2);
   --color-border: var(--border);
@@ -45,6 +53,16 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
+  --shadow-focus: var(--shadow-focus);
+
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
 }
 
 @font-face {
@@ -62,88 +80,44 @@
   src: url('./assets/fonts/Indopak\ Nastaleeq\ -\ TTF.ttf') format('truetype');
   font-display: swap;
 }
-/* LIGHT */
-:root {
-  --bg: #FAFAF9;
-  --font-body: 'Readex Pro', 'Sora', sans-serif;
-  --font-display: 'Sora', 'Readex Pro', sans-serif;
-  --text-large: #16181C;
-  --text-small: #3B3E42;
-  --muted: #6B6F76;
-  --ayah-glow: #DCECF9;
-
-  --surface-0: #FAFAF9;
-  --surface-1: #FFFFFF;
-  --surface-2: #F3F3F1;
-  --surface-3: #ECECE9;
-
-  --primary: #185FA5;
-  --primary-2: #378ADD;
-  --primary-soft: #E6F1FB;
-  --on-primary: #FFFFFF;
-
-  --hairline: rgba(20, 20, 20, 0.10);
-  --ring: rgba(24, 95, 165, 0.30);
-
-  --shadow-sm: 0 1px 2px rgba(20, 20, 20, 0.04);
-  --shadow-md: 0 2px 6px rgba(20, 20, 20, 0.06);
-  --shadow-lg: 0 6px 16px rgba(20, 20, 20, 0.08);
-
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-pill: 999px;
-
-  --space-1: 4px; --space-2: 8px; --space-3: 12px;
-  --space-4: 16px; --space-5: 24px; --space-6: 32px;
-
-  --danger: #CF222E;
-  --success: #1A7F37;
-
-  --panel: var(--surface-1);
-  --panel-2: var(--surface-2);
-  --border: var(--hairline);
-  --shadow: rgba(20, 20, 20, 0.08);
-}
-
-html[data-theme="dark"] {
-  --bg: #1A1A19;
-  --ayah-glow: #34414D;
-  --text-large: #FFFFFF;
-  --text-small: #C3C2B7;
-  --muted: #C0C0B5;
-
-  --surface-0: #1A1A19;
-  --surface-1: #2C2C2A;
-  --surface-2: #393936;
-  --surface-3: #444440;
-
-  --primary: #2A78D6;
-  --primary-2: #5B9CE8;
-  --primary-soft: #0D2B4A;;
-  --on-primary: #FFFFFF;
-
-  --hairline: rgba(255, 255, 255, 0.08);
-  --ring: rgba(42, 120, 214, 0.35);
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.45);
-
-  --danger: #FF7B72;
-  --success: #3FB950;
-
-  --panel: var(--surface-1);
-  --panel-2: var(--surface-2);
-  --border: var(--hairline);
-  --shadow: rgba(0, 0, 0, 0.35);
-}
-
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html,
+body,
+button,
+input,
+select,
+textarea {
   font-family: var(--font-body);
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.interactive-surface {
+  transition: background-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    transform var(--duration-base) var(--ease-standard);
+}
+
+.interactive-surface:hover {
+  background: var(--surface-3);
+}
+
+.interactive-surface:active {
+  transform: scale(0.98);
+}
+
+.interactive-surface:disabled,
+.interactive-surface[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 h1,

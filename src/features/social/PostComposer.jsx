@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
+import Toast from "../../components/ui/Toast";
 import {
   MediaValidationError,
   uploadPostMedia,
@@ -23,6 +24,7 @@ export default function PostComposer({ onCreate }) {
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -69,6 +71,7 @@ export default function PostComposer({ onCreate }) {
 
     setBusy(true);
     setError("");
+    setSuccess("");
     setProgress(0);
     try {
       const media = file
@@ -77,6 +80,7 @@ export default function PostComposer({ onCreate }) {
       await onCreate({ body, media, user });
       setBody("");
       clearMedia();
+      setSuccess(t("socialPostSuccess"));
     } catch (uploadError) {
       console.error("[SocialFeed] failed to create post", uploadError);
       setError(uploadError.message || t("socialPostFailed"));
@@ -86,7 +90,10 @@ export default function PostComposer({ onCreate }) {
     }
   };
 
+  const dismissSuccess = useCallback(() => setSuccess(""), []);
+
   return (
+    <>
     <form className="social-composer" onSubmit={submit}>
       <label className="social-composer__label" htmlFor="social-post-body">{t("socialSharePrompt")}</label>
       <textarea
@@ -147,5 +154,7 @@ export default function PostComposer({ onCreate }) {
       </div>
       {error && <p className="social-error" role="alert">{error}</p>}
     </form>
+    {success && <Toast key={success} variant="success" onDismiss={dismissSuccess}>{success}</Toast>}
+    </>
   );
 }

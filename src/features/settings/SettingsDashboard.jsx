@@ -6,14 +6,16 @@
  */
 
 import { useState } from "react";
-import { Dialog } from "@mui/material";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
-import './settingsdashboard.css'
+import AppIcon from "../../components/icons/AppIcon";
+import Button from "../../components/ui/Button";
+import Modal from "../../components/ui/Modal";
+import "./settingsdashboard.css";
 
 export default function SettingsDashboard({ darkMode, onThemeToggle }) {
-  const { t, lang, resetLang } = useLang();
-  const { user, ready, signOut, deleteAccount } = useAuth();
+  const { t, lang, chooseLang } = useLang();
+  const { user, isAnonymous, ready, signOut, deleteAccount } = useAuth();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountBusy, setAccountBusy] = useState(false);
@@ -45,102 +47,123 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
   };
 
   return (
-    <div className="max-w-[520px] mx-auto p-4 pb-24">
+    <div className="settings-dashboard">
       {/* ── Account ── */}
-      <section className="mb-8">
-        <h2 className="text-[1.05rem] font-bold text-heading mb-3 pb-2 border-b border-hairline">
-          {t("settingsAccount")}
+      <section className="settings-dashboard__section">
+        <h2 className="settings-dashboard__heading">
+          <span className="settings-dashboard__heading-icon" aria-hidden="true">
+            <AppIcon name="user" size={19} />
+          </span>
+          <span>{t("settingsAccount")}</span>
         </h2>
 
         {!ready ? (
-          <p className="text-sm text-muted">{t("settingsLoading")}</p>
+          <p className="settings-dashboard__muted">{t("settingsLoading")}</p>
         ) : (
-          <div className="bg-surface-2 border border-hairline rounded-md p-4">
-            <p className="text-sm text-muted m-0 mb-1">{t("settingsSignedInAs")}</p>
-            <p className="text-sm font-semibold text-heading m-0 break-all">{user?.email}</p>
-            <div className="mt-4 flex flex-col gap-2">
-              <button
+          <div className="settings-dashboard__account">
+            {isAnonymous ? (
+              <p className="settings-dashboard__muted">{t("settingsAnonymousDesc")}</p>
+            ) : (
+              <>
+                <p className="settings-dashboard__muted">{t("settingsSignedInAs")}</p>
+                <p className="settings-dashboard__email">{user?.email}</p>
+              </>
+            )}
+            <div className="settings-dashboard__actions">
+              <Button
                 type="button"
-                disabled={accountBusy}
-                className="w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-left text-sm font-semibold text-body disabled:opacity-60"
+                busy={accountBusy}
+                variant="secondary"
+                fullWidth
                 onClick={handleSignOut}
               >
                 {t("settingsLogout")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 disabled={accountBusy}
-                className="w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-left text-sm font-semibold text-danger disabled:opacity-60"
+                variant="ghost"
+                fullWidth
+                className="settings-dashboard__delete"
                 onClick={() => { setAccountError(""); setDeleteDialogOpen(true); }}
               >
                 {t("settingsDeleteAccount")}
-              </button>
+              </Button>
             </div>
-            {accountError && <p className="mb-0 mt-3 text-sm text-danger" role="alert">{accountError}</p>}
+            {accountError && <p className="settings-dashboard__error" role="alert">{accountError}</p>}
           </div>
         )}
       </section>
 
       {/* ── Preferences ── */}
-      <section className="mb-8">
-        <h2 className="text-[1.05rem] font-bold text-heading mb-3 pb-2 border-b border-hairline">
-          {t("settingsPreferences")}
+      <section className="settings-dashboard__section">
+        <h2 className="settings-dashboard__heading">
+          <span className="settings-dashboard__heading-icon" aria-hidden="true">
+            <AppIcon name="settings" size={19} />
+          </span>
+          <span>{t("settingsPreferences")}</span>
         </h2>
 
-        <div className="flex flex-col gap-2">
-          <button
-            className="flex items-center justify-between w-full px-4 py-3 bg-surface-1 border border-hairline rounded-md text-body cursor-pointer text-sm"
+        <div className="settings-dashboard__preferences">
+          <Button
+            variant="secondary"
+            fullWidth
+            className="settings-dashboard__preference"
             onClick={onThemeToggle}
           >
-            <span>{darkMode ? t("toLightMode") : t("toDarkMode")}</span>
-            <span aria-hidden="true">{darkMode ? "☀️" : "🌙"}</span>
-          </button>
+            <span className="settings-dashboard__preference-label">
+              <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
+              {darkMode ? t("toLightMode") : t("toDarkMode")}
+            </span>
+          </Button>
 
-          <button
-            className="flex items-center justify-between w-full px-4 py-3 bg-surface-1 border border-hairline rounded-md text-body cursor-pointer text-sm"
-            onClick={resetLang}
+          <Button
+            variant="secondary"
+            fullWidth
+            className="settings-dashboard__preference"
+            onClick={() => chooseLang(lang === "ur" ? "en" : "ur")}
           >
-            <span>{t("changeLang")}</span>
-            <span aria-hidden="true">🌐 {lang === "ur" ? "اردو" : "EN"}</span>
-          </button>
+            <span className="settings-dashboard__preference-label">
+              <AppIcon name="globe" size={18} />
+              {t("changeLang")}
+            </span>
+            <span className="settings-dashboard__preference-value">
+              {lang === "ur" ? "EN" : "اردو"}
+            </span>
+          </Button>
         </div>
       </section>
 
-      <Dialog
+      <Modal
         open={deleteDialogOpen}
         onClose={() => !accountBusy && setDeleteDialogOpen(false)}
-        fullWidth
-        maxWidth="xs"
-        sx={{
-          "& .MuiDialog-paper": {
-            bgcolor: "var(--panel)",
-            color: "var(--text-small)",
-            borderRadius: "12px",
-            p: 3,
-          },
-        }}
+        labelledBy="settings-delete-title"
+        describedBy="settings-delete-warning"
+        disableClose={accountBusy}
+        className="ui-auth-dialog"
       >
-        <h2 className="m-0 text-lg font-bold text-heading">{t("settingsDeleteConfirmTitle")}</h2>
-        <p className="mb-5 mt-3 text-sm leading-relaxed text-muted">{t("settingsDeleteWarning")}</p>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
+        <h2 className="ui-dialog-title" id="settings-delete-title">{t("settingsDeleteConfirmTitle")}</h2>
+        <p className="ui-dialog-copy" id="settings-delete-warning">{t("settingsDeleteWarning")}</p>
+        <div className="ui-dialog-actions">
+          <Button
             type="button"
             disabled={accountBusy}
-            className="rounded-md border border-hairline bg-surface-2 px-4 py-2.5 text-sm font-semibold text-body"
+            variant="secondary"
             onClick={() => setDeleteDialogOpen(false)}
           >
             {t("settingsDeleteCancel")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             disabled={accountBusy}
-            className="rounded-md border-0 bg-danger px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            variant="danger"
+            busy={accountBusy}
             onClick={handleDeleteAccount}
           >
             {t("settingsDeleteConfirm")}
-          </button>
+          </Button>
         </div>
-      </Dialog>
+      </Modal>
     </div>
   );
 }

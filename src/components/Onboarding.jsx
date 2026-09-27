@@ -8,58 +8,64 @@
 
 import { useState } from 'react';
 import { useLang } from '../context/LanguageContext';
+import AppIcon from './icons/AppIcon';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import './Onboarding.css';
 
 export default function Onboarding() {
-  const { chooseLang } = useLang();
+  const { chooseLang, t } = useLang();
   const [selected, setSelected] = useState('en');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-6">
-      <div className="flex flex-col items-center gap-4 max-w-[340px] w-full text-center bg-surface-2 rounded-lg shadow-lg px-5 py-8">
-
-        <h1 className="text-[1.1rem] font-bold text-heading m-0 leading-snug">
-          Nuqool e Imam Mahdi A.S
-        </h1>
-        <p className="font-['Readex_Pro'] text-base text-muted m-0" dir="rtl">
+    <main className="ob-root">
+      <Card className="ob-card">
+        <span className="ob-mark" aria-hidden="true"><AppIcon name="nuqool" size={32} /></span>
+        <h1 className="ob-title">{t("appTitle")}</h1>
+        <p className="ob-title-ur" lang="ur" dir="rtl">
           نقول امام مہدی علیہ السلام
         </p>
-
-        <p className="text-sm text-muted mt-1 mb-0">
-          Choose your language&nbsp;/&nbsp;زبان منتخب کریں
-        </p>
-
-        <div className="flex gap-3 w-full mt-1">
-          <button
-            onClick={() => setSelected('en')}
-            className={`flex-1 py-3.5 px-4 rounded-md text-base cursor-pointer transition-all duration-150 ${
-              selected === 'en'
-                ? 'bg-primary-soft text-primary font-bold shadow-[inset_0_0_0_2px_var(--color-primary)]'
-                : 'bg-surface-3 text-body shadow-sm hover:shadow-md hover:-translate-y-px'
-            }`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setSelected('ur')}
-            dir="rtl"
-            className={`flex-1 py-3.5 px-4 rounded-md text-base font-['Readex_Pro'] cursor-pointer transition-all duration-150 ${
-              selected === 'ur'
-                ? 'bg-primary-soft text-primary font-bold shadow-[inset_0_0_0_2px_var(--color-primary)]'
-                : 'bg-surface-3 text-body shadow-sm hover:shadow-md hover:-translate-y-px'
-            }`}
-          >
-            اردو
-          </button>
-        </div>
-
-        <button
-          onClick={() => chooseLang(selected)}
-          className="w-full py-[0.9rem] mt-1 bg-primary text-on-primary rounded-md shadow-md text-base font-bold cursor-pointer transition-all duration-150 hover:shadow-lg hover:-translate-y-px"
+        <p
+          className="ob-purpose"
+          lang={selected}
+          dir={selected === 'ur' ? 'rtl' : 'ltr'}
         >
-          {selected === 'ur' ? 'جاری رکھیں' : 'Continue'}
-        </button>
-
-      </div>
-    </div>
+          {t(selected === 'ur' ? "obValuePropUr" : "obValuePropEn")}
+        </p>
+        <p className="ob-prompt">{t("obChoose")}</p>
+        <div className="ob-options">
+          <Button
+            type="button"
+            onClick={() => setSelected('en')}
+            variant="secondary"
+            className={`ob-option${selected === 'en' ? ' ob-option--active' : ''}`}
+            aria-pressed={selected === 'en'}
+          >
+            {t("obEnglish")}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setSelected('ur')}
+            variant="secondary"
+            className={`ob-option ob-option--rtl${selected === 'ur' ? ' ob-option--active' : ''}`}
+            dir="rtl"
+            aria-pressed={selected === 'ur'}
+          >
+            {t("obUrdu")}
+          </Button>
+        </div>
+        <Button
+          type="button"
+          fullWidth
+          size="lg"
+          className="ob-continue"
+          lang={selected}
+          dir={selected === 'ur' ? 'rtl' : 'ltr'}
+          onClick={() => chooseLang(selected)}
+        >
+          {t(selected === 'ur' ? "obContinueUr" : "obContinueEn")}
+        </Button>
+      </Card>
+    </main>
   );
 }

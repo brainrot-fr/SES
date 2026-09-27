@@ -9,6 +9,8 @@ import {
   NextIcon,
   TopArrowIcon,
 } from "../../components/icons/MediaIcons.jsx";
+import AppIcon from "../../components/icons/AppIcon";
+import Skeleton from "../../components/ui/Skeleton";
 import { useQuranAudioPlayer } from "./useQuranAudioPlayer";
 import "./quran.css";
 
@@ -37,11 +39,9 @@ function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-import { Menu, MenuItem } from "@mui/material";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import Popover from "../../components/ui/Popover";
 
-export default function QuranReader({ initialSurah, initialAyah, onBack }) {
+export default function QuranReader({ initialSurah, initialAyah }) {
   const { t } = useLang();
 
   const [currentSurah, setCurrentSurah] = useState(() => {
@@ -50,6 +50,7 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
   });
   const [surah, setSurah] = useState(null);
   const [error, setError] = useState(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
 
   const [viewMode, setViewMode] = useState(
@@ -103,7 +104,7 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
         aria-label={t("quranZoomOut")}
         title={t("quranZoomOut")}
       >
-        <ZoomOutIcon fontSize="small" />
+        <AppIcon name="zoomOut" size={18} />
       </button>
       <output className="quran-zoom-controls__value" aria-live="polite">
         {Math.round(quranZoom * 100)}%
@@ -116,7 +117,7 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
         aria-label={t("quranZoomIn")}
         title={t("quranZoomIn")}
       >
-        <ZoomInIcon fontSize="small" />
+        <AppIcon name="zoomIn" size={18} />
       </button>
     </div>
   );
@@ -138,14 +139,13 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
     surahElapsedTime,
     surahTotalTime,
     seekToSurahFraction,
-    stop,
   } = useQuranAudioPlayer(surah);
 
   const [ayahMenu, setAyahMenu] = useState(null); // { anchorEl, ayah } | null
 
   useEffect(() => {
     setAyahMenu(null);
-  }, [currentSurah]);
+  }, [currentSurah, loadAttempt]);
 
   const handleAyahClick = (event, ayah) => {
     if (activeAyahNumber === ayah.numberInSurah) {
@@ -272,12 +272,15 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
       <div ref={topRef} className="quran-scroll-anchor" />
 
       {error && (
-        <div className="quran-state quran-state--error">
-          {t("quranLoadError")}
+        <div className="quran-state quran-state--error" role="alert">
+          <p>{t("quranLoadError")}</p>
+          <button type="button" className="quran-back" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+            {t("socialRetry")}
+          </button>
         </div>
       )}
       {!surah && !error && (
-        <div className="quran-state">{t("quranLoading")}</div>
+        <Skeleton variant="card" count={3} label={t("quranLoading")} />
       )}
       {surah && (
         <section
@@ -302,7 +305,6 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
               ))}
             </select>
           </div>
-            <p className="text-center">View Mode</p>
           <div
             className="quran-view-toggle"
             role="tablist"
@@ -329,7 +331,7 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
           </div>
 
           <header className="quran-surah-header">
-            <h2 className="quran-surah-header__ar">{surah.name}</h2>
+            <h2 className="quran-surah-header__ar" lang="ar" dir="rtl">{surah.name}</h2>
             <p className="quran-surah-header__en">
               {surah.englishName} · {surah.englishNameTranslation}
             </p>
@@ -347,13 +349,13 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
           )}
 
           {!NO_SEPARATE_BISMILLAH.includes(currentSurah) && (
-            <h1 className="quran-bismillah">
+            <h1 className="quran-bismillah" lang="ar" dir="rtl">
               بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
             </h1>
           )}
 
           {viewMode === "reading" ? (
-            <p className="quran-reading">
+            <p className="quran-reading" lang="ar" dir="rtl">
               {visibleAyahs.map((ayah) => {
                 const markers = getAyahMarkers(ayah);
                 const isThisPlaying =
@@ -419,6 +421,8 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
 
                       <p
                         className="quran-ayah__text"
+                        lang="ar"
+                        dir="rtl"
                         role="button"
                         tabIndex={0}
                         onClick={(e) => handleAyahClick(e, ayah)}
@@ -472,7 +476,7 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
 
                     {showTranslation && translation && (
                       <div className="quran-ayah__translation">
-                        <p className="quran-ayah__ur">{translation.ur}</p>
+                        <p className="quran-ayah__ur" lang="ur" dir="rtl">{translation.ur}</p>
                         <p className="quran-ayah__translit">
                           {translation.urTransliteration}
                         </p>
@@ -580,43 +584,35 @@ export default function QuranReader({ initialSurah, initialAyah, onBack }) {
         <div className="quran-nav__zoom">{quranZoomControls}</div>
       </nav>
 
-      <Menu
+      <Popover
         open={!!ayahMenu}
         anchorEl={ayahMenu?.anchorEl}
         onClose={closeAyahMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
-        slotProps={{
-          paper: {
-            sx: {
-              bgcolor: "var(--panel)",
-              color: "var(--text-small)",
-              border: "1px solid var(--border)",
-              borderRadius: "10px",
-              minWidth: 200,
-            },
-          },
-        }}
+        label={t("quranAyahActions")}
       >
-        <MenuItem
+        <button
+          type="button"
+          role="menuitem"
+          className="ui-popover__item"
           onClick={() => {
             playAyahOnly(ayahMenu.ayah);
             closeAyahMenu();
           }}
-          sx={{ fontSize: "0.85rem" }}
         >
           {t("quranPlayThisAyah")}
-        </MenuItem>
-        <MenuItem
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          className="ui-popover__item"
           onClick={() => {
             playAyahFromHere(ayahMenu.ayah);
             closeAyahMenu();
           }}
-          sx={{ fontSize: "0.85rem" }}
         >
           {t("quranPlayFromHere")}
-        </MenuItem>
-      </Menu>
+        </button>
+      </Popover>
 
       {showBackToTop && (
         <button

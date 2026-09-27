@@ -398,16 +398,14 @@ export function useQuranAudioPlayer(surah) {
   useEffect(() => {
     setCurrentTime(0);
     setDuration(0);
-  }, [activeAyahNumber]);
+  }, [activeAyahNumber, surah?.number, reciterId]);
 
   /*
    * Each ayah is a separate audio file fetched on demand, so the true
    * length of the whole surah isn't known upfront (see quranApi.js — we
    * deliberately avoid prefetching a surah's audio just to read duration).
-   * Instead, remember each ayah's duration as it's discovered during
-   * normal playback (no extra network cost) and use the running average
-   * to estimate ayahs that haven't loaded yet. The surah-wide elapsed/
-   * total time gets more accurate the further you listen.
+   * Record actual durations as they load and use the first one as a stable
+   * per-reciter estimate for the ayahs whose audio hasn't loaded yet.
    */
   const [ayahDurations, setAyahDurations] = useState({});
 
@@ -415,12 +413,20 @@ export function useQuranAudioPlayer(surah) {
     setAyahDurations({});
   }, [surah?.number, reciterId]);
 
+  const activeAyah = findAyah(activeAyahNumber);
+  const audioMetadataMatchesActiveAyah =
+    activeAyah != null &&
+    audioRef.current.currentSrc.endsWith(
+      `/${reciterId}/${activeAyah.number}.mp3`,
+    );
+
   useEffect(() => {
     if (
       activeAyahNumber == null ||
       !Number.isFinite(duration) ||
       duration <= 0 ||
-      audioRef.current.readyState < 1
+      audioRef.current.readyState < 1 ||
+      !audioMetadataMatchesActiveAyah
     ) {
       return;
     }
@@ -429,33 +435,55 @@ export function useQuranAudioPlayer(surah) {
         ? prev
         : { ...prev, [activeAyahNumber]: duration },
     );
-  }, [activeAyahNumber, duration]);
+  }, [activeAyahNumber, duration, audioMetadataMatchesActiveAyah]);
 
-  const averageKnownDuration = useMemo(() => {
-    const known = Object.values(ayahDurations);
-    if (known.length)
-      return known.reduce((sum, d) => sum + d, 0) / known.length;
-    return duration || 0;
-  }, [ayahDurations, duration]);
+  const durationEstimateKey = `${surah?.number ?? ""}:${reciterId}`;
+  const [durationEstimate, setDurationEstimate] = useState({
+    key: "",
+    seconds: 0,
+  });
+
+  useEffect(() => {
+    if (
+      activeAyahNumber == null ||
+      !Number.isFinite(duration) ||
+      duration <= 0 ||
+      audioRef.current.readyState < 1 ||
+      !audioMetadataMatchesActiveAyah
+    ) {
+      return;
+    }
+    setDurationEstimate((previous) =>
+      previous.key === durationEstimateKey
+        ? previous
+        : { key: durationEstimateKey, seconds: duration },
+    );
+  }, [
+    activeAyahNumber,
+    duration,
+    durationEstimateKey,
+    audioMetadataMatchesActiveAyah,
+  ]);
+
+  // Keep the surah-wide estimate anchored while later ayah metadata loads.
+  const estimatedAyahDuration =
+    durationEstimate.key === durationEstimateKey
+      ? durationEstimate.seconds
+      : duration || 0;
 
   const surahTotalTime = useMemo(() => {
     const count = surah?.ayahs?.length ?? 0;
-    if (!count) return 0;
-    let total = 0;
-    for (let n = 1; n <= count; n += 1) {
-      total += ayahDurations[n] ?? averageKnownDuration;
-    }
-    return total;
-  }, [surah, ayahDurations, averageKnownDuration]);
+    return count * estimatedAyahDuration;
+  }, [surah, estimatedAyahDuration]);
 
   const surahElapsedTime = useMemo(() => {
     if (activeAyahNumber == null) return 0;
     let total = currentTime;
     for (let n = 1; n < activeAyahNumber; n += 1) {
-      total += ayahDurations[n] ?? averageKnownDuration;
+      total += ayahDurations[n] ?? estimatedAyahDuration;
     }
     return total;
-  }, [activeAyahNumber, currentTime, ayahDurations, averageKnownDuration]);
+  }, [activeAyahNumber, currentTime, ayahDurations, estimatedAyahDuration]);
 
   const seek = useCallback((time) => {
     const audio = audioRef.current;

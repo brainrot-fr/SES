@@ -6,6 +6,10 @@ create table if not exists public.posts (
   media_url text,
   media_type text,
   media_public_id text,
+  media_format text,
+  media_width integer,
+  media_height integer,
+  media_bytes bigint,
   created_at timestamptz not null default now()
 );
 
@@ -15,12 +19,26 @@ alter table public.posts
   add column if not exists media_url text,
   add column if not exists media_type text,
   add column if not exists media_public_id text,
+  add column if not exists media_format text,
+  add column if not exists media_width integer,
+  add column if not exists media_height integer,
+  add column if not exists media_bytes bigint,
   add column if not exists created_at timestamptz not null default now();
 
 do $$
 declare
   constraint_row record;
 begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'posts'
+      and column_name = 'media_resource_type'
+  ) then
+    execute 'update public.posts set media_type = media_resource_type where media_type is null';
+  end if;
+
   for constraint_row in
     select conname
     from pg_constraint

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
+import { useAuth } from "../../context/AuthContext";
 import PostComposer from "./PostComposer";
 import PostCard from "./PostCard";
-import { createPost, fetchPosts, POSTS_PAGE_SIZE } from "./postsApi";
+import { createPost, deletePost, fetchPosts, POSTS_PAGE_SIZE } from "./postsApi";
 import "./socialFeed.css";
 
 export default function SocialFeed() {
   const { t } = useLang();
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -38,6 +40,19 @@ export default function SocialFeed() {
     setPosts((current) => [created, ...current]);
   };
 
+  const handleDelete = async (postId) => {
+    const previousPosts = posts;
+    setPosts((current) => current.filter((post) => post.id !== postId));
+    setError("");
+    try {
+      await deletePost(postId);
+    } catch (deleteError) {
+      console.error("[SocialFeed] failed to delete post", deleteError);
+      setPosts(previousPosts);
+      setError(deleteError.message || t("socialDeleteError"));
+    }
+  };
+
   return (
     <section className="social-feed">
       <header className="social-feed__intro">
@@ -49,7 +64,14 @@ export default function SocialFeed() {
       {loading && posts.length === 0 && <p className="social-feed__empty">{t("socialLoading")}</p>}
       {!loading && !error && posts.length === 0 && <p className="social-feed__empty">{t("socialEmpty")}</p>}
       <div className="social-feed__posts">
-        {posts.map((post) => <PostCard key={post.id} post={post} />)}
+        {posts.map((post) => (
+          <PostCard
+            key={post.id}
+            post={post}
+            isOwn={post.author_id === user?.id}
+            onDelete={handleDelete}
+          />
+        ))}
       </div>
       {hasMore && posts.length > 0 && (
         <button

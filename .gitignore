@@ -1,8 +1,7 @@
 .env
-.idea/
+.idea
 .vscode
-android/
-!android/app/src/main/AndroidManifest.xml
+.claude
 dist/
 .npm
 *.log

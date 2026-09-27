@@ -137,6 +137,7 @@ export default {
   authConfirmationTitle: "اپنی ای میل دیکھیں",
   authConfirmationDescription: "اس پتے پر بھیجا گیا تصدیقی لنک کھولیں:",
   authDataNotice: "آپ کے اکاؤنٹ کی معلومات Supabase کے ذریعے محفوظ طریقے سے سنبھالی جاتی ہیں۔",
+  googleSignIn: "گوگل کے ساتھ جاری رکھیں",
   authGenericError: "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
   settingsLogout: "سائن آؤٹ",
   settingsDeleteAccount: "اکاؤنٹ حذف کریں",

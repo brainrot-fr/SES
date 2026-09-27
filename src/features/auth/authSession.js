@@ -13,16 +13,11 @@
 import { supabase } from '../../lib/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 
 const AUTH_CALLBACK_URL = 'ses://auth-callback';
 
-/* Native apps get the custom scheme so Android/iOS can hand the tapped
- * link back to the running app via appUrlOpen. Web has no OS-level
- * handoff — the browser just navigates to a real page of the app, so the
- * redirect target there is wherever the app is currently being served
- * from (localhost during dev, the real domain once deployed). Both need
- * to be registered as Redirect URLs in the Supabase dashboard. */
-function getEmailRedirectTo() {
+function getAuthRedirectTo() {
   return Capacitor.isNativePlatform() ? AUTH_CALLBACK_URL : window.location.origin;
 }
 
@@ -68,13 +63,26 @@ export async function signInWithPassword(email, password) {
   return data.session;
 }
 
+export async function signInWithGoogle() {
+  const native = Capacitor.isNativePlatform();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: getAuthRedirectTo(),
+      skipBrowserRedirect: native,
+    },
+  });
+  if (error) throw error;
+  if (native) await Browser.open({ url: data.url });
+}
+
 export async function signUpWithPassword(email, password) {
   const { data: { session } } = await supabase.auth.getSession();
 
   if (isAnonymousUser(session?.user)) {
     const { error } = await supabase.auth.updateUser(
       { email, password },
-      { emailRedirectTo: getEmailRedirectTo() }
+      { emailRedirectTo: getAuthRedirectTo() }
     );
     if (error) throw error;
     return { confirmationRequired: true };
@@ -83,7 +91,7 @@ export async function signUpWithPassword(email, password) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: getEmailRedirectTo() },
+    options: { emailRedirectTo: getAuthRedirectTo() },
   });
   if (error) throw error;
   return { confirmationRequired: !data.session };
@@ -122,6 +130,17 @@ export function listenForEmailUpgradeConfirmation(onConfirmed, onError) {
       // Supabase Auth v2 expects the fragment to be parsed from a URL object;
       // swap the custom scheme for https so the URL constructor accepts it.
       const parsed = new URL(url.replace('ses://', 'https://'));
+      const authError = parsed.searchParams.get('error_description') || parsed.searchParams.get('error');
+      if (authError) throw new Error(authError);
+
+      const code = parsed.searchParams.get('code');
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) throw error;
+        await Browser.close();
+        return;
+      }
+
       const { data, error } = await supabase.auth.getSessionFromUrl({ url: parsed.toString() });
       if (error) throw error;
       onConfirmed(data.session);
@@ -143,6 +162,25 @@ export function listenForEmailUpgradeConfirmation(onConfirmed, onError) {
  */
 function listenForWebEmailUpgradeConfirmation(onConfirmed, onError) {
   (async () => {
+    const callbackUrl = new URL(window.location.href);
+    const code = callbackUrl.searchParams.get('code');
+    if (code) {
+      try {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) throw error;
+        callbackUrl.searchParams.delete('code');
+        window.history.replaceState(
+          null,
+          '',
+          callbackUrl.pathname + callbackUrl.search + callbackUrl.hash
+        );
+      } catch (err) {
+        console.error('[auth] failed to complete OAuth sign-in', err);
+        onError?.(err);
+      }
+      return;
+    }
+
     const hash = window.location.hash;
     if (!hash || !hash.includes('access_token')) return;
 
@@ -160,7 +198,7 @@ function listenForWebEmailUpgradeConfirmation(onConfirmed, onError) {
       // resend them anywhere.
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
 
-      onConfirmed(data.session);
+      if (params.get('type') === 'email_change') onConfirmed(data.session);
     } catch (err) {
       console.error('[auth] failed to complete web email upgrade', err);
       onError?.(err);

@@ -20,6 +20,7 @@ import {
   requestEmailUpgrade,
   listenForEmailUpgradeConfirmation,
   signInWithPassword,
+  signInWithGoogle,
   signUpWithPassword,
   signOut as signOutSession,
   deleteAccount as deleteAccountSession,
@@ -77,6 +78,7 @@ export function AuthProvider({ children }) {
     (email, password) => signInWithPassword(email, password),
     [],
   );
+  const signInGoogle = useCallback(() => signInWithGoogle(), []);
   const signUp = useCallback(
     (email, password) => signUpWithPassword(email, password),
     [],
@@ -96,6 +98,7 @@ export function AuthProvider({ children }) {
         upgradeError,
         clearUpgradeConfirmed: () => setUpgradeConfirmed(false),
         signIn,
+        signInGoogle,
         signUp,
         signOut,
         deleteAccount,

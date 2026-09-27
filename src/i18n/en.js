@@ -139,6 +139,7 @@ export default {
   authConfirmationTitle: "Check your email",
   authConfirmationDescription: "Use the confirmation link sent to",
   authDataNotice: "Your account credentials are handled securely by Supabase.",
+  googleSignIn: "Continue with Google",
   authGenericError: "Something went wrong. Please try again.",
   settingsLogout: "Log out",
   settingsDeleteAccount: "Delete account",

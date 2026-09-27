@@ -4,7 +4,7 @@ import { useLang } from '../../context/LanguageContext';
 
 export default function AuthGate() {
   const { t, lang } = useLang();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInGoogle, signUp } = useAuth();
   const [mode, setMode] = useState('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +23,18 @@ export default function AuthGate() {
         const result = await signUp(email.trim(), password);
         setConfirmationSent(result.confirmationRequired);
       }
+    } catch (authError) {
+      setError(authError.message || t('authGenericError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setBusy(true);
+    try {
+      await signInGoogle();
     } catch (authError) {
       setError(authError.message || t('authGenericError'));
     } finally {
@@ -119,6 +131,15 @@ export default function AuthGate() {
             </button>
           </form>
         )}
+
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={busy}
+          className="mt-4 w-full rounded-md border border-hairline bg-surface-1 px-4 py-3 text-sm font-semibold text-body transition-colors hover:bg-surface-2 disabled:cursor-wait disabled:opacity-60"
+        >
+          {t('googleSignIn')}
+        </button>
 
         <button
           type="button"

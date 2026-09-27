@@ -3,9 +3,8 @@
  * Single shared Supabase client for the whole app.
  *
  * - Credentials come from Vite env vars, bundled at build time.
- * - detectSessionInUrl is off: there's no OAuth redirect flow inside a
- *   Capacitor webview, and leaving it on just costs an unnecessary URL parse
- *   on every launch.
+ * - OAuth callback parsing is handled by authSession for both web and native
+ *   redirects, so Supabase's automatic URL detection stays disabled.
  */
 
 import { createClient } from '@supabase/supabase-js';

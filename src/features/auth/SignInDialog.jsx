@@ -14,7 +14,7 @@ import { useLang } from '../../context/LanguageContext';
 
 export default function SignInDialog({ open, onClose }) {
   const { t } = useLang();
-  const { signIn } = useAuth();
+  const { signIn, signInGoogle } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,6 +42,19 @@ export default function SignInDialog({ open, onClose }) {
       handleClose();
     } catch (err) {
       setError(err.message || t('signInError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      await signInGoogle();
+      handleClose();
+    } catch (err) {
+      setError(err.message || t('authGenericError'));
     } finally {
       setBusy(false);
     }
@@ -101,6 +114,14 @@ export default function SignInDialog({ open, onClose }) {
           </button>
         </div>
       </form>
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={busy}
+        style={{ ...secondaryBtnStyle, width: '100%', marginTop: '0.75rem' }}
+      >
+        {t('googleSignIn')}
+      </button>
     </Dialog>
   );
 }

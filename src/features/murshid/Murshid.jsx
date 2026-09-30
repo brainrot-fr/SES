@@ -8,6 +8,7 @@
 
 import { silsilaETarbiyat, silsilaEFaqiri } from './murshidData';
 import { useLang } from '../../context/LanguageContext';
+import Card from '../../components/ui/Card';
 import './murshid.css';
 
 function SilsilaList({ title, entries }) {
@@ -15,16 +16,16 @@ function SilsilaList({ title, entries }) {
     <section className="murshid-section">
       <h2 className="murshid-section__title">{title}</h2>
       <ol className="murshid-chain">
-        {entries.map((entry, i) => (
-          <li key={entry.id} className="murshid-chain__item">
+        {entries.filter((entry) => entry.name?.trim()).map((entry, i) => (
+          <Card as="li" key={entry.id} className="murshid-chain__item">
             <span className="murshid-chain__num">{i + 1}</span>
             <div className="murshid-chain__body">
-              <p className="murshid-chain__name">{entry.name || '—'}</p>
+              <p className="murshid-chain__name">{entry.name}</p>
               {entry.title && <p className="murshid-chain__meta">{entry.title}</p>}
               {entry.years && <p className="murshid-chain__meta">{entry.years}</p>}
               {entry.note && <p className="murshid-chain__note">{entry.note}</p>}
             </div>
-          </li>
+          </Card>
         ))}
       </ol>
     </section>
@@ -36,6 +37,10 @@ export default function Murshid() {
 
   return (
     <div className="murshid-root">
+      <header className="murshid-intro">
+        <h1>{t('titleMurshid')}</h1>
+        <p>{t('murshidIntro')}</p>
+      </header>
       <SilsilaList title={t('murshidTarbiyat')} entries={silsilaETarbiyat} />
       <SilsilaList title={t('murshidFaqiri')} entries={silsilaEFaqiri} />
     </div>

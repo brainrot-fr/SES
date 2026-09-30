@@ -25,6 +25,7 @@ import {
   signOut as signOutSession,
   deleteAccount as deleteAccountSession,
 } from "../features/auth/authSession";
+import { AccountProfileProvider } from "../features/account/AccountProfileProvider";
 
 const Ctx = createContext(null);
 
@@ -80,7 +81,7 @@ export function AuthProvider({ children }) {
   );
   const signInGoogle = useCallback(() => signInWithGoogle(), []);
   const signUp = useCallback(
-    (email, password) => signUpWithPassword(email, password),
+    (username, email, password) => signUpWithPassword(username, email, password),
     [],
   );
   const signOut = useCallback(() => signOutSession(), []);
@@ -104,7 +105,13 @@ export function AuthProvider({ children }) {
         deleteAccount,
       }}
     >
-      {children}
+      <AccountProfileProvider
+        user={user}
+        isAnonymous={isAnonymous}
+        authReady={ready}
+      >
+        {children}
+      </AccountProfileProvider>
     </Ctx.Provider>
   );
 }

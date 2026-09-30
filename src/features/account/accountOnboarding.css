@@ -1,0 +1,227 @@
+.account-onboarding {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(1.25rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
+  background:
+    radial-gradient(ellipse 72% 55% at 100% 0%, color-mix(in srgb, var(--primary-soft) 70%, transparent), transparent 72%),
+    radial-gradient(ellipse 62% 50% at 0% 100%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%),
+    var(--bg);
+}
+
+.account-onboarding__card {
+  width: min(100%, 32rem);
+  padding: clamp(1.25rem, 6vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border));
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.account-onboarding__eyebrow {
+  margin: 0 0 1.25rem;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.account-onboarding__progress {
+  height: 0.35rem;
+  overflow: hidden;
+  margin-bottom: 1.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+
+.account-onboarding__progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width 200ms ease;
+}
+
+.account-onboarding__step {
+  display: grid;
+  gap: 1rem;
+}
+
+.account-onboarding__title {
+  margin: 0;
+  color: var(--text-large);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.2;
+}
+
+.account-onboarding__copy {
+  margin: 0;
+  color: var(--text-small);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.account-onboarding__fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.account-onboarding__label {
+  display: block;
+  margin: 0 0 0.5rem;
+  color: var(--text-large);
+  font-weight: 650;
+}
+
+.account-onboarding__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.account-onboarding__choice {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-small);
+  cursor: pointer;
+}
+
+.account-onboarding__choice--selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--text-large);
+}
+
+.account-onboarding__choice input,
+.account-onboarding__confirmation input {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  accent-color: var(--primary);
+}
+
+.account-onboarding__helper {
+  display: block;
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.account-onboarding__confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-small);
+  line-height: 1.55;
+  cursor: pointer;
+}
+
+.account-onboarding__confirmation input {
+  margin-top: 0.12rem;
+}
+
+.account-onboarding__select {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-small);
+  font: inherit;
+}
+
+.account-onboarding__choice:focus-within,
+.account-onboarding__confirmation:focus-within,
+.account-onboarding__select:focus-visible,
+.account-onboarding__button:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.account-onboarding__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.account-onboarding__button {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font: inherit;
+  font-weight: 650;
+  text-align: center;
+  cursor: pointer;
+  transition: filter 160ms ease, opacity 160ms ease;
+}
+
+.account-onboarding__step > .account-onboarding__button {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.account-onboarding__actions .account-onboarding__button {
+  flex: 1 1 10rem;
+}
+
+.account-onboarding__button:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.account-onboarding__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.account-onboarding__button--secondary {
+  border-color: var(--border);
+  background: var(--surface-1);
+  color: var(--text-large);
+}
+
+.account-onboarding__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.925rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 25rem) {
+  .account-onboarding__actions {
+    flex-direction: column-reverse;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-onboarding *,
+  .account-onboarding *::before,
+  .account-onboarding *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

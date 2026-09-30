@@ -15,3 +15,6 @@ scripts/
 !scripts/
 scripts/*
 !scripts/fetch-quran-text.mjs
+!scripts/index-quran-audio.mjs
+.cache/quran-audio/
+public/quran-audio-durations.json

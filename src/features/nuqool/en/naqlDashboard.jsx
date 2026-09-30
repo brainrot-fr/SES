@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './naqlDashboard.css';
 import { nuqoolObject } from './nuqool.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
@@ -23,7 +24,8 @@ const TOTAL = Object.keys(nuqoolObject).length;
 const STORAGE_KEY = 'ses-current-naql';
 
 export default function NaqlDashboard({ openNaqlRequest }) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
+  const shouldReduceMotion = useReducedMotion();
 
   /*
    * When Urdu content exists, swap here:
@@ -39,6 +41,12 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   });
   const [inputVal, setInputVal] = useState(String(currentNaql));
   const topRef = useRef(null);
+  const actionMotion = shouldReduceMotion
+    ? {}
+    : { whileHover: { y: -1 }, whileTap: { scale: 0.96 } };
+  const readingTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : { duration: 0.2, ease: 'easeOut' };
 
   const goTo = useCallback(
     /* Keep the selected Naql number within the valid range. */
@@ -65,29 +73,45 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   };
 
   return (
-    <div className="naql-container">
+    <section className="naql-container" aria-labelledby="naql-title">
       <div ref={topRef} className="naql-scroll-anchor" />
 
-      <section className="naql-body">
-        <h1 className="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
-        <h2 className="naql-title">{t('naql')} {currentNaql}:</h2>
-        <div className="naql-content">
-          {naqlContent[currentNaql]}
-          {nuqoolKhulasaObject?.[currentNaql]}
-        </div>
-      </section>
+      <article className="naql-body">
+        <h1 className="bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={currentNaql}
+            className="naql-reading"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+            transition={readingTransition}
+          >
+            <h2 id="naql-title" className="naql-title" aria-live="polite">
+              {t('naql')} {currentNaql}
+            </h2>
+            <div className="naql-content">
+              {naqlContent[currentNaql]}
+              {nuqoolKhulasaObject[currentNaql] ?? null}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </article>
 
-      <nav className="naql-nav">
+      <nav className="naql-nav" aria-label={t('naqlQuickJump')}>
         {/* Row 1: prev / input / next */}
         <div className="naql-nav__row naql-nav__main">
-          <button
+          <motion.button
+            type="button"
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql - 1)}
             disabled={currentNaql === 1}
             aria-label={t('prevNaql')}
+            transition={readingTransition}
+            {...actionMotion}
           >
             <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
-          </button>
+          </motion.button>
 
           <div className="naql-nav__position">
             <input
@@ -104,41 +128,52 @@ export default function NaqlDashboard({ openNaqlRequest }) {
             <span className="naql-nav__sep">/ {TOTAL}</span>
           </div>
 
-          <button
+          <motion.button
+            type="button"
             className="naql-nav__btn"
             onClick={() => goTo(currentNaql + 1)}
             disabled={currentNaql === TOTAL}
             aria-label={t('nextNaql')}
+            transition={readingTransition}
+            {...actionMotion}
           >
             <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
-          </button>
+          </motion.button>
         </div>
 
-        {/* Row 2: quick-jump */}
-        <div className="naql-nav__row naql-nav__jumps">
-          {[-50, -10, -5].map(n => (
-            <button
-              key={n}
-              className="naql-nav__jump"
-              onClick={() => goTo(currentNaql + n)}
-              disabled={currentNaql + n < 1}
-            >
-              {n}
-            </button>
-          ))}
-          <div className="naql-nav__divider" />
-          {[5, 10, 50].map(n => (
-            <button
-              key={n}
-              className="naql-nav__jump"
-              onClick={() => goTo(currentNaql + n)}
-              disabled={currentNaql + n > TOTAL}
-            >
-              +{n}
-            </button>
-          ))}
-        </div>
+        <details className="naql-nav__jump-menu">
+          <summary>{t('naqlQuickJump')}</summary>
+          <div className="naql-nav__row naql-nav__jumps">
+            {[-50, -10, -5].map(n => (
+              <motion.button
+                type="button"
+                key={n}
+                className="naql-nav__jump"
+                onClick={() => goTo(currentNaql + n)}
+                disabled={currentNaql + n < 1}
+                transition={readingTransition}
+                {...actionMotion}
+              >
+                {n}
+              </motion.button>
+            ))}
+            <div className="naql-nav__divider" aria-hidden="true" />
+            {[5, 10, 50].map(n => (
+              <motion.button
+                type="button"
+                key={n}
+                className="naql-nav__jump"
+                onClick={() => goTo(currentNaql + n)}
+                disabled={currentNaql + n > TOTAL}
+                transition={readingTransition}
+                {...actionMotion}
+              >
+                +{n}
+              </motion.button>
+            ))}
+          </div>
+        </details>
       </nav>
-    </div>
+    </section>
   );
 }

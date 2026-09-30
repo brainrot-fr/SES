@@ -3,7 +3,7 @@
  * Entry component for the Quran feature.
  *
  * - Loads the last selected Surah from storage.
- * - Shows either the surah list or the reader depending on selection.
+ * - Shows either the surah list or the selected surah reader.
  */
 
 import { useState } from 'react';
@@ -12,7 +12,11 @@ import QuranReader from './QuranReader';
 
 const STORAGE_KEY = 'ses-current-surah';
 
-export default function Quran({ selectedSurah: controlledSurah, onSelectSurah } = {}) {
+export default function Quran({
+  selectedSurah: controlledSurah,
+  selectedAyah,
+  onSelectSurah,
+} = {}) {
   const [internalSurah, setInternalSurah] = useState(() => {
     const n = parseInt(localStorage.getItem(STORAGE_KEY), 10);
     return !isNaN(n) && n >= 1 && n <= 114 ? n : null;
@@ -27,9 +31,14 @@ export default function Quran({ selectedSurah: controlledSurah, onSelectSurah } 
   }
 
   return (
-    <QuranReader
-      initialSurah={selectedSurah}
-      onBack={() => setSelectedSurah(null)}
-    />
+    <div className="quran-layout quran-layout--reader">
+      <div className="quran-layout__reader">
+        <QuranReader
+          key={`${selectedSurah}-${selectedAyah || ""}`}
+          initialSurah={selectedSurah}
+          initialAyah={selectedAyah}
+        />
+      </div>
+    </div>
   );
 }

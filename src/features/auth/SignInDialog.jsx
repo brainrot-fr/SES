@@ -8,9 +8,11 @@
  */
 
 import { useState } from 'react';
-import { Dialog } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
+import Modal from '../../components/ui/Modal';
+import TextField from '../../components/ui/TextField';
+import Button from '../../components/ui/Button';
 
 export default function SignInDialog({ open, onClose }) {
   const { t } = useLang();
@@ -61,110 +63,60 @@ export default function SignInDialog({ open, onClose }) {
   };
 
   return (
-    <Dialog
+    <Modal
       open={open}
       onClose={handleClose}
-      fullWidth
-      maxWidth="sm"
-      sx={{
-        '& .MuiDialog-container': { alignItems: { xs: 'flex-end', sm: 'center' } },
-        '& .MuiBackdrop-root': { backgroundColor: 'rgba(0, 0, 0, 0.52)' },
-        '& .MuiDialog-paper': {
-          bgcolor: 'var(--panel)',
-          color: 'var(--text-small)',
-          borderRadius: { xs: '20px 20px 0 0', sm: '16px' },
-          m: { xs: 0, sm: 4 },
-          width: '100%',
-          p: 3,
-        },
-      }}
+      labelledBy="sign-in-dialog-title"
+      disableClose={busy}
+      className="ui-auth-dialog"
     >
-      <h2 style={{ margin: '0 0 0.75rem', color: 'var(--text-large)', fontSize: '1.1rem' }}>
+      <h2 className="ui-dialog-title" id="sign-in-dialog-title">
         {t('signInTitle')}
       </h2>
-      <p style={{ color: 'var(--text-small)', fontSize: '0.9rem', marginTop: 0 }}>
+      <p className="ui-dialog-copy">
         {t('signInDesc')}
       </p>
 
-      <form onSubmit={handleSubmit}>
-        <input
+      <form className="ui-dialog-form" onSubmit={handleSubmit}>
+        <TextField
+          id="sign-in-email"
+          label={t('authEmailLabel')}
           type="email"
           required
           autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('authUpgradeEmailPlaceholder')}
-          style={inputStyle}
         />
-        <input
+        <TextField
+          id="sign-in-password"
+          label={t('authPasswordLabel')}
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('signInPasswordPlaceholder')}
-          style={{ ...inputStyle, marginTop: '0.5rem' }}
         />
-        {error && <p style={errorStyle}>{error}</p>}
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-          <button type="button" onClick={handleClose} style={secondaryBtnStyle}>
+        {error && <p className="ui-dialog-error" role="alert">{error}</p>}
+        <div className="ui-dialog-actions">
+          <Button type="button" variant="secondary" disabled={busy} onClick={handleClose}>
             {t('authUpgradeSkip')}
-          </button>
-          <button type="submit" disabled={busy} style={primaryBtnStyle}>
+          </Button>
+          <Button type="submit" busy={busy}>
             {busy ? t('signInSubmitting') : t('signInSubmit')}
-          </button>
+          </Button>
         </div>
       </form>
-      <button
+      <Button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={busy}
-        style={{ ...secondaryBtnStyle, width: '100%', marginTop: '0.75rem' }}
+        variant="secondary"
+        fullWidth
+        className="ui-dialog-google"
       >
         {t('googleSignIn')}
-      </button>
-    </Dialog>
+      </Button>
+    </Modal>
   );
 }
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.7rem 0.9rem',
-  borderRadius: '10px',
-  border: '1px solid var(--border)',
-  background: 'var(--panel-2)',
-  color: 'var(--text-small)',
-  fontSize: '0.95rem',
-  fontFamily: 'inherit',
-  boxSizing: 'border-box',
-};
-
-const errorStyle = {
-  color: 'var(--danger)',
-  fontSize: '0.82rem',
-  marginTop: '0.5rem',
-  marginBottom: 0,
-};
-
-const primaryBtnStyle = {
-  flex: 1,
-  padding: '0.7rem',
-  background: 'var(--primary)',
-  color: 'var(--panel)',
-  border: 'none',
-  borderRadius: '10px',
-  fontWeight: 700,
-  fontSize: '0.9rem',
-  cursor: 'pointer',
-};
-
-const secondaryBtnStyle = {
-  flex: 1,
-  padding: '0.7rem',
-  background: 'var(--panel-2)',
-  color: 'var(--text-small)',
-  border: '1px solid var(--border)',
-  borderRadius: '10px',
-  fontWeight: 600,
-  fontSize: '0.9rem',
-  cursor: 'pointer',
-};

@@ -6,20 +6,23 @@
  * offline. To refresh it later (e.g. a correction upstream), just re-run
  * that script.
  *
- * Audio is NOT bundled and NOT cached at the application level — a full
- * multi-reciter audio set would be enormous, so it stays streamed live from
- * the CDN. If a reciter's audio is silent, useQuranAudioPlayer automatically
- * falls back through lower bitrates.
+ * Audio is streamed live from the CDN; the full multi-reciter set is too
+ * large to bundle. A small optional duration index is generated separately
+ * by scripts/index-quran-audio.mjs. If it is absent, playback still works
+ * and the player uses a stable duration estimate.
  */
 
 import quranData from '../../data/quran.json';
+import { RECITERS } from './quranReciters';
+
+export { RECITERS } from './quranReciters';
 
 const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
-// Not every reciter is hosted at every bitrate on this CDN — some 404 at
-// 128kbps. Try highest quality first, then step down.
-const AUDIO_BITRATES = [128, 64, 48, 32];
+// Reciters are available at different bitrates. Start with high quality, then
+// fall back until playback succeeds.
+const AUDIO_BITRATES = [192, 160, 128, 96, 64, 48, 32];
 const RECITER_STORAGE_KEY = 'ses-quran-reciter';
-const RECITER_BITRATE_KEY = 'ses-quran-reciter-bitrate';
+const RECITER_BITRATE_KEY = 'ses-quran-reciter-bitrate-v2';
 
 const BISMILLAH = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 const normalizeArabicForMatch = (text) =>
@@ -42,23 +45,23 @@ function stripBismillah(text, surahNumber) {
     if (normalizedPrefix.length >= NORMALIZED_BISMILLAH.length) break;
   }
 
-  return normalizedPrefix === NORMALIZED_BISMILLAH
-    ? text.slice(prefixLength).trimStart()
-    : text;
+  if (normalizedPrefix !== NORMALIZED_BISMILLAH) return text;
+
+  while (prefixLength < text.length) {
+    const character = String.fromCodePoint(text.codePointAt(prefixLength));
+    if (!/\p{M}/u.test(character)) break;
+    prefixLength += character.length;
+  }
+
+  return text.slice(prefixLength).trimStart();
 }
 
-export const RECITERS = [
-  { id: 'ar.saoodshuraym', name: 'Saood Ash-Shuraym' },     // default
-  { id: 'ar.alafasy', name: 'Mishary Alafasy' },
-  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit' },
-  { id: 'ar.abdurrahmaansudais', name: 'Abdurrahmaan As-Sudais' },
-  { id: 'ar.abdulsamad', name: 'Abdul Samad' },
-  { id: 'ar.husarymujawwad', name: 'Husary (Mujawwad)' },
-  { id: 'ar.minshawi', name: 'Minshawi' },
-];
-
 export function getSavedReciter() {
-  return localStorage.getItem(RECITER_STORAGE_KEY) || RECITERS[0].id;
+  const savedReciter = localStorage.getItem(RECITER_STORAGE_KEY);
+  if (RECITERS.some((reciter) => reciter.id === savedReciter)) {
+    return savedReciter;
+  }
+  return RECITERS[0].id;
 }
 
 export function saveReciter(id) {
@@ -118,4 +121,32 @@ export async function fetchSurah(surahNumber) {
       text: a.numberInSurah === 1 ? stripBismillah(a.text, raw.number) : a.text,
     })),
   };
+}
+
+let audioDurationIndexPromise;
+
+async function fetchAudioDurationIndex() {
+  if (!audioDurationIndexPromise) {
+    audioDurationIndexPromise = fetch(
+      `${import.meta.env.BASE_URL}quran-audio-durations.json`,
+      { cache: 'no-cache' },
+    )
+      .then((response) => {
+        if (!response.ok) return null;
+        return response.json();
+      })
+      .then((index) => (
+        index?.version === 1 && index.reciters && typeof index.reciters === 'object'
+          ? index
+          : null
+      ))
+      .catch(() => null);
+  }
+  return audioDurationIndexPromise;
+}
+
+export async function fetchSurahAudioDuration(surahNumber, reciterId) {
+  const index = await fetchAudioDurationIndex();
+  const seconds = index?.reciters?.[reciterId]?.surahs?.[surahNumber];
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
 }

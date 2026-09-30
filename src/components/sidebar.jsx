@@ -1,72 +1,155 @@
-import { useLang } from '../context/LanguageContext';
-
-const SunIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-  </svg>
-);
-
-const MoonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
-  </svg>
-);
+import { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useLang } from "../context/LanguageContext";
+import AppIcon from "./icons/AppIcon";
 
 export default function Sidebar({
-  items, isOpen, onClose, darkMode, onThemeToggle, activePage, onNavigate, onTestNotification,
+  items,
+  isOpen,
+  onClose,
+  darkMode,
+  onThemeToggle,
+  activePage,
+  onNavigate,
 }) {
-  const { t, resetLang } = useLang();
+  const { t, chooseLang, lang, isRTL } = useLang();
+  const drawerRef = useRef(null);
+  const returnFocusRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const drawerPosition = isRTL ? "right-0 left-auto" : "left-0";
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      const target = returnFocusRef.current;
+      if (target instanceof HTMLElement && target.isConnected) {
+        window.requestAnimationFrame(() => target.focus());
+      }
+      returnFocusRef.current = null;
+      return undefined;
+    }
+
+    returnFocusRef.current = document.activeElement;
+    const drawer = drawerRef.current;
+    const getFocusableItems = () => drawer?.querySelectorAll(
+      'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    ) ?? [];
+
+    getFocusableItems()[0]?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusableItems = getFocusableItems();
+      if (focusableItems.length === 0) {
+        event.preventDefault();
+        drawer?.focus();
+        return;
+      }
+
+      const firstItem = focusableItems[0];
+      const lastItem = focusableItems[focusableItems.length - 1];
+      if (event.shiftKey && document.activeElement === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && document.activeElement === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   return (
     <>
-      {isOpen && <div className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-[900]" onClick={onClose} />}
-
-      <aside className={`fixed top-0 left-0 h-screen w-[260px] flex flex-col bg-surface-2 text-body shadow-lg border-r border-hairline transition-transform duration-200 ease-in-out z-[1000] ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-hairline font-semibold text-heading">
-          <span>{t('menu')}</span>
-          <button className="bg-transparent border-0 text-body text-lg cursor-pointer px-2 py-1 rounded-md leading-none hover:bg-surface-3" onClick={onClose} aria-label="Close menu">✕</button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.button
+            type="button"
+            className="fixed inset-0 z-[900] cursor-pointer border-0 bg-black/45 p-0 backdrop-blur-[2px]"
+            onClick={onClose}
+            aria-label={t("closeMenu")}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          />
+        )}
+      </AnimatePresence>
+      <motion.aside
+        ref={drawerRef}
+        id="app-navigation-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("menu")}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
+        tabIndex={-1}
+        className={`fixed top-0 ${drawerPosition} z-[1000] flex h-dvh w-[280px] max-w-[85vw] flex-col border-hairline bg-surface-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-body shadow-lg ${isRTL ? "border-l" : "border-r"}`}
+        initial={false}
+        animate={{ x: isOpen ? 0 : isRTL ? "100%" : "-100%" }}
+        transition={{ type: "spring", stiffness: 390, damping: 36 }}
+      >
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-hairline px-4 py-3 font-semibold text-heading">
+          <span>{t("menu")}</span>
+          <button
+            type="button"
+            className="grid h-11 w-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-body transition-colors hover:bg-surface-3"
+            onClick={onClose}
+            aria-label={t("closeMenu")}
+          >
+            <AppIcon name="close" />
+          </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto flex flex-col gap-1 p-3" aria-label="Main navigation">
-          {items.map(it => (
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label={t("mainNavigation")}>
+          {items.map((item) => (
             <button
-              key={it.id}
-              className={`text-left w-full cursor-pointer text-sm px-4 py-3 rounded-md transition-all duration-150 ${
-                activePage === it.id
-                  ? 'bg-primary-soft text-primary border-1'
-                  : 'text-body hover:bg-primary-soft hover:translate-x-0.5'
+              type="button"
+              key={item.id}
+              className={`flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-start text-sm transition-colors ${
+                activePage === item.id
+                  ? "border-primary/15 bg-primary-soft font-semibold text-primary"
+                  : "text-body hover:bg-surface-3"
               }`}
-              onClick={() => onNavigate(it.id)}
-              aria-current={activePage === it.id ? 'page' : undefined}
+              onClick={() => onNavigate(item.id)}
+              aria-current={activePage === item.id ? "page" : undefined}
             >
-              {it.label}
+              <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center">{item.icon}</span>
+              <span>{item.label}</span>
             </button>
           ))}
         </nav>
 
-        <div className="flex-shrink-0 p-4 border-t border-hairline">
+        <div className="flex-shrink-0 border-t border-hairline p-4">
           <button
-            className="flex items-center gap-2.5 w-full px-4 py-3 bg-surface-3 border-0 rounded-md text-body cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
+            type="button"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-body shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
             onClick={onThemeToggle}
           >
-            <span aria-hidden="true">{darkMode ? <SunIcon /> : <MoonIcon />}</span>
-            {darkMode ? t('toLightMode') : t('toDarkMode')}
+            <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
+            {darkMode ? t("toLightMode") : t("toDarkMode")}
           </button>
           <button
-            className="flex items-center gap-2.5 w-full mt-2 px-4 py-2.5 bg-surface-3 border-0 rounded-md text-body cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
-            onClick={resetLang}
+            type="button"
+            className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-body shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
+            onClick={() => chooseLang(lang === "ur" ? "en" : "ur")}
           >
-            🌐 {t('changeLang')}
-          </button>
-          <button
-            className="flex items-center gap-2.5 w-full mt-2 px-4 py-2.5 bg-surface-3 border-0 rounded-md text-primary cursor-pointer text-sm shadow-sm transition-all duration-150 hover:shadow-md hover:-translate-y-px"
-            onClick={onTestNotification}
-          >
-            🔔 {t('testNotification')}
+            <AppIcon name="globe" size={19} />
+            {lang === "ur" ? t("switchToEnglish") : t("switchToUrdu")}
           </button>
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }

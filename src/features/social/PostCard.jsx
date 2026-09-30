@@ -31,10 +31,19 @@ export default function PostCard({
   const [commentCount, setCommentCount] = useState(post.comment_count || 0);
   const [viewCount, setViewCount] = useState(post.view_count || 0);
   const [shareCount, setShareCount] = useState(post.share_count || 0);
-  const date = new Intl.DateTimeFormat(lang === "ur" ? "ur" : "en", {
+  const createdAt = new Date(post.created_at);
+  const absoluteDate = new Intl.DateTimeFormat(lang === "ur" ? "ur" : "en", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(post.created_at));
+  }).format(createdAt);
+  const elapsedSeconds = Math.max(0, (Date.now() - createdAt.getTime()) / 1000);
+  const relativeUnit = elapsedSeconds < 60 ? ["second", 1]
+    : elapsedSeconds < 3600 ? ["minute", 60]
+      : elapsedSeconds < 86400 ? ["hour", 3600]
+        : elapsedSeconds < 2592000 ? ["day", 86400]
+          : elapsedSeconds < 31536000 ? ["month", 2592000] : ["year", 31536000];
+  const date = new Intl.RelativeTimeFormat(lang === "ur" ? "ur" : "en", { numeric: "auto" })
+    .format(-Math.floor(elapsedSeconds / relativeUnit[1]), relativeUnit[0]);
   const authorName = post.author_display_name || t("socialUnknownAuthor");
   const authorAvatar = post.author_avatar_url || (post.author_id === user?.id ? user.user_metadata?.avatar_url : null);
 
@@ -128,13 +137,15 @@ export default function PostCard({
         ) : (
           <span className="social-post__avatar" aria-hidden="true">{authorName.slice(0, 1).toUpperCase()}</span>
         )}
-        <span className="social-post__author">{authorName}</span>
+        <span className="social-post__identity">
+          <span className="social-post__author">{authorName}</span>
         {!isOwn && (
           <button type="button" className="social-post__action" disabled={followBusy} onClick={toggleFollow} aria-pressed={following}>
             {following ? t("socialUnfollow") : t("socialFollow")}
           </button>
         )}
-        <time className="social-post__date" dateTime={post.created_at}>{date}</time>
+        </span>
+        <time className="social-post__date" dateTime={post.created_at} title={absoluteDate}>{date}</time>
       </header>
       {post.body && <p className="social-post__body">{post.body}</p>}
       {post.media_url && !mediaError && (
@@ -161,13 +172,13 @@ export default function PostCard({
       {post.media_url && mediaError && <p className="social-post__media-error">{t("socialMediaLoadError")}</p>}
       <div className="social-post__actions">
         <button type="button" className={`social-post__action${liked ? " social-post__action--liked" : ""}`} onClick={toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`}>
-          <AppIcon name="heart" size={17} filled={liked} /> {!liked && `${t("socialLike")} · `}{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
+        <AppIcon name="heart" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
         </button>
         <button type="button" className="social-post__action" onClick={() => setCommentsOpen(true)}>
-          <AppIcon name="comment" size={17} /> {t("socialComments")} · {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
+        <AppIcon name="comment" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
         </button>
         <button type="button" className="social-post__action" onClick={share}>
-          <AppIcon name="share" size={17} /> {t("socialShare")} · {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
+        <AppIcon name="share" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
         </button>
         <span className="social-post__views" aria-label={`${t("socialViews")} ${viewCount}`}>
           {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)} {t("socialViewsShort")}

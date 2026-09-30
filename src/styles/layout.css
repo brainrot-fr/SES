@@ -1,0 +1,131 @@
+:root {
+  --page-gutter: clamp(1rem, 4vw, 2rem);
+  --measure-reading: 68ch;
+  --measure-feed: 40rem;
+  --dock-offset: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.layout-page {
+  width: 100%;
+  margin-inline: auto;
+  padding: var(--space-6) var(--page-gutter);
+}
+
+.layout-page--reading {
+  max-width: var(--measure-reading);
+}
+
+.layout-page--feed {
+  max-width: var(--measure-feed);
+}
+
+.layout-page--app {
+  max-width: var(--content-width);
+}
+
+.layout-band {
+  padding: var(--space-6) var(--page-gutter);
+}
+
+.layout-band--glow {
+  background: radial-gradient(
+    ellipse 120% 100% at 0% 0%,
+    color-mix(in srgb, var(--ayah-glow) 58%, transparent),
+    transparent 70%
+  );
+}
+
+.layout-split {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.layout-split__rail,
+.layout-split__main {
+  min-width: 0;
+}
+
+.layout-row-list {
+  display: grid;
+}
+
+.layout-row {
+  display: flex;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--page-gutter);
+}
+
+.layout-row + .layout-row {
+  border-block-start: 1px solid var(--hairline);
+}
+
+.layout-row__leading,
+.layout-row__trailing {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.layout-row__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.layout-group {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+
+.layout-group > .layout-row + .layout-row {
+  border-block-start: 1px solid var(--hairline);
+}
+
+.layout-page-header {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--page-gutter);
+}
+
+.layout-dock {
+  position: fixed;
+  z-index: 110;
+  inset-inline: 0;
+  inset-block-end: var(--dock-offset);
+  border-block-start: 1px solid var(--hairline);
+  background: var(--surface-1);
+}
+
+.layout-sheet.ui-modal {
+  inset-inline: 0;
+  inset-block-end: 0;
+}
+
+@media (min-width: 768px) {
+  .layout-sheet.ui-modal {
+    inset-inline-start: 50%;
+    inset-inline-end: auto;
+    inset-block-start: 50%;
+    inset-block-end: auto;
+    width: min(36rem, calc(100vw - 2 * var(--page-gutter)));
+    border-radius: var(--radius-lg);
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-split {
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .layout-split__rail {
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--space-4));
+  }
+}

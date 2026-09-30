@@ -16,6 +16,7 @@ import quranData from '../../data/quran.json';
 import { RECITERS } from './quranReciters';
 
 export { RECITERS } from './quranReciters';
+export const QURAN_SURAH_LIST = quranData.surahList;
 
 const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
 // Reciters are available at different bitrates. Start with high quality, then

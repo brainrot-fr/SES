@@ -21,6 +21,8 @@ import Skeleton from "../../components/ui/Skeleton";
 import EmptyState from "../../components/ui/EmptyState";
 import Toast from "../../components/ui/Toast";
 import IconButton from "../../components/ui/IconButton";
+import RowList from "../../components/layout/RowList";
+import Row from "../../components/layout/Row";
 import "./socialFeed.css";
 
 export default function SocialFeed({ mode = "posts", onShareStatus }) {
@@ -186,25 +188,16 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           <IconButton as={Link} className="social-reels__top-action" icon="plus" to="/reels/create" label={t("reelsCreate")} title={t("reelsCreate")} />
         </header>
       ) : (
-        <>
-          <header className="social-feed__intro">
-            <div className="social-feed__heading">
-              <div>
-                <p className="social-feed__eyebrow">{t("socialEyebrow")}</p>
-                <h1>{t("titleSocial")}</h1>
-                <p>{t("socialIntro")}</p>
-              </div>
-              <IconButton
-                as={Link}
-                className="social-feed__create-action"
-                icon="plus"
-                to="/social/create"
-                label={t("socialCreatePost")}
-                title={t("socialCreatePost")}
-              />
-            </div>
-          </header>
-        </>
+        <Row
+          as={Link}
+          to="/social/create"
+          className="social-feed__compose-link"
+          leading={user?.user_metadata?.avatar_url
+            ? <img className="social-feed__compose-avatar" src={user.user_metadata.avatar_url} alt="" />
+            : <span className="social-feed__compose-avatar social-feed__compose-avatar--initial" aria-hidden="true">{(user?.user_metadata?.username || user?.email || "?").slice(0, 1).toUpperCase()}</span>}
+          content={<span>{t("socialSharePrompt")}</span>}
+          trailing={<AppIcon name="plus" size={20} />}
+        />
       )}
       {error && <p className="social-error" role="alert">{error}</p>}
       {loadError && !isReels && (
@@ -236,25 +229,9 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         />
       )}
       <div ref={feedRef} className={isReels ? "social-feed__reels" : "social-feed__posts"}>
-        {posts.map((post, index) => (
-          isReels ? (
-            <ReelCard
-              key={post.id}
-              post={post}
-              index={index}
-              user={user}
-              isOwn={post.author_id === user?.id}
-              onDelete={handleDelete}
-              onLike={handleLike}
-              onFollow={handleFollow}
-              onView={handleView}
-              onShare={handleShare}
-              onCommentCreated={handleCommentCreated}
-              onNearEnd={handleNearEnd}
-              onEnded={handleReelEnd}
-              onShareStatus={handleShareStatus}
-            />
-          ) : (
+        {!isReels && (
+          <RowList className="social-feed__row-list">
+            {posts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -268,7 +245,26 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
               onCommentCreated={handleCommentCreated}
               onStatus={handleShareStatus}
             />
-          )
+            ))}
+          </RowList>
+        )}
+        {isReels && posts.map((post, index) => (
+          <ReelCard
+            key={post.id}
+            post={post}
+            index={index}
+            user={user}
+            isOwn={post.author_id === user?.id}
+            onDelete={handleDelete}
+            onLike={handleLike}
+            onFollow={handleFollow}
+            onView={handleView}
+            onShare={handleShare}
+            onCommentCreated={handleCommentCreated}
+            onNearEnd={handleNearEnd}
+            onEnded={handleReelEnd}
+            onShareStatus={handleShareStatus}
+          />
         ))}
         {isReels && posts.length > 0 && !hasMore && !loading && (
           <div className="social-reels__end" data-reel-index={posts.length}>

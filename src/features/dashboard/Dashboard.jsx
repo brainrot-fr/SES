@@ -6,8 +6,17 @@ import { useLang } from "../../context/LanguageContext";
 import { useAccountProfile } from "../account/AccountProfileProvider";
 import { getIslamicDate } from "./islamicDateService";
 import AppIcon from "../../components/icons/AppIcon";
-import Card from "../../components/ui/Card";
+import Page from "../../components/layout/Page";
+import Band from "../../components/layout/Band";
+import Split from "../../components/layout/Split";
+import RowList from "../../components/layout/RowList";
+import Row from "../../components/layout/Row";
 import "./dashboard.css";
+
+function getStoredProgress(key, total) {
+  const value = Number(localStorage.getItem(key));
+  return Number.isInteger(value) && value >= 1 && value <= total ? value : 1;
+}
 
 function getDailyAyah(date = new Date()) {
   const ayahs = Object.values(quranData.surahs).flatMap((surah) =>
@@ -60,111 +69,113 @@ export default function Dashboard() {
   const welcome = username
     ? t("dashboardWelcomeNamed").replace("{username}", username)
     : t("dashboardWelcome");
-
-  const cards = [
-    { id: "nuqool", title: t("navNuqool"), description: t("dashboardNuqoolDesc") },
-    { id: "quran", title: t("navQuran"), description: t("dashboardQuranDesc") },
-    { id: "timeline", title: t("navTimeline"), description: t("dashboardTimelineDesc") },
-    { id: "murshid", title: t("navMurshid"), description: t("dashboardMurshidDesc") },
-    { id: "social", title: t("navSocial"), description: t("dashboardSocialDesc") },
-    { id: "settings", title: t("titleSettings"), description: t("dashboardSettingsDesc") },
-  ];
+  const currentSurah = getStoredProgress("ses-current-surah", 114);
+  const currentNaql = getStoredProgress("ses-current-naql", 55);
+  const currentSurahName = quranData.surahList[currentSurah - 1]?.englishName ?? t("navQuran");
 
   return (
-    <div className="dashboard">
-      <section className="dashboard__welcome">
-        <div className="dashboard__welcome-copy">
-          <p className="dashboard__eyebrow">{t("dashboardEyebrow")}</p>
-          <h1>{welcome}</h1>
-          <p className="dashboard__subtitle">{t("dashboardSubtitle")}</p>
-        </div>
-        <div className="dashboard__date">
-          <span className="dashboard__date-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
-              <path d="M7.5 3v4M16.5 3v4M3.5 10h17" />
-            </svg>
-          </span>
-          <span className="dashboard__date-copy">
-            <span className="dashboard__date-label">{t("dashboardIslamicDate")}</span>
+    <Page className="dashboard">
+      <header className="dashboard__greeting">
+        <h1>{welcome}</h1>
+        <span className="dashboard__date-line">
+          <span className="dashboard__date-separator" aria-hidden="true">· </span>
+          <span className="dashboard__date" aria-label={t("dashboardIslamicDate")}>
             {islamicDate.loading ? (
               <span role="status">{t("dashboardIslamicDateLoading")}</span>
             ) : islamicDate.error ? (
               <span className="dashboard__date-error" role="alert">
                 {t("dashboardIslamicDateError")}
-                <button
-                  type="button"
-                  onClick={() => setDateRetry((retry) => retry + 1)}
-                >
+                <button type="button" onClick={() => setDateRetry((retry) => retry + 1)}>
                   {t("dashboardIslamicDateRetry")}
                 </button>
               </span>
-            ) : (
-              <span>{islamicDate.text}</span>
-            )}
+            ) : islamicDate.text}
           </span>
-        </div>
-      </section>
+        </span>
+      </header>
 
-      <div className="dashboard__content">
-        <button
-          type="button"
-          className="dashboard__ayah"
-          onClick={() => navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
-          aria-label={`${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}`}
-        >
-          <span className="dashboard__ayah-top">
-            <span className="dashboard__section-label">{t("dashboardAyahOfDay")}</span>
-            <span className="dashboard__ayah-mark" aria-hidden="true">۞</span>
-          </span>
-          <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>
-          <span className="dashboard__reference">
-            {ayah.surah.englishName} · {t("quranAyahLabel")} {ayah.numberInSurah}
-          </span>
-          <span className="dashboard__ayah-link">
-            {t("dashboardReadQuran")}
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M5 12h14m-6-6 6 6-6 6" />
-            </svg>
-          </span>
-        </button>
-
-        <section className="dashboard__section" aria-labelledby="dashboard-links-title">
-          <div className="dashboard__section-heading">
-            <div>
-              <p className="dashboard__eyebrow">{t("dashboardStartHere")}</p>
-              <h2 id="dashboard-links-title">{t("dashboardExplore")}</h2>
-            </div>
-            <button type="button" className="dashboard__community-link" onClick={() => navigate("/social")}>
-              <AppIcon name="social" />
-              <span>{t("dashboardCommunityCta")}</span>
-            </button>
-          </div>
-          <div className="dashboard__grid">
-            {cards.map((card) => (
-              <Card
+      <Split
+        className="dashboard__layout"
+        rail={(
+          <Band
+            as="button"
+            type="button"
+            glow
+            className="dashboard__ayah"
+            onClick={() => navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
+            aria-label={`${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}`}
+          >
+            <span className="dashboard__ayah-label">{t("dashboardAyahOfDay")}</span>
+            <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>
+            <span className="dashboard__reference">
+              {ayah.surah.englishName} · {t("quranAyahLabel")} {ayah.numberInSurah}
+            </span>
+            <span className="dashboard__ayah-link">
+              {t("dashboardReadQuran")}
+              <AppIcon name="arrowRight" size={18} />
+            </span>
+          </Band>
+        )}
+      >
+        <div className="dashboard__lists">
+          <section className="dashboard__section" aria-labelledby="dashboard-continue-title">
+            <h2 id="dashboard-continue-title">{t("dashboardContinue")}</h2>
+            <RowList>
+              <Row
                 as="button"
                 type="button"
-                key={card.id}
-                className="dashboard__card"
-                interactive
-                onClick={() => navigate(`/${card.id}`)}
-              >
-                <span className="dashboard__card-icon"><AppIcon name={card.id} /></span>
-                <span className="dashboard__card-copy">
-                  <span className="dashboard__card-title">{card.title}</span>
-                  <span className="dashboard__card-description">{card.description}</span>
-                </span>
-                <span className="dashboard__card-arrow" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14m-6-6 6 6-6 6" />
-                  </svg>
-                </span>
-              </Card>
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
+                className="dashboard__row"
+                onClick={() => navigate(`/quran/${currentSurah}`)}
+                leading={<span className="dashboard__number">{currentSurah}</span>}
+                content={(
+                  <span className="dashboard__row-copy">
+                    <span className="dashboard__row-name">{currentSurahName}</span>
+                    <span className="dashboard__progress" aria-hidden="true">
+                      <span style={{ width: `${(currentSurah / 114) * 100}%` }} />
+                    </span>
+                  </span>
+                )}
+              />
+              <Row
+                as="button"
+                type="button"
+                className="dashboard__row"
+                onClick={() => navigate(`/nuqool/${currentNaql}`)}
+                leading={<span className="dashboard__number">{currentNaql}</span>}
+                content={(
+                  <span className="dashboard__row-copy">
+                    <span className="dashboard__row-name">{t("titleNuqool")}</span>
+                    <span className="dashboard__progress" aria-hidden="true">
+                      <span style={{ width: `${(currentNaql / 55) * 100}%` }} />
+                    </span>
+                  </span>
+                )}
+              />
+            </RowList>
+          </section>
+
+          <section className="dashboard__section" aria-labelledby="dashboard-explore-title">
+            <h2 id="dashboard-explore-title">{t("dashboardExplore")}</h2>
+            <RowList>
+              {[
+                { id: "timeline", label: t("navTimeline") },
+                { id: "murshid", label: t("navMurshid") },
+                { id: "settings", label: t("titleSettings") },
+              ].map((destination) => (
+                <Row
+                  as="button"
+                  type="button"
+                  key={destination.id}
+                  className="dashboard__row dashboard__explore-row"
+                  onClick={() => navigate(`/${destination.id}`)}
+                  content={<span className="dashboard__row-name">{destination.label}</span>}
+                  trailing={<AppIcon name="arrowRight" size={18} />}
+                />
+              ))}
+            </RowList>
+          </section>
+        </div>
+      </Split>
+    </Page>
   );
 }

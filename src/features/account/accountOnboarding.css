@@ -1,40 +1,34 @@
 .account-onboarding {
+  position: relative;
   display: grid;
   min-height: 100dvh;
-  place-items: center;
-  padding: max(1.25rem, env(safe-area-inset-top, 0px))
-    max(1rem, env(safe-area-inset-right, 0px))
-    max(1.25rem, env(safe-area-inset-bottom, 0px))
-    max(1rem, env(safe-area-inset-left, 0px));
+  align-content: start;
+  gap: 0;
+  padding: max(1.25rem, env(safe-area-inset-top, 0px)) 0 max(1.25rem, env(safe-area-inset-bottom, 0px));
+  background: var(--bg);
+}
+
+.account-onboarding > .entry-brand {
+  min-height: 11rem;
+  padding-block: var(--space-4);
   background:
     radial-gradient(ellipse 72% 55% at 100% 0%, color-mix(in srgb, var(--primary-soft) 70%, transparent), transparent 72%),
-    radial-gradient(ellipse 62% 50% at 0% 100%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%),
-    var(--bg);
+    radial-gradient(ellipse 62% 50% at 0% 100%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%);
 }
 
-.account-onboarding__card {
-  width: min(100%, 32rem);
-  padding: clamp(1.25rem, 6vw, 2.5rem);
-  border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border));
-  border-radius: var(--radius-lg);
-  background: var(--panel);
-  box-shadow: var(--shadow-lg);
-}
-
-.account-onboarding__eyebrow {
-  margin: 0 0 1.25rem;
-  color: var(--primary);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.account-onboarding__form {
+  width: min(100%, 38rem);
+  margin-inline: auto;
+  padding: var(--space-5) var(--page-gutter) calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 .account-onboarding__progress {
-  height: 0.35rem;
+  position: fixed;
+  z-index: 100;
+  inset-inline: 0;
+  inset-block-start: env(safe-area-inset-top, 0px);
+  height: 3px;
   overflow: hidden;
-  margin-bottom: 1.75rem;
-  border-radius: var(--radius-pill);
   background: var(--surface-2);
 }
 
@@ -48,7 +42,7 @@
 
 .account-onboarding__step {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-3);
 }
 
 .account-onboarding__title {
@@ -81,26 +75,24 @@
 
 .account-onboarding__choices {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.6rem;
+  margin-block-start: 0.6rem;
 }
 
 .account-onboarding__choice {
   display: flex;
-  min-height: 3.25rem;
+  min-height: 64px;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border: 0;
+  border-block-end: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
   color: var(--text-small);
   cursor: pointer;
 }
 
 .account-onboarding__choice--selected {
-  border-color: var(--primary);
-  background: var(--primary-soft);
   color: var(--text-large);
 }
 
@@ -122,27 +114,28 @@
 
 .account-onboarding__confirmation {
   display: flex;
+  min-height: 64px;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  padding: 1rem 0;
+  border-block: 1px solid var(--hairline);
   color: var(--text-small);
   line-height: 1.55;
   cursor: pointer;
 }
 
 .account-onboarding__confirmation input {
-  margin-top: 0.12rem;
+  margin-block-start: 0.12rem;
 }
 
 .account-onboarding__select {
   width: 100%;
-  min-height: 3rem;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
+  min-height: 48px;
+  padding: 0.65rem 0;
+  border: 0;
+  border-block-end: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
   color: var(--text-small);
   font: inherit;
 }
@@ -155,16 +148,24 @@
   outline-offset: 3px;
 }
 
-.account-onboarding__actions {
+.account-onboarding__actions,
+.account-onboarding__step > .account-onboarding__button {
+  position: fixed;
+  z-index: 90;
+  inset-inline: var(--page-gutter);
+  inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
   display: flex;
-  flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 0.25rem;
+  width: auto;
+  max-width: 38rem;
+  margin-inline: auto;
 }
 
 .account-onboarding__button {
   display: inline-flex;
-  min-height: 3rem;
+  min-width: 0;
+  min-height: 48px;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   padding: 0.75rem 1rem;
@@ -177,15 +178,6 @@
   text-align: center;
   cursor: pointer;
   transition: filter 160ms ease, opacity 160ms ease;
-}
-
-.account-onboarding__step > .account-onboarding__button {
-  width: 100%;
-  margin-top: 0.25rem;
-}
-
-.account-onboarding__actions .account-onboarding__button {
-  flex: 1 1 10rem;
 }
 
 .account-onboarding__button:hover:not(:disabled) {
@@ -210,14 +202,49 @@
   line-height: 1.5;
 }
 
-@media (max-width: 25rem) {
-  .account-onboarding__actions {
-    flex-direction: column-reverse;
+.account-onboarding__card {
+  width: min(100%, 32rem);
+  margin: auto;
+  padding: var(--space-5) var(--page-gutter);
+}
+
+@media (min-width: 1024px) {
+  .account-onboarding {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
   }
 
-  .account-onboarding__actions .account-onboarding__button {
-    width: 100%;
-    flex: 0 0 auto;
+  .account-onboarding > .entry-brand {
+    min-height: 100%;
+    padding: clamp(3rem, 8vw, 8rem);
+  }
+
+  .account-onboarding__form {
+    display: grid;
+    align-content: center;
+    padding-block: var(--space-8) calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .account-onboarding__actions,
+  .account-onboarding__step > .account-onboarding__button {
+    inset-inline-start: calc(50% + var(--page-gutter));
+    inset-inline-end: var(--page-gutter);
+  }
+
+  [dir="rtl"] .account-onboarding__actions,
+  [dir="rtl"] .account-onboarding__step > .account-onboarding__button {
+    inset-inline-start: var(--page-gutter);
+    inset-inline-end: calc(50% + var(--page-gutter));
+  }
+}
+
+@media (max-width: 25rem) {
+  .account-onboarding__actions {
+    gap: var(--space-2);
+  }
+
+  .account-onboarding__button {
+    padding-inline: var(--space-2);
   }
 }
 

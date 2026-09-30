@@ -85,65 +85,63 @@ export default function ReelUpload() {
         <span className="reel-upload-page__spacer" />
       </header>
       <form className="reel-upload" onSubmit={submit}>
-        <div className="reel-upload__intro">
-          <span className="reel-upload__icon"><AppIcon name="reels" size={25} /></span>
-          <div>
-            <p className="social-feed__eyebrow">{t("reelsUploadEyebrow")}</p>
-            <h2>{t("reelsUploadTitle")}</h2>
-            <p>{t("reelsUploadHint")}</p>
+        <div className="reel-upload__split">
+          <div className="reel-upload__preview-pane">
+            {preview ? (
+              <div className="reel-upload__preview">
+                <video src={preview} controls playsInline muted aria-label={t("reelsVideoPreview")} />
+                <button type="button" className="reel-upload__remove" onClick={removeVideo} disabled={busy} aria-label={t("socialRemoveMedia")}>
+                  <AppIcon name="close" size={19} />
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="reel-upload__picker" onClick={() => inputRef.current?.click()}>
+                <span><AppIcon name="play" size={27} /></span>
+                <strong>{t("reelsChooseVideo")}</strong>
+                <small>{t("reelsVideoRequirements")}</small>
+              </button>
+            )}
+          </div>
+          <div className="reel-upload__fields">
+            <label className="reel-upload__caption-label" htmlFor="reel-caption">{t("reelsCaptionLabel")}</label>
+            <textarea
+              id="reel-caption"
+              value={caption}
+              onChange={(event) => setCaption(event.target.value)}
+              placeholder={t("reelsCaptionPlaceholder")}
+              maxLength={2000}
+              rows={3}
+              disabled={busy}
+            />
+            <fieldset className="reel-upload__topics" disabled={busy}>
+              <legend>{t("reelsTopicsLabel")}</legend>
+              <p aria-live="polite">
+                {selectedTags.length >= 3 ? t("reelsTopicsLimit") : t("reelsTopicsHint")}
+              </p>
+              <div className="reel-upload__topic-list">
+                {REEL_TAGS.map(({ topic, slug, label }) => {
+                  const selected = selectedTags.includes(slug);
+                  return (
+                    <button
+                      key={topic}
+                      type="button"
+                      className={`reel-upload__topic${selected ? " reel-upload__topic--selected" : ""}`}
+                      aria-pressed={selected}
+                      disabled={!selected && selectedTags.length >= 3}
+                      onClick={() => setSelectedTags((current) => selected
+                        ? current.filter((tag) => tag !== slug)
+                        : [...current, slug])}
+                    >
+                      #{t(label)}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+            <p className="reel-upload__guideline"><AppIcon name="sparkle" size={16} />{t("reelsCommunityGuideline")}</p>
           </div>
         </div>
-        {preview ? (
-          <div className="reel-upload__preview">
-            <video src={preview} controls playsInline muted aria-label={t("reelsVideoPreview")} />
-            <button type="button" className="reel-upload__remove" onClick={removeVideo} disabled={busy} aria-label={t("socialRemoveMedia")}>
-              <AppIcon name="close" size={19} />
-            </button>
-          </div>
-        ) : (
-          <button type="button" className="reel-upload__picker" onClick={() => inputRef.current?.click()}>
-            <span><AppIcon name="play" size={27} /></span>
-            <strong>{t("reelsChooseVideo")}</strong>
-            <small>{t("reelsVideoRequirements")}</small>
-          </button>
-        )}
         <input ref={inputRef} className="reel-upload__file-input" type="file" accept="video/*" onChange={chooseVideo} disabled={busy} aria-label={t("reelsChooseVideo")} />
-        <label className="reel-upload__caption-label" htmlFor="reel-caption">{t("reelsCaptionLabel")}</label>
-        <textarea
-          id="reel-caption"
-          value={caption}
-          onChange={(event) => setCaption(event.target.value)}
-          placeholder={t("reelsCaptionPlaceholder")}
-          maxLength={2000}
-          rows={3}
-          disabled={busy}
-        />
-        <fieldset className="reel-upload__topics" disabled={busy}>
-          <legend>{t("reelsTopicsLabel")}</legend>
-          <p aria-live="polite">
-            {selectedTags.length >= 3 ? t("reelsTopicsLimit") : t("reelsTopicsHint")}
-          </p>
-          <div className="reel-upload__topic-list">
-            {REEL_TAGS.map(({ topic, slug, label }) => {
-              const selected = selectedTags.includes(slug);
-              return (
-                <button
-                  key={topic}
-                  type="button"
-                  className={`reel-upload__topic${selected ? " reel-upload__topic--selected" : ""}`}
-                  aria-pressed={selected}
-                  disabled={!selected && selectedTags.length >= 3}
-                  onClick={() => setSelectedTags((current) => selected
-                    ? current.filter((tag) => tag !== slug)
-                    : [...current, slug])}
-                >
-                  #{t(label)}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-        <p className="reel-upload__guideline">{t("reelsCommunityGuideline")}</p>
         {busy && (
           <div className="social-composer__progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label={t("socialUploadProgress")}>
             <div className="social-composer__progress-bar" style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -151,7 +149,6 @@ export default function ReelUpload() {
         )}
         {error && <p className="social-error" role="alert">{error}</p>}
         <div className="reel-upload__actions">
-          {!preview && <button type="button" className="reel-upload__secondary" onClick={() => inputRef.current?.click()}>{t("reelsChooseVideo")}</button>}
           <button type="submit" className="reel-upload__submit" disabled={!file || busy}>
             {busy ? t("socialPosting") : t("reelsPublish")}
           </button>

@@ -1,441 +1,251 @@
-/* ── Surah list ── */
-.quran-list {
-  display: flex;
-  width: min(100%, 840px);
-  flex-direction: column;
-  gap: 0.65rem;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 2.5rem;
-}
-
-.quran-list__header {
-  margin: 0.4rem 0 0.65rem;
-}
-
-.quran-list__eyebrow {
-  margin: 0 0 0.35rem;
-  color: var(--primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.quran-list__header h1 {
-  margin: 0;
-  color: var(--text-large);
-  font-size: clamp(1.7rem, 5vw, 2.2rem);
-  letter-spacing: -0.04em;
-}
-
-.quran-list__header > p:last-child {
-  margin: 0.45rem 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  line-height: 1.55;
-}
-
-.quran-list__search-label {
-  display: block;
-  margin-bottom: 0.45rem;
-  color: var(--text-large);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.quran-list__item {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  width: 100%;
-  min-height: 72px;
-  padding: 0.75rem 1rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: start;
-  transition: box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
-}
-
-.quran-list__item:hover {
-  border-color: var(--primary);
-  box-shadow: 0 3px 10px var(--shadow);
-}
-
-.quran-list__item--active {
-  border-color: var(--primary);
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.quran-list__num {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--panel-2);
-  color: var(--primary);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.quran-list__names {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.quran-list__ar {
-  font-family: 'QPCHafs', serif;
-  font-size: 1.2rem;
-  color: var(--text-large);
-}
-
-.quran-list__en {
-  font-size: 0.78rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.quran-list__meta {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  color: var(--muted);
-  text-align: end;
-}
-
-/* ── Reader ── */
-.quran-container {
-  padding: 1rem;
-  padding-bottom: 200px;
-  /* clearance for the fixed nav + bottom-nav */
-}
-
-.quran-scroll-anchor {
-  height: 0;
-  visibility: hidden;
-}
-
-.quran-back {
-  min-height: 44px;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-small);
-  padding: 0.4rem 0.8rem;
-  font-size: 0.82rem;
-  font-family: inherit;
-  cursor: pointer;
-  margin-bottom: 1rem;
-}
-
-.quran-back:hover {
-  background: var(--panel-2);
-}
-
 .quran-state {
-  text-align: center;
-  padding: 3rem 1rem;
+  padding: var(--space-7) var(--page-gutter);
   color: var(--muted);
+  text-align: center;
 }
 
 .quran-state--error {
   color: var(--danger);
 }
 
+.quran-list {
+  display: grid;
+  width: min(100%, var(--measure-feed));
+  margin-inline: auto;
+  padding: 0 var(--page-gutter) var(--space-7);
+}
+
+.quran-list__header {
+  position: sticky;
+  z-index: 20;
+  inset-block-start: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.quran-list__header h1 {
+  align-self: center;
+  margin: 0;
+  color: var(--text-large);
+  font-size: var(--text-lg);
+  white-space: nowrap;
+}
+
+.quran-list__search {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-small);
+  font: inherit;
+}
+
+.quran-list__search:focus-visible {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-focus);
+}
+
+.quran-list__continue {
+  display: grid;
+  min-height: 72px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-block-end: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-small);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+}
+
+.quran-list__continue-label {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.quran-list__continue-name {
+  color: var(--text-large);
+  font-size: var(--text-lg);
+  font-weight: 650;
+}
+
+.quran-list__continue-num {
+  color: var(--muted);
+  font-size: var(--text-2xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.quran-list__rows {
+  padding-block-start: var(--space-2);
+}
+
+.quran-list__item {
+  display: flex;
+  width: 100%;
+  min-height: 68px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border: 0;
+  border-block-end: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-small);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+}
+
+.quran-list__item:hover,
+.quran-list__item--active {
+  color: var(--primary);
+}
+
+.quran-list__item:focus-visible,
+.quran-list__continue:focus-visible,
+.quran-settings-trigger:focus-visible,
+.quran-view-toggle__btn:focus-visible,
+.quran-nav button:focus-visible,
+.quran-ayah__play:focus-visible,
+.quran-zoom-controls__button:focus-visible,
+.quran-sheet__toggle:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.quran-list__num {
+  min-width: 2.5ch;
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.quran-list__names {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.quran-list__en {
+  overflow: hidden;
+  color: var(--text-large);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quran-list__meta {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.quran-list__ar {
+  flex: 0 0 auto;
+  color: var(--text-large);
+  font-family: var(--font-arabic);
+  font-size: var(--text-lg);
+}
+
+.quran-list__skeleton {
+  padding: var(--space-5) var(--page-gutter);
+}
+
+.quran-layout--reader {
+  min-width: 0;
+}
+
+.quran-layout__index {
+  display: none;
+}
+
+.quran-layout__reader {
+  min-width: 0;
+}
+
+.quran-container {
+  width: min(100%, var(--measure-reading));
+  margin-inline: auto;
+  padding: 0 var(--page-gutter) calc(var(--dock-offset) + 7rem);
+}
+
+.quran-scroll-anchor {
+  height: 0;
+  scroll-margin-block-start: calc(var(--header-height) + var(--space-2));
+  visibility: hidden;
+}
+
+.quran-body {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
 .quran-surah-header {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  margin-inline: calc(-1 * var(--page-gutter));
   text-align: center;
-  margin-bottom: 0.5rem;
 }
 
 .quran-surah-header__ar {
-  font-family: 'QPCHafs', serif;
-  font-size: 1.35rem;
+  margin: 0;
   color: var(--text-large);
-  margin: 0 0 0.25rem;
+  font-family: var(--font-arabic);
+  font-size: clamp(2rem, 7vw, 3rem);
+  line-height: 1.6;
 }
 
 .quran-surah-header__en {
-  font-size: 0.85rem;
-  color: var(--muted);
   margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .quran-bismillah {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  align-self: center;
-  justify-self: center;
-  font-size: calc(1.5rem * var(--quran-text-zoom, 1));
-  font-family: 'Indopak', serif;
-  margin: 1rem 0;
-}
-
-.quran-ayahs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.quran-ayah {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.75rem;
-}
-
-.quran-ayah__row {
-  display: flex;
-  align-items: start;
-}
-
-.quran-ayah__row:hover,
-.quran-reading__ayah:hover {
-  background-color: var(--primary-soft);
-  cursor: pointer;
-}
-
-.quran-ayah__num {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  margin-top: 0.3rem;
-  border-radius: 50%;
-  border: 1.5px solid var(--primary);
+  margin: var(--space-2) 0 0;
   color: var(--primary);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-family: var(--font-nastaliq);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.8;
 }
 
-.quran-ayah__text {
-  flex: 1;
-  margin: 0;
-  font-family: 'QPCHafs', serif;
-  direction: rtl;
-  text-align: right;
-  font-size: calc(1.5rem * var(--quran-text-zoom, 1));
-  line-height: 2.1;
-  color: var(--text-large);
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
-.quran-ayah--playing {
-  background: var(--primary-soft);
-  border-radius: 0.5rem;
-  border: 1.5px solid var(--primary);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 25%, transparent);
-  margin-top: 0;
-  font-weight: bolder;
-}
-
-.quran-ayah__play {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  margin-top: 0.2rem;
-  border-radius: 50%;
-  border: 1px solid var(--primary);
-  background: var(--primary);
-  color: var(--on-primary);
-  cursor: pointer;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.quran-ayah__play:hover {
-  filter: brightness(1.12);
-}
-
-.quran-ayah__translation {
-  margin-top: 0.5rem;
-  padding-right: 2.4rem;
-}
-
-.quran-ayah__ur {
-  direction: rtl;
-  text-align: right;
-  font-family: 'Readex Pro', sans-serif;
-  color: var(--text-small);
-  margin: 0 0 0.3rem;
-}
-
-.quran-ayah__translit {
-  color: var(--muted);
-  font-style: italic;
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-/* ── Fixed bottom nav ── */
-.quran-nav {
-  position: fixed;
-  bottom: 80px;
-  left: 0;
-  right: 0;
-  width: min(80rem, 300px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  justify-self: center;
-  border-radius: 10px;
-  padding: 0.5rem 1rem 0.6rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  box-shadow: 0 -2px 12px var(--shadow);
-}
-
-.quran-nav__row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 420px;
-  min-width: 0;
-  padding: 10px;
-}
-
-
-.quran-nav__btn {
-  padding: 0.45rem 1rem;
-  min-height: 44px;
-  background: var(--primary);
-  color: var(--on-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: box-shadow 150ms ease, filter 150ms ease, transform 150ms ease;
-}
-
-.quran-nav__btn:hover:not(:disabled) {
-  filter: brightness(1.12);
-}
-
-.quran-nav__btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.quran-nav__play-surah {
-  flex: 1;
-  padding: 0.45rem 0.75rem;
-  min-height: 44px;
-  background: var(--panel-2);
-  color: var(--text-large);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.quran-nav__play-surah:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quran-ayah__icon,
-.quran-nav__icon {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  vertical-align: middle;
-  color: currentColor;
-}
-
-[dir="rtl"] .quran-nav__icon {
-  transform: scaleX(-1);
-}
-
-.quran-nav__play-text {
-  margin-left: 0.5rem;
-}
-
-.quran-reciter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-}
-
-.quran-translation-toggle {
-  display: block;
-  margin: 0 auto 1rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--primary);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* ── Surah search ── */
-.quran-list__search {
-  display: block;
-  width: 100%;
-  min-height: 48px;
-  margin: 0.45rem 0 0.5rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--text-small);
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-.quran-list__search:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--ring);
-}
-
-/* ── View mode toggle ── */
 .quran-view-toggle {
   display: flex;
-  gap: 0.4rem;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-  padding: 0.25rem;
-  background: var(--panel-2);
-  border-radius: 10px;
-  border: 1px solid var(--border);
+  width: min(100%, 28rem);
+  min-height: 48px;
+  justify-self: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
 }
 
 .quran-view-toggle__btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 44px;
   min-height: 44px;
-  padding: 0.4rem 0.6rem;
-  border: none;
-  border-radius: 8px;
+  padding-inline: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-small);
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: inherit;
   cursor: pointer;
-  transition: background 150ms, color 150ms;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
 .quran-view-toggle__btn--active {
@@ -443,166 +253,263 @@
   color: var(--on-primary);
 }
 
-.quran-zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  flex-shrink: 0;
-}
-
-.quran-zoom-controls__button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--panel);
-  color: var(--text-small);
+.quran-settings-trigger {
+  min-width: 44px;
+  min-height: 44px;
+  justify-self: end;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
   cursor: pointer;
+  font: inherit;
+  font-size: var(--text-lg);
+  font-weight: 700;
 }
 
-.quran-zoom-controls__button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.quran-ayahs {
+  display: grid;
 }
 
-.quran-zoom-controls__button:focus-visible {
+.quran-ayah {
+  position: relative;
+  min-width: 0;
+  padding-block: var(--space-4);
+}
+
+.quran-ayah + .quran-ayah {
+  border-block-start: 1px solid var(--hairline);
+}
+
+.quran-ayah--playing {
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  border-inline-start: 3px solid var(--primary);
+  background: var(--primary-soft);
+}
+
+.quran-ayah__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.quran-ayah__num {
+  flex: 0 0 auto;
+  margin-block-start: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.quran-ayah__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding-inline: var(--space-2);
+  color: var(--text-large);
+  cursor: pointer;
+  font-family: var(--font-arabic);
+  font-size: calc(1.5rem * var(--quran-text-zoom, 1));
+  line-height: 2.1;
+  text-align: end;
+}
+
+.quran-ayah__text:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
 
-.quran-zoom-controls__value {
-  min-width: 2.8rem;
+.quran-ayah__play {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  margin-block-start: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--muted);
-  font-size: 0.72rem;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+  cursor: pointer;
 }
 
-.quran-nav__zoom {
+.quran-ayah__play:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.quran-ayah__icon,
+.quran-nav__icon {
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
+.quran-ayah__markers,
+.quran-reading__markers {
   display: flex;
-  justify-content: center;
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid var(--border);
+  direction: ltr;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-xs);
 }
 
-/* ── Reading mode ── */
+.quran-ayah__translation {
+  margin-block-start: var(--space-2);
+  padding-inline-start: calc(2.5ch + var(--space-3));
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+}
+
+.quran-ayah__translation p {
+  margin: 0;
+}
+
+.quran-ayah__ur {
+  color: var(--muted);
+  font-family: var(--font-body);
+}
+
+.quran-ayah__translit {
+  margin-block-start: var(--space-1) !important;
+  font-style: italic;
+}
+
 .quran-reading {
-  direction: rtl;
-  text-align: justify;
-  font-size: calc(1.7rem * var(--quran-text-zoom, 1));
-  line-height: 1.6;
+  margin: var(--space-4) 0;
   color: var(--text-large);
-  margin: 1rem 0;
+  direction: rtl;
+  font-family: var(--font-arabic);
+  font-size: calc(1.7rem * var(--quran-text-zoom, 1));
+  line-height: 1.9;
+  text-align: justify;
 }
 
 .quran-reading__ayah {
   cursor: pointer;
-  border-radius: 8px;
-  transition: background 150ms;
-  font-family: 'QPCHafs', serif;
 }
 
 .quran-reading__ayah--playing {
   background: var(--primary-soft);
-  border-radius: 8px;
-  box-shadow: 0 0 0 1px var(--primary);
-  font-size: larger;
-  font-weight: bold;
+  border-inline-start: 3px solid var(--primary);
+  box-decoration-break: clone;
 }
 
 .quran-reading__marker {
-  display: inline-block;
-  font-size: 1rem;
-  color: var(--primary);
-  margin: 0 0.15rem;
-  font-family: 'CormorantGaramond-Medium', sans-serif;
-}
-
-.quran-reading__markers,
-.quran-ayah__markers {
-  display: inline-flex;
-  direction: ltr;
-  gap: 0.35rem;
-  color: var(--primary);
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  vertical-align: middle;
-}
-
-.quran-ayah__markers {
-  display: flex;
-  margin: 0.25rem 0 0 40px;
-}
-
-.quran-reciter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.6rem;
-}
-
-.quran-reciter__label {
-  font-size: 0.8rem;
+  margin-inline: 0.15em;
   color: var(--muted);
-  text-align: center;
+  font-family: 'CormorantGaramond-Medium', serif;
+  font-size: 1rem;
 }
 
-.quran-reciter__chips {
-  padding: 0.15rem 0.1rem 0.4rem;
-
-}
-
-.quran-reciter__chips::-webkit-scrollbar {
-  display: none;
-}
-
-.quran-reciter__chip {
-  flex-shrink: 0;
-  min-height: 44px;
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
+.quran-nav {
+  position: fixed;
+  z-index: 90;
+  inset-inline-start: 50%;
+  inset-block-end: calc(var(--dock-offset) + var(--space-2));
+  width: min(calc(100% - 2 * var(--page-gutter)), 38rem);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
-  background: var(--panel-2);
-  color: var(--text-small);
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 150ms, color 150ms, border-color 150ms;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(18px) saturate(1.2);
+  translate: -50% 0;
 }
 
-.quran-reciter__chip--active {
+[dir="rtl"] .quran-nav {
+  translate: 50% 0;
+}
+
+.quran-nav__row {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.quran-nav button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-small);
+  cursor: pointer;
+}
+
+.quran-nav button:hover:not(:disabled) {
   background: var(--primary-soft);
   color: var(--primary);
-  border-color: var(--primary);
+}
+
+.quran-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quran-nav__track {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-content: center;
+  justify-items: start;
+  gap: 2px;
+  padding-inline: var(--space-2);
+  text-align: start;
+}
+
+.quran-nav__track-name {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--text-large);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quran-nav__track-position {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.quran-nav__play {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
+}
+
+.quran-nav__expand {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+}
+
+[dir="rtl"] .quran-nav__icon {
+  transform: scaleX(-1);
 }
 
 .quran-back-to-top {
   position: fixed;
-  inset-inline-end: 1rem;
-  bottom: 170px;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--panel);
-  color: var(--primary);
-  box-shadow: 0 3px 12px var(--shadow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
   z-index: 40;
-  transition: transform 150ms;
-}
-
-.quran-back-to-top:hover {
-  transform: translateY(-2px);
+  inset-inline-end: var(--space-4);
+  inset-block-end: calc(var(--dock-offset) + 5rem);
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--primary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
 }
 
 .quran-back-to-top__icon {
@@ -610,401 +517,159 @@
   height: 20px;
 }
 
-.quran-player {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  width: 100%;
-  max-width: 420px;
-  margin-bottom: 0.5rem;
-  min-width: 0;
+.quran-settings-sheet h2,
+.quran-player-sheet h2 {
+  margin: 0;
+  color: var(--text-large);
+  font-size: var(--text-lg);
 }
 
-.quran-player__meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.72rem;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.quran-player__track {
+.quran-sheet__label {
   color: var(--text-small);
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
-.quran-player__reciter {
-  flex-shrink: 0;
-}
-
-.quran-player__range {
-  -webkit-appearance: none;
-  appearance: none;
+.quran-reciter__select {
   width: 100%;
-  height: 4px;
-  border-radius: 999px;
-  background: linear-gradient(to right,
-      var(--primary) 0%,
-      var(--primary) var(--progress, 0%),
-      var(--border) var(--progress, 0%),
-      var(--border) 100%);
+  min-height: 48px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-small);
+  font: inherit;
+}
+
+.quran-sheet__row {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-block-start: 1px solid var(--hairline);
+  color: var(--text-small);
+}
+
+.quran-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.quran-zoom-controls__button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-small);
   cursor: pointer;
 }
 
-.quran-player__range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--primary);
+.quran-zoom-controls__button:disabled {
+  opacity: 0.4;
+}
+
+.quran-zoom-controls__value {
+  min-width: 3rem;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.quran-sheet__toggle {
+  min-height: 48px;
+  border: 0;
+  border-block-start: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--primary);
   cursor: pointer;
+  font: inherit;
+  text-align: start;
 }
 
-.quran-player__range::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
-  border: none;
-  border-radius: 50%;
-  background: var(--primary);
-  cursor: pointer;
-}
-
-.quran-player__range::-moz-range-track {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.quran-player__range:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
+.quran-player__meta,
 .quran-player__time {
   display: flex;
   justify-content: space-between;
-  font-size: 0.68rem;
+  gap: var(--space-3);
   color: var(--muted);
+  font-size: var(--text-sm);
 }
 
-.quran-reciter__select {
-  padding: 0.5rem 2rem 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--hairline);
-  background: var(--panel-2);
-  font: inherit;
+.quran-player__range {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--primary);
   cursor: pointer;
-  min-width: 12rem;
-  color: var(--text-large);
+}
+
+.quran-player__time {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+  .quran-list:not(.quran-list--compact) {
+    padding-block-start: var(--space-4);
+  }
 }
 
 @media (min-width: 1024px) {
   .quran-layout--reader {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
   }
 
-  .quran-layout__reader .quran-container {
-    padding: var(--space-3);
-    padding-bottom: var(--space-4);
-  }
-
-  .quran-layout__reader .quran-nav {
+  .quran-layout__index {
     position: sticky;
-    inset-inline: auto;
-    bottom: var(--space-4);
-    width: min(100%, 30rem);
-    margin: var(--space-4) auto;
+    inset-block-start: calc(var(--header-height) + var(--space-4));
+    display: block;
+    max-height: calc(100dvh - var(--header-height) - var(--space-6));
+    overflow: auto;
+    border-inline-end: 1px solid var(--hairline);
   }
 
-  .quran-layout__reader .quran-back-to-top {
-    inset-inline-end: var(--space-4);
+  .quran-list--compact {
+    width: 100%;
+    padding-inline: var(--space-3);
   }
-}
 
-.quran-list {
-  width: min(100%, 900px);
-  gap: 0.75rem;
-  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem) 3rem;
-}
+  .quran-list--compact .quran-list__header {
+    inset-block-start: 0;
+    grid-template-columns: 1fr;
+    background: var(--bg);
+  }
 
-.quran-list__header {
-  margin-block: 0 0.5rem;
-}
+  .quran-list--compact .quran-list__item {
+    min-height: 58px;
+  }
 
-.quran-list__header h1 {
-  font-size: clamp(1.9rem, 5vw, 2.7rem);
-  letter-spacing: -0.05em;
-}
-
-.quran-list__eyebrow {
-  font-size: var(--text-xs);
-}
-
-.quran-list__search-label {
-  margin-top: 0.5rem;
-  font-size: var(--text-sm);
-}
-
-.quran-list__item {
-  min-height: 76px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-base) var(--ease-standard),
-    background-color var(--duration-base) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.quran-list__item:hover {
-  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-  box-shadow: var(--shadow-md);
-}
-
-.quran-list__item:active {
-  transform: scale(0.995);
-}
-
-.quran-list__item:focus-visible,
-.quran-back:focus-visible,
-.quran-translation-toggle:focus-visible,
-.quran-view-toggle__btn:focus-visible,
-.quran-reciter__chip:focus-visible,
-.quran-ayah__play:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 3px;
-}
-
-.quran-list__num {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.quran-list__meta {
-  font-size: var(--text-xs);
-}
-
-.quran-container {
-  width: min(100%, 920px);
-  margin-inline: auto;
-  padding: clamp(1rem, 3vw, 2rem);
-  padding-bottom: 320px;
-}
-
-.quran-body {
-  display: grid;
-  gap: var(--space-4);
-  padding: clamp(1rem, 3.5vw, 2rem);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-sm);
-}
-
-.quran-reciter {
-  gap: var(--space-2);
-}
-
-.quran-reciter__label {
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-
-.quran-reciter__select {
-  min-height: 48px;
-  border-radius: var(--radius-md);
-  border-color: var(--border);
-  background-color: var(--surface-2);
-  padding-inline: var(--space-4);
-}
-
-.quran-view-toggle {
-  width: min(100%, 32rem);
-  justify-self: center;
-  border-radius: var(--radius-md);
-}
-
-.quran-view-toggle__btn {
-  border-radius: var(--radius-sm);
-}
-
-.quran-surah-header {
-  padding-block: var(--space-3);
-  border-bottom: 1px solid var(--border);
-}
-
-.quran-surah-header__ar {
-  font-size: 1.65rem;
-}
-
-.quran-bismillah {
-  margin-block: var(--space-2);
-  color: var(--primary);
-}
-
-.quran-ayahs {
-  gap: var(--space-3);
-}
-
-.quran-ayah {
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
-  transition: border-color var(--duration-base) var(--ease-standard),
-    background-color var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-base) var(--ease-standard);
-}
-
-.quran-ayah:hover {
-  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
-  box-shadow: var(--shadow-sm);
-}
-
-.quran-ayah__row {
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.quran-ayah__num {
-  width: 32px;
-  height: 32px;
-  margin-top: 0;
-  flex: 0 0 32px;
-  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
-  background: var(--primary-soft);
-  font-size: var(--text-xs);
-}
-
-.quran-ayah__text {
-  padding-inline: var(--space-2);
-}
-
-.quran-ayah__translation {
-  margin: var(--space-3) 0 0;
-  padding: var(--space-3) var(--space-4) 0;
-  border-top: 1px solid var(--border);
-}
-
-.quran-ayah__ur {
-  line-height: var(--leading-relaxed);
-}
-
-.quran-translation-toggle {
-  min-height: 44px;
-  margin-block: 0;
-  padding-inline: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-}
-
-.quran-nav {
-  z-index: 90;
-  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  left: 50%;
-  right: auto;
-  width: min(calc(100% - 24px), 560px);
-  padding: var(--space-3) var(--space-4);
-  border-radius: 22px;
-  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(18px) saturate(1.2);
-  transform: translateX(-50%);
-}
-
-.quran-nav__row {
-  max-width: none;
-  gap: var(--space-2);
-  padding: 0;
-}
-
-.quran-nav__btn {
-  min-width: 48px;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  box-shadow: none;
-}
-
-.quran-nav__play-surah {
-  border-radius: var(--radius-md);
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.quran-nav__zoom {
-  margin-top: var(--space-2);
-  padding-top: var(--space-2);
-}
-
-.quran-zoom-controls__button {
-  border-radius: var(--radius-sm);
-}
-
-.quran-back-to-top {
-  z-index: 91;
-  bottom: 320px;
-  width: 46px;
-  height: 46px;
-  border-radius: 15px;
-  background: var(--surface-1);
-  box-shadow: var(--shadow-md);
-}
-
-.quran-reading {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--primary-soft) 32%, var(--surface-1));
-  line-height: 1.9;
-}
-
-.quran-reading__ayah {
-  border-radius: 6px;
-}
-
-@media (min-width: 1024px) {
   .quran-container {
-    padding: var(--space-5) var(--space-6) var(--space-6);
-  }
-
-  .quran-layout__reader .quran-container {
-    padding: var(--space-5) var(--space-6) var(--space-6);
-  }
-
-  .quran-layout__reader .quran-nav {
-    left: auto;
-    transform: none;
-    margin-block: var(--space-5);
-  }
-
-  .quran-back-to-top {
-    bottom: var(--space-6);
-  }
-}
-
-@media (max-width: 480px) {
-  .quran-body {
-    padding: var(--space-3);
+    padding-block-end: calc(var(--dock-offset) + 7rem);
   }
 
   .quran-nav {
-    width: min(calc(100% - 16px), 560px);
-    padding: var(--space-2) var(--space-3);
+    inset-block-end: var(--space-4);
   }
+}
 
-  .quran-nav__play-surah {
-    padding-inline: var(--space-2);
-    font-size: var(--text-xs);
+@media (max-width: 1023px) {
+  .quran-layout--reader .quran-layout__index {
+    display: none;
   }
+}
 
-  .quran-back-to-top {
-    inset-inline-end: var(--space-3);
-    bottom: 310px;
+@media (prefers-reduced-motion: reduce) {
+  .quran-nav,
+  .quran-list__item,
+  .quran-ayah__play {
+    transition: none;
   }
 }

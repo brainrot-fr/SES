@@ -14,6 +14,12 @@ export default {
   toLightMode: "Switch to light mode",
   toDarkMode: "Switch to dark mode",
   changeLang: "Change Language",
+  settingsLanguageEnglish: "English",
+  settingsLanguageUrdu: "Urdu",
+  settingsChangePhoto: "Change photo",
+  entryBrandVerseArabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+  entryBrandVerse: "Indeed, with hardship comes ease.",
+  entryBrandReference: "Ash-Sharh · 94:6",
   switchToEnglish: "Switch to English",
   switchToUrdu: "Switch to Urdu",
 
@@ -42,6 +48,7 @@ export default {
   dashboardIslamicDateRetry: "Try again",
   dashboardWelcome: "Assalamu alaikum",
   dashboardWelcomeNamed: "Assalamu alaikum, {username}",
+  dashboardContinue: "Continue",
   dashboardAyahOfDay: "Ayah of the day",
   dashboardOpenAyah: "Open",
   dashboardReadQuran: "Read in Quran",
@@ -70,6 +77,7 @@ export default {
   nextNaql: "Next Naql",
   goToNaql: "Go to naql number",
   naqlQuickJump: "Quick jump",
+  naqlNumberPicker: "Choose a naql",
 
   /* Timeline */
   tlName: "Imam Mahdi A.S",
@@ -105,6 +113,8 @@ export default {
   quranNextSurahLabel: "Next Surah",
 
   quranReciter: "Reciter",
+  quranReaderSettings: "Reading settings",
+  quranContinue: "Continue",
   quranShowTranslation: "Show Translation",
   quranHideTranslation: "Hide Translation",
 
@@ -122,11 +132,9 @@ export default {
 
   /* Social */
   navReels: "Reels",
-  socialEyebrow: "Your community",
   socialCreatePost: "Create a post",
   socialViewLabel: "Community content",
   socialPostsTab: "Posts",
-  socialIntro: "Share reflections and media with the community.",
   reelsIntro: "Short moments and reflections from the community.",
   reelsEmpty: "No video reels yet. Share a video to start the collection.",
   reelsCreatePost: "Create a post",
@@ -163,9 +171,6 @@ export default {
   reelsSoundOff: "Muted",
   reelsSoundOn: "Sound",
   reelsCommunityNote: "Faith • Learning • Community",
-  reelsUploadEyebrow: "Share something beneficial",
-  reelsUploadTitle: "Create a reel",
-  reelsUploadHint: "Share a short reminder, recitation, lesson, or moment from community life.",
   reelsVideoOnly: "Choose a video to create a reel. Images can be shared in Posts.",
   reelsVideoPreview: "Video preview",
   reelsChooseVideo: "Choose a video",
@@ -283,7 +288,6 @@ export default {
   settingsLoading: "Loading…",
   settingsAnonymousDesc:
     "You're using this app anonymously. Back up your data with an email, or sign in to an existing account.",
-  settingsSignedInAs: "Signed in as",
 
   signInMenuLabel: "Sign in to existing account",
   signInTitle: "Sign in",
@@ -293,7 +297,6 @@ export default {
   signInSubmit: "Sign in",
   signInSubmitting: "Signing in…",
   signInError: "Could not sign in. Check your email and password.",
-  authRequiredEyebrow: "Account required",
   authRequiredTitle: "Sign in to continue",
   authRequiredDescription: "Create an account or sign in to use Nuqool and keep your account available across devices.",
   authModeLabel: "Account action",
@@ -319,11 +322,9 @@ export default {
   settingsDeleteConfirm: "Delete permanently",
   settingsDeleteCancel: "Keep account",
   settingsActionError: "This action could not be completed. Please try again.",
-  settingsProfileTitle: "Social profile",
   settingsDisplayName: "Display name",
   settingsDisplayNamePlaceholder: "Name shown on your posts",
   settingsAvatar: "Profile photo",
-  settingsChooseAvatar: "Choose photo",
   settingsRemoveAvatar: "Remove photo",
   settingsSaveProfile: "Save profile",
   settingsProfileSaved: "Your profile was updated.",

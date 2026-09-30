@@ -1,38 +1,73 @@
 .post-create-page {
   width: min(100%, 760px);
-  margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2rem);
+  min-height: calc(100dvh - var(--header-height));
+  margin-inline: auto;
+  padding: 0 0 calc(var(--dock-offset) + 4rem);
 }
 
 .post-create-page__header {
+  position: sticky;
+  z-index: 20;
+  inset-block-start: 0;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  min-height: 60px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  padding: 0.45rem var(--page-gutter);
+  border-block-end: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  backdrop-filter: blur(16px);
 }
 
 .post-create-page__header h1 {
   margin: 0;
   color: var(--text-large);
-  font-size: clamp(1.35rem, 4vw, 1.8rem);
+  font-size: 1rem;
   line-height: 1.2;
 }
 
-.post-create-page__header .social-feed__eyebrow {
-  margin: 0 0 0.25rem;
+.post-create-page__submit {
+  min-width: 64px;
+  min-height: 44px;
+  padding-inline: 0.9rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.post-create-page__form {
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-md);
+.post-create-page__submit:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
 
-@media (min-width: 768px) {
-  .post-create-page {
-    padding-top: 2rem;
+.post-create-page .social-composer {
+  padding-block-start: var(--space-5);
+}
+
+.post-create-page .social-composer__meta {
+  position: fixed;
+  z-index: 90;
+  inset-inline: 0;
+  inset-block-end: var(--dock-offset);
+  min-height: 56px;
+  margin: 0;
+  padding: 0.4rem var(--page-gutter);
+  border-block-start: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-1) 94%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+@media (min-width: 1024px) {
+  .post-create-page__header {
+    inset-block-start: var(--header-height);
+  }
+
+  .post-create-page .social-composer__meta {
+    inset-block-end: 0;
   }
 }

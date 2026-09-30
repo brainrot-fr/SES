@@ -27,11 +27,15 @@ export default function PostComposer({ onCreate }) {
     }
   };
 
+  const avatar = user?.user_metadata?.avatar_url;
+  const initial = (user?.user_metadata?.display_name || user?.email || "?").slice(0, 1).toUpperCase();
+
   return (
-    <form className="social-composer" onSubmit={submit}>
-      <label className="social-composer__label" htmlFor="social-post-body">
-        {t("socialSharePrompt")}
-      </label>
+    <form id="social-post-compose-form" className="social-composer" onSubmit={submit}>
+      <div className="social-composer__entry">
+        {avatar
+          ? <img className="social-composer__avatar" src={avatar} alt="" />
+          : <span className="social-composer__avatar social-composer__avatar--initial" aria-hidden="true">{initial}</span>}
       <textarea
         id="social-post-body"
         value={body}
@@ -40,12 +44,12 @@ export default function PostComposer({ onCreate }) {
         rows={5}
         maxLength={2000}
         disabled={busy}
+        required
       />
-      <p className="social-composer__notice">{t("socialVisibilityNotice")}</p>
-      <div className="social-composer__controls">
-        <button type="submit" disabled={!body.trim() || busy}>
-          {busy ? t("socialPosting") : t("socialPost")}
-        </button>
+      </div>
+      <div className="social-composer__meta">
+        <p className="social-composer__notice">{t("socialVisibilityNotice")}</p>
+        <span className="social-composer__count" aria-live="polite">{body.length}/2000</span>
       </div>
       {error && <p className="social-error" role="alert">{error}</p>}
     </form>

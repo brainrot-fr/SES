@@ -1,145 +1,130 @@
 .tl-root {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem) 3rem;
+  max-width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .tl-root {
-    max-width: none;
-    padding-inline: var(--space-8);
-  }
-
-  .tl-card:active {
-    transform: translateX(2px) scale(0.995);
-  }
+.tl-split {
+  max-width: var(--content-width);
+  margin-inline: auto;
 }
 
-/* ── Hero ── */
 .tl-hero {
-  text-align: center;
-  padding-bottom: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-5) 0;
 }
 
 .tl-hero__name {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 700;
+  margin: 0;
   color: var(--text-large);
-  margin: 0 0 0.35rem;
+  font-size: clamp(1.75rem, 4vw, 2.6rem);
   letter-spacing: -0.04em;
 }
 
 .tl-hero__span {
-  font-size: var(--text-sm);
+  margin: var(--space-2) 0 0;
   color: var(--muted);
-  letter-spacing: 0.12em;
-  margin: 0;
+  font-size: var(--text-sm);
 }
 
 .tl-list {
   display: grid;
-  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .tl-item {
-  position: relative;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: var(--space-3);
+  grid-template-columns: minmax(5rem, 7rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  min-width: 0;
 }
 
-.tl-item:not(:last-child)::before {
+.tl-item__rail {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+}
+
+.tl-item__rail::before {
   position: absolute;
   inset-block: 0;
-  inset-inline-start: 10px;
-  width: 2px;
-  background: color-mix(in srgb, var(--primary) 38%, var(--border));
+  inset-inline-end: 6px;
+  width: 1px;
+  background: var(--hairline);
   content: "";
 }
 
+.tl-item:last-child .tl-item__rail::before {
+  inset-block-end: 50%;
+}
+
+.tl-item__year {
+  color: var(--muted);
+  font-size: clamp(1.15rem, 3vw, 1.65rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .tl-item__marker {
+  position: relative;
   z-index: 1;
-  width: 14px;
-  height: 14px;
-  margin: var(--space-5) auto 0;
-  border: 2px solid var(--bg);
-  border-radius: var(--radius-pill);
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  margin-block-start: 0.35rem;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
   background: var(--primary);
-  outline: 2px solid var(--primary);
+  outline: 1px solid var(--primary);
 }
 
 .tl-item__content {
-  min-width: 0;
-  padding-block: var(--space-2);
-}
-
-.tl-card {
   display: block;
   width: 100%;
-  text-align: left;
-  font: inherit;
+  min-width: 0;
+  padding: var(--space-4) 0;
+  border: 0;
+  border-block-end: 1px solid var(--hairline);
+  background: transparent;
   color: inherit;
+  font: inherit;
+  text-align: start;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-inline-start: 3px solid var(--primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4) var(--space-5);
-  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
-.tl-card:hover,
-.tl-card:focus-visible {
-  box-shadow: var(--shadow-md);
-  transform: translateX(3px);
-  border-inline-start-color: var(--primary-2);
-}
-
-.tl-card:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
-.tl-card__year {
-  display: block;
-  font-size: var(--text-xs);
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  margin-bottom: 0.3rem;
-}
-
-.tl-card__title {
-  margin: 0 0 0.35rem;
-  font-size: var(--text-lg);
-  font-weight: 600;
+.tl-item__title {
+  margin: 0 0 var(--space-2);
   color: var(--text-large);
+  font-size: var(--text-lg);
+  font-weight: 650;
   line-height: 1.4;
 }
 
-.tl-card__summary {
-  margin: 0 0 0.55rem;
-  font-size: var(--text-sm);
+.tl-item__summary {
+  margin: 0;
   color: var(--text-small);
-  line-height: 1.6;
+  font-size: var(--text-sm);
+  line-height: 1.65;
 }
 
-.tl-card__cta {
+.tl-item__cta {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: var(--space-1);
+  margin-block-start: var(--space-2);
+  color: var(--primary);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--primary);
-  opacity: 0.8;
 }
 
-/* ── Dialog content (the Paper root itself is styled via sx in the JSX) ── */
+.tl-item__content:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
 .tl-dialog__header {
   display: flex;
   align-items: center;
@@ -149,31 +134,25 @@
 }
 
 .tl-dialog__year {
-  font-size: 0.75rem;
   color: var(--muted);
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .tl-dialog__close {
-  flex-shrink: 0;
+  display: grid;
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  border: 0;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--panel-2);
+  background: transparent;
   color: var(--text-small);
   cursor: pointer;
-  font-size: 0.8rem;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 150ms, border-color 150ms, color 150ms;
 }
 
 .tl-dialog__close:hover {
-  background: var(--panel-2);
-  border-color: var(--primary);
   color: var(--primary);
 }
 
@@ -184,11 +163,11 @@
 
 .tl-dialog__title {
   margin: 0 1.25rem 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
+  padding-block-end: 0.75rem;
+  border-block-end: 1px solid var(--hairline);
+  color: var(--text-large);
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-large);
 }
 
 .tl-dialog__body {
@@ -200,14 +179,14 @@
 }
 
 .tl-dialog__body p {
-  color: var(--text-small);
-  line-height: 1.8;
   margin: 0 0 0.9rem;
+  color: var(--text-small);
   font-size: var(--text-base);
+  line-height: 1.8;
 }
 
 .tl-dialog__body p:last-child {
-  margin-bottom: 0;
+  margin-block-end: 0;
 }
 
 .tl-dialog__body strong {
@@ -220,8 +199,15 @@
   font-weight: 600;
 }
 
+@media (min-width: 1024px) {
+  .tl-hero {
+    min-height: 16rem;
+    padding-block-start: var(--space-8);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .tl-card {
+  .tl-item__content {
     transition: none;
   }
 }

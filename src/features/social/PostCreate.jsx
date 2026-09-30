@@ -25,15 +25,10 @@ export default function PostCreate() {
     >
       <header className="post-create-page__header">
         <IconButton icon="back" label={t("goBack")} onClick={() => navigate("/social")} />
-        <div>
-          <p className="social-feed__eyebrow">{t("socialEyebrow")}</p>
-          <h1 id="post-create-title">{t("socialCreatePost")}</h1>
-        </div>
-        <span aria-hidden="true" />
+        <h1 id="post-create-title">{t("socialCreatePost")}</h1>
+        <button className="post-create-page__submit" type="submit" form="social-post-compose-form">{t("socialPost")}</button>
       </header>
-      <div className="post-create-page__form">
-        <PostComposer onCreate={handleCreate} />
-      </div>
+      <PostComposer onCreate={handleCreate} />
     </motion.section>
   );
 }

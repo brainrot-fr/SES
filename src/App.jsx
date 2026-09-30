@@ -36,36 +36,25 @@ const SocialFeed = lazy(() => import("./features/social/SocialFeed"));
 const ReelUpload = lazy(() => import("./features/social/ReelUpload"));
 const PostCreate = lazy(() => import("./features/social/PostCreate"));
 
-const MurshidIcon = () => <AppIcon name="murshid" size={20} />;
-
-const HomeIcon = () => <AppIcon name="home" size={20} />;
-
-const BookIcon = () => <AppIcon name="quran" size={20} />;
-
-const ScrollIcon = () => <AppIcon name="nuqool" size={20} />;
-
-const ClockIcon = () => <AppIcon name="timeline" size={20} />;
-
-const MoreIcon = () => <AppIcon name="settings" size={20} />;
-
-const SocialIcon = () => <AppIcon name="social" size={20} />;
-
 function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
-  const renderItem = (it) => (
+  const renderItem = (it) => {
+    const active = activePage === it.id;
+    return (
     <motion.button
       type="button"
       key={it.id}
-      className={`bottom-nav__item ${activePage === it.id ? "bottom-nav__item--active" : ""}`}
+      className={`bottom-nav__item${active ? " bottom-nav__item--active" : ""}`}
       onClick={() => onNavigate(it.id)}
-      aria-current={activePage === it.id ? "page" : undefined}
+      aria-current={active ? "page" : undefined}
       aria-label={it.label}
       whileTap={{ scale: 0.94 }}
       transition={{ duration: 0.14 }}
     >
-      <span className="bottom-nav__icon">{it.icon}</span>
+      <span className="bottom-nav__icon"><AppIcon name={it.iconName} size={22} filled={active} /></span>
       <span className="bottom-nav__label">{it.label}</span>
     </motion.button>
-  );
+    );
+  };
 
   return (
     <nav className="bottom-nav" aria-label={label} inert={inert}>
@@ -252,14 +241,14 @@ export default function App() {
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
-    { id: "dashboard", label: t("navDashboard"), icon: <HomeIcon />, navIcon: homeNavIcon },
-    { id: "quran", label: t("navQuran"), icon: <BookIcon />, navIcon: quranNavIcon },
-    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon />, navIcon: nuqoolNavIcon },
-    { id: "reels", label: t("navReels"), icon: <AppIcon name="reels" size={20} />, navIcon: reelsNavIcon },
-    { id: "social", label: t("navSocial"), icon: <SocialIcon />, navIcon: socialNavIcon },
-    { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon />, navIcon: murshidNavIcon },
-    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon />, navIcon: timelineNavIcon },
-    { id: "settings", label: t("titleSettings"), icon: <MoreIcon />, navIcon: settingsNavIcon },
+    { id: "dashboard", label: t("navDashboard"), iconName: "home", navIcon: homeNavIcon },
+    { id: "quran", label: t("navQuran"), iconName: "quran", navIcon: quranNavIcon },
+    { id: "nuqool", label: t("navNuqool"), iconName: "nuqool", navIcon: nuqoolNavIcon },
+    { id: "reels", label: t("navReels"), iconName: "reels", navIcon: reelsNavIcon },
+    { id: "social", label: t("navSocial"), iconName: "social", navIcon: socialNavIcon },
+    { id: "murshid", label: t("navMurshid"), iconName: "murshid", navIcon: murshidNavIcon },
+    { id: "timeline", label: t("navTimeline"), iconName: "timeline", navIcon: timelineNavIcon },
+    { id: "settings", label: t("titleSettings"), iconName: "settings", navIcon: settingsNavIcon },
   ];
 
   const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "reels", "social"].includes(it.id));

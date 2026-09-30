@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import QuranSurahList from './QuranSurahList';
 import QuranReader from './QuranReader';
+import { QURAN_SURAH_LIST } from './quranApi';
 
 const STORAGE_KEY = 'ses-current-surah';
 
@@ -32,6 +33,14 @@ export default function Quran({
 
   return (
     <div className="quran-layout quran-layout--reader">
+      <aside className="quran-layout__index">
+        <QuranSurahList
+          onOpenSurah={setSelectedSurah}
+          activeSurah={selectedSurah}
+          compact
+          initialSurahs={QURAN_SURAH_LIST}
+        />
+      </aside>
       <div className="quran-layout__reader">
         <QuranReader
           key={`${selectedSurah}-${selectedAyah || ""}`}

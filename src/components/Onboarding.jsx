@@ -8,9 +8,8 @@
 
 import { useState } from 'react';
 import { useLang } from '../context/LanguageContext';
-import AppIcon from './icons/AppIcon';
 import Button from './ui/Button';
-import Card from './ui/Card';
+import EntryBrand from './layout/EntryBrand';
 import './Onboarding.css';
 
 export default function Onboarding() {
@@ -19,12 +18,9 @@ export default function Onboarding() {
 
   return (
     <main className="ob-root">
-      <Card className="ob-card">
-        <span className="ob-mark" aria-hidden="true"><AppIcon name="nuqool" size={32} /></span>
-        <h1 className="ob-title">{t("appTitle")}</h1>
-        <p className="ob-title-ur" lang="ur" dir="rtl">
-          نقول امام مہدی علیہ السلام
-        </p>
+      <EntryBrand />
+      <section className="ob-content" aria-labelledby="onboarding-title">
+        <h1 className="ob-title" id="onboarding-title">{t("appTitle")}</h1>
         <p
           className="ob-purpose"
           lang={selected}
@@ -41,7 +37,8 @@ export default function Onboarding() {
             className={`ob-option${selected === 'en' ? ' ob-option--active' : ''}`}
             aria-pressed={selected === 'en'}
           >
-            {t("obEnglish")}
+            <span className="ob-option__code" aria-hidden="true">EN</span>
+            <span>{t("obEnglish")}</span>
           </Button>
           <Button
             type="button"
@@ -65,7 +62,7 @@ export default function Onboarding() {
         >
           {t(selected === 'ur' ? "obContinueUr" : "obContinueEn")}
         </Button>
-      </Card>
+      </section>
     </main>
   );
 }

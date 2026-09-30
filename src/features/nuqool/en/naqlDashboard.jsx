@@ -14,6 +14,10 @@ import { nuqoolObject } from './nuqool.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 import { useLang } from '../../../context/LanguageContext.jsx';
 import { PrevIcon, NextIcon } from '../../../components/icons/MediaIcons.jsx';
+import Page from '../../../components/layout/Page.jsx';
+import Split from '../../../components/layout/Split.jsx';
+import RowList from '../../../components/layout/RowList.jsx';
+import Sheet from '../../../components/layout/Sheet.jsx';
 
 /*
  * When you have Urdu naql content ready:
@@ -39,8 +43,9 @@ export default function NaqlDashboard({ openNaqlRequest }) {
     const n = parseInt(localStorage.getItem(STORAGE_KEY), 10);
     return !isNaN(n) && n >= 1 && n <= TOTAL ? n : 1;
   });
-  const [inputVal, setInputVal] = useState(String(currentNaql));
+  const [numberPickerOpen, setNumberPickerOpen] = useState(false);
   const topRef = useRef(null);
+  const touchStartX = useRef(null);
   const actionMotion = shouldReduceMotion
     ? {}
     : { whileHover: { y: -1 }, whileTap: { scale: 0.96 } };
@@ -57,7 +62,6 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   useEffect(() => {
     /* Persist the selected Naql number so it is restored on the next visit. */
     localStorage.setItem(STORAGE_KEY, String(currentNaql));
-    setInputVal(String(currentNaql));
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [currentNaql]);
 
@@ -66,114 +70,122 @@ export default function NaqlDashboard({ openNaqlRequest }) {
     if (openNaqlRequest?.number) goTo(openNaqlRequest.number);
   }, [openNaqlRequest, goTo]);
 
-  const commitInput = () => {
-    const n = parseInt(inputVal, 10);
-    if (!isNaN(n)) goTo(n);
-    else setInputVal(String(currentNaql));
+  const handleTouchStart = (event) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
   };
 
-  return (
-    <section className="naql-container" aria-labelledby="naql-title">
-      <div ref={topRef} className="naql-scroll-anchor" />
+  const handleTouchEnd = (event) => {
+    if (touchStartX.current == null) return;
+    const delta = event.changedTouches[0]?.clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(delta) < 60) return;
+    const isRtl = document.documentElement.dir === 'rtl';
+    goTo(currentNaql + ((delta < 0) !== isRtl ? 1 : -1));
+  };
 
-      <article className="naql-body">
-        <h1 className="bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={currentNaql}
-            className="naql-reading"
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
-            transition={readingTransition}
+  const indexRail = (
+    <nav className="naql-index" aria-label={t('naqlNumberPicker')}>
+      <RowList className="naql-index__list">
+        {Array.from({ length: TOTAL }, (_, index) => index + 1).map((number) => (
+          <button
+            key={number}
+            type="button"
+            className={`naql-index__item${currentNaql === number ? ' naql-index__item--active' : ''}`}
+            onClick={() => goTo(number)}
+            aria-current={currentNaql === number ? 'page' : undefined}
           >
-            <h2 id="naql-title" className="naql-title" aria-live="polite">
-              {t('naql')} {currentNaql}
-            </h2>
-            <div className="naql-content">
-              {naqlContent[currentNaql]}
-              {nuqoolKhulasaObject[currentNaql] ?? null}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </article>
+            {number}
+          </button>
+        ))}
+      </RowList>
+    </nav>
+  );
+
+  return (
+    <Page as="section" className="naql-container" aria-labelledby="naql-title">
+      <div ref={topRef} className="naql-scroll-anchor" />
+      <Split className="naql-layout" rail={indexRail}>
+        <article className="naql-reading-column" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <h1 className="bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</h1>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={currentNaql}
+              className="naql-reading"
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -4 }}
+              transition={readingTransition}
+            >
+              <h2 id="naql-title" className="naql-title" aria-live="polite">
+                {currentNaql}
+              </h2>
+              <div className="naql-content">
+                {naqlContent[currentNaql]}
+                {nuqoolKhulasaObject[currentNaql] ?? null}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </article>
+      </Split>
 
       <nav className="naql-nav" aria-label={t('naqlQuickJump')}>
-        {/* Row 1: prev / input / next */}
-        <div className="naql-nav__row naql-nav__main">
-          <motion.button
-            type="button"
-            className="naql-nav__btn"
-            onClick={() => goTo(currentNaql - 1)}
-            disabled={currentNaql === 1}
-            aria-label={t('prevNaql')}
-            transition={readingTransition}
-            {...actionMotion}
-          >
-            <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
-          </motion.button>
-
-          <div className="naql-nav__position">
-            <input
-              className="naql-nav__input"
-              type="number"
-              min={1}
-              max={TOTAL}
-              value={inputVal}
-              onChange={e => setInputVal(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && commitInput()}
-              onBlur={commitInput}
-              aria-label={t('goToNaql')}
-            />
-            <span className="naql-nav__sep">/ {TOTAL}</span>
-          </div>
-
-          <motion.button
-            type="button"
-            className="naql-nav__btn"
-            onClick={() => goTo(currentNaql + 1)}
-            disabled={currentNaql === TOTAL}
-            aria-label={t('nextNaql')}
-            transition={readingTransition}
-            {...actionMotion}
-          >
-            <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
-          </motion.button>
-        </div>
-
-        <details className="naql-nav__jump-menu">
-          <summary>{t('naqlQuickJump')}</summary>
-          <div className="naql-nav__row naql-nav__jumps">
-            {[-50, -10, -5].map(n => (
-              <motion.button
-                type="button"
-                key={n}
-                className="naql-nav__jump"
-                onClick={() => goTo(currentNaql + n)}
-                disabled={currentNaql + n < 1}
-                transition={readingTransition}
-                {...actionMotion}
-              >
-                {n}
-              </motion.button>
-            ))}
-            <div className="naql-nav__divider" aria-hidden="true" />
-            {[5, 10, 50].map(n => (
-              <motion.button
-                type="button"
-                key={n}
-                className="naql-nav__jump"
-                onClick={() => goTo(currentNaql + n)}
-                disabled={currentNaql + n > TOTAL}
-                transition={readingTransition}
-                {...actionMotion}
-              >
-                +{n}
-              </motion.button>
-            ))}
-          </div>
-        </details>
+        <motion.button
+          type="button"
+          className="naql-nav__btn"
+          onClick={() => goTo(currentNaql - 1)}
+          disabled={currentNaql === 1}
+          aria-label={t('prevNaql')}
+          transition={readingTransition}
+          {...actionMotion}
+        >
+          <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
+        </motion.button>
+        <button
+          type="button"
+          className="naql-nav__position"
+          onClick={() => setNumberPickerOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={t('naqlNumberPicker')}
+        >
+          <span>{currentNaql}</span><span className="naql-nav__sep">/ {TOTAL}</span>
+        </button>
+        <motion.button
+          type="button"
+          className="naql-nav__btn"
+          onClick={() => goTo(currentNaql + 1)}
+          disabled={currentNaql === TOTAL}
+          aria-label={t('nextNaql')}
+          transition={readingTransition}
+          {...actionMotion}
+        >
+          <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
+        </motion.button>
       </nav>
-    </section>
+
+      <Sheet
+        open={numberPickerOpen}
+        onClose={() => setNumberPickerOpen(false)}
+        labelledBy="naql-picker-title"
+        className="naql-picker"
+      >
+        <h2 id="naql-picker-title">{t('naqlNumberPicker')}</h2>
+        <div className="naql-picker__grid">
+          {Array.from({ length: TOTAL }, (_, index) => index + 1).map((number) => (
+            <button
+              key={number}
+              type="button"
+              className={`naql-picker__number${currentNaql === number ? ' naql-picker__number--active' : ''}`}
+              aria-current={currentNaql === number ? 'true' : undefined}
+              onClick={() => {
+                goTo(number);
+                setNumberPickerOpen(false);
+              }}
+            >
+              {number}
+            </button>
+          ))}
+        </div>
+      </Sheet>
+    </Page>
   );
 }

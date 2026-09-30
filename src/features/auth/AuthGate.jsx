@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
-import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import TextField from '../../components/ui/TextField';
 import AppIcon from '../../components/icons/AppIcon';
+import EntryBrand from '../../components/layout/EntryBrand';
 
 export default function AuthGate() {
   const { t, lang } = useLang();
@@ -59,16 +59,10 @@ export default function AuthGate() {
 
   return (
     <main className="auth-gate">
-      <Card as="section" className="auth-gate__card">
-        <p className="auth-gate__eyebrow">
-          {t('authRequiredEyebrow')}
-        </p>
-        <h1 className="auth-gate__title">
-          {t('authRequiredTitle')}
-        </h1>
-        <p className="auth-gate__description">
-          {t('authRequiredDescription')}
-        </p>
+      <EntryBrand />
+      <section className="auth-gate__form-panel" aria-labelledby="auth-gate-title">
+        <h1 className="auth-gate__title" id="auth-gate-title">{t('authRequiredTitle')}</h1>
+        <p className="auth-gate__description">{t('authRequiredDescription')}</p>
 
         <div className="auth-gate__tabs" role="tablist" aria-label={t('authModeLabel')}>
           <button
@@ -174,7 +168,7 @@ export default function AuthGate() {
         <p className="auth-gate__notice" lang={lang}>
           {t('authDataNotice')}
         </p>
-      </Card>
+      </section>
     </main>
   );
 }

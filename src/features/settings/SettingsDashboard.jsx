@@ -11,6 +11,8 @@ import { useAuth } from "../../context/AuthContext";
 import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import Group from "../../components/layout/Group";
+import Row from "../../components/layout/Row";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
 import { updateSocialProfile } from "../social/postsApi";
 import "./settingsdashboard.css";
@@ -117,148 +119,128 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
 
   return (
     <div className="settings-dashboard">
-      {/* ── Account ── */}
-      <section className="settings-dashboard__section">
-        <h2 className="settings-dashboard__heading">
-          <span className="settings-dashboard__heading-icon" aria-hidden="true">
-            <AppIcon name="user" size={19} />
-          </span>
-          <span>{t("settingsAccount")}</span>
-        </h2>
-
-        {!ready ? (
-          <p className="settings-dashboard__muted">{t("settingsLoading")}</p>
-        ) : (
-          <div className="settings-dashboard__account">
-            {isAnonymous ? (
-              <p className="settings-dashboard__muted">{t("settingsAnonymousDesc")}</p>
+      {user && (
+        <form className="settings-profile" onSubmit={handleProfileSave}>
+          <div className="settings-profile__avatar-row">
+            {(avatarPreview || (!removeAvatar && avatarUrl)) ? (
+              <img src={avatarPreview || avatarUrl} alt="" className="settings-profile__avatar" />
             ) : (
-              <>
-                <p className="settings-dashboard__muted">{t("settingsSignedInAs")}</p>
-                <p className="settings-dashboard__email">{user?.email}</p>
-              </>
+              <span className="settings-profile__avatar settings-profile__avatar--empty" aria-hidden="true">
+                {displayName.slice(0, 1).toUpperCase()}
+              </span>
             )}
-            {user && (
-              <form className="settings-profile" onSubmit={handleProfileSave}>
-                <h3>{t("settingsProfileTitle")}</h3>
-                <label htmlFor="settings-display-name">{t("settingsDisplayName")}</label>
-                <input
-                  id="settings-display-name"
-                  type="text"
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder={t("settingsDisplayNamePlaceholder")}
-                  maxLength={40}
-                  autoComplete="name"
+            <div className="settings-profile__avatar-actions">
+              <input
+                ref={avatarInputRef}
+                className="settings-profile__file"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                disabled={profileBusy}
+                aria-label={t("settingsAvatar")}
+              />
+              <button type="button" className="settings-profile__link" disabled={profileBusy} onClick={() => avatarInputRef.current?.click()}>
+                {t("settingsChangePhoto")}
+              </button>
+              {(avatarUrl || avatarFile) && (
+                <button
+                  type="button"
+                  className="settings-profile__link"
                   disabled={profileBusy}
-                  required
-                />
-                <div className="settings-profile__avatar-row">
-                  {(avatarPreview || (!removeAvatar && avatarUrl)) ? (
-                    <img src={avatarPreview || avatarUrl} alt="" className="settings-profile__avatar" />
-                  ) : (
-                    <span className="settings-profile__avatar settings-profile__avatar--empty" aria-hidden="true">
-                      {displayName.slice(0, 1).toUpperCase()}
-                    </span>
-                  )}
-                  <div className="settings-profile__avatar-actions">
-                    <input
-                      ref={avatarInputRef}
-                      className="settings-profile__file"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      disabled={profileBusy}
-                      aria-label={t("settingsAvatar")}
-                    />
-                    <Button type="button" variant="secondary" disabled={profileBusy} onClick={() => avatarInputRef.current?.click()}>
-                      {t("settingsChooseAvatar")}
-                    </Button>
-                    {(avatarUrl || avatarFile) && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={profileBusy}
-                        onClick={() => {
-                          setAvatarFile(null);
-                          if (avatarInputRef.current) avatarInputRef.current.value = "";
-                          setRemoveAvatar(true);
-                        }}
-                      >
-                        {t("settingsRemoveAvatar")}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                {profileError && <p className="settings-dashboard__error" role="alert">{profileError}</p>}
-                {profileSuccess && <p className="settings-profile__success" role="status">{profileSuccess}</p>}
-                <Button type="submit" busy={profileBusy} fullWidth>{t("settingsSaveProfile")}</Button>
-              </form>
-            )}
-            <div className="settings-dashboard__actions">
-              <Button
-                type="button"
-                busy={accountBusy}
-                variant="secondary"
-                fullWidth
-                onClick={handleSignOut}
-              >
-                {t("settingsLogout")}
-              </Button>
-              <Button
-                type="button"
-                disabled={accountBusy}
-                variant="ghost"
-                fullWidth
-                className="settings-dashboard__delete"
-                onClick={() => { setAccountError(""); setDeleteDialogOpen(true); }}
-              >
-                {t("settingsDeleteAccount")}
-              </Button>
+                  onClick={() => {
+                    setAvatarFile(null);
+                    if (avatarInputRef.current) avatarInputRef.current.value = "";
+                    setRemoveAvatar(true);
+                  }}
+                >
+                  {t("settingsRemoveAvatar")}
+                </button>
+              )}
             </div>
-            {accountError && <p className="settings-dashboard__error" role="alert">{accountError}</p>}
           </div>
-        )}
-      </section>
+          <label className="settings-profile__name-label" htmlFor="settings-display-name">{t("settingsDisplayName")}</label>
+          <input
+            id="settings-display-name"
+            className="settings-profile__name"
+            type="text"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+            placeholder={t("settingsDisplayNamePlaceholder")}
+            maxLength={40}
+            autoComplete="name"
+            disabled={profileBusy}
+            required
+          />
+          {profileError && <p className="settings-dashboard__error" role="alert">{profileError}</p>}
+          {profileSuccess && <p className="settings-profile__success" role="status">{profileSuccess}</p>}
+          <Button type="submit" busy={profileBusy} variant="ghost">{t("settingsSaveProfile")}</Button>
+        </form>
+      )}
 
-      {/* ── Preferences ── */}
       <section className="settings-dashboard__section">
-        <h2 className="settings-dashboard__heading">
-          <span className="settings-dashboard__heading-icon" aria-hidden="true">
-            <AppIcon name="settings" size={19} />
-          </span>
-          <span>{t("settingsPreferences")}</span>
-        </h2>
-
-        <div className="settings-dashboard__preferences">
-          <Button
-            variant="secondary"
-            fullWidth
-            className="settings-dashboard__preference"
-            onClick={onThemeToggle}
-          >
-            <span className="settings-dashboard__preference-label">
-              <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
-              {darkMode ? t("toLightMode") : t("toDarkMode")}
-            </span>
-          </Button>
-
-          <Button
-            variant="secondary"
-            fullWidth
-            className="settings-dashboard__preference"
-            onClick={() => chooseLang(lang === "ur" ? "en" : "ur")}
-          >
-            <span className="settings-dashboard__preference-label">
-              <AppIcon name="globe" size={18} />
-              {t("changeLang")}
-            </span>
-            <span className="settings-dashboard__preference-value">
-              {lang === "ur" ? "EN" : "اردو"}
-            </span>
-          </Button>
-        </div>
+        <h2 className="settings-dashboard__heading">{t("settingsAccount")}</h2>
+        <Group className="settings-dashboard__group">
+          {!ready ? (
+            <Row content={<span className="settings-dashboard__muted">{t("settingsLoading")}</span>} />
+          ) : (
+            <>
+              <Row content={isAnonymous
+                ? <span className="settings-dashboard__muted">{t("settingsAnonymousDesc")}</span>
+                : <span className="settings-dashboard__email">{user?.email}</span>} />
+              <Row
+                as="button"
+                type="button"
+                className="settings-dashboard__row-action"
+                content={t("settingsLogout")}
+                trailing={accountBusy ? <span>{t("settingsLoading")}</span> : null}
+                onClick={handleSignOut}
+                disabled={accountBusy}
+              />
+            </>
+          )}
+        </Group>
       </section>
+
+      <section className="settings-dashboard__section">
+        <h2 className="settings-dashboard__heading">{t("settingsPreferences")}</h2>
+        <Group className="settings-dashboard__group">
+          <Row
+            as="label"
+            className="settings-dashboard__preference"
+            content={(
+              <span className="settings-dashboard__preference-label">
+                <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
+                {darkMode ? t("toLightMode") : t("toDarkMode")}
+              </span>
+            )}
+            trailing={(
+              <span className="settings-dashboard__switch">
+                <input type="checkbox" checked={darkMode} onChange={onThemeToggle} aria-label={darkMode ? t("toLightMode") : t("toDarkMode")} />
+                <span aria-hidden="true" />
+              </span>
+            )}
+          />
+          <Row
+            className="settings-dashboard__preference"
+            content={<span className="settings-dashboard__preference-label"><AppIcon name="globe" size={19} />{t("changeLang")}</span>}
+            trailing={(
+              <div className="settings-dashboard__language" role="group" aria-label={t("changeLang")}>
+                <button type="button" aria-label={t("settingsLanguageEnglish")} aria-pressed={lang === "en"} onClick={() => chooseLang("en")}>EN</button>
+                <button type="button" aria-label={t("settingsLanguageUrdu")} aria-pressed={lang === "ur"} onClick={() => chooseLang("ur")}>اردو</button>
+              </div>
+            )}
+          />
+        </Group>
+      </section>
+      <button
+        type="button"
+        disabled={accountBusy}
+        className="settings-dashboard__delete"
+        onClick={() => { setAccountError(""); setDeleteDialogOpen(true); }}
+      >
+        {t("settingsDeleteAccount")}
+      </button>
+      {accountError && <p className="settings-dashboard__error" role="alert">{accountError}</p>}
 
       <Modal
         open={deleteDialogOpen}

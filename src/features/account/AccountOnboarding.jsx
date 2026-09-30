@@ -6,6 +6,7 @@ import {
 } from "framer-motion";
 import { useAccountProfile } from "./AccountProfileProvider";
 import { useLang } from "../../context/LanguageContext";
+import EntryBrand from "../../components/layout/EntryBrand";
 import "./accountOnboarding.css";
 
 const COUNTRY_CODES = `
@@ -125,22 +126,21 @@ export default function AccountOnboarding() {
 
   return (
     <main className="account-onboarding">
+      <div
+        className="account-onboarding__progress"
+        role="progressbar"
+        aria-label={t("accountProfileProgress").replace("{step}", String(stepNumber))}
+        aria-valuemin="1"
+        aria-valuemax="3"
+        aria-valuenow={stepNumber}
+      >
+        <span style={{ width: `${(stepNumber / 3) * 100}%` }} />
+      </div>
+      <EntryBrand />
       <section
-        className="account-onboarding__card"
+        className="account-onboarding__form"
         aria-labelledby={titleId}
       >
-        <p className="account-onboarding__eyebrow">{t("accountSetupEyebrow")}</p>
-        <div
-          className="account-onboarding__progress"
-          role="progressbar"
-          aria-label={t("accountProfileProgress").replace("{step}", String(stepNumber))}
-          aria-valuemin="1"
-          aria-valuemax="3"
-          aria-valuenow={stepNumber}
-        >
-          <span style={{ width: `${(stepNumber / 3) * 100}%` }} />
-        </div>
-
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={step}

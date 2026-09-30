@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLang } from "../context/LanguageContext";
 import AppIcon from "./icons/AppIcon";
 
@@ -16,7 +17,6 @@ export default function Sidebar({
   const returnFocusRef = useRef(null);
   const onCloseRef = useRef(onClose);
   const drawerPosition = isRTL ? "right-0 left-auto" : "left-0";
-  const drawerClosedPosition = isRTL ? "translate-x-full" : "-translate-x-full";
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -72,15 +72,21 @@ export default function Sidebar({
 
   return (
     <>
-      {isOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-[900] cursor-pointer border-0 bg-black/45 p-0 backdrop-blur-[2px]"
-          onClick={onClose}
-          aria-label={t("closeMenu")}
-        />
-      )}
-      <aside
+      <AnimatePresence>
+        {isOpen && (
+          <motion.button
+            type="button"
+            className="fixed inset-0 z-[900] cursor-pointer border-0 bg-black/45 p-0 backdrop-blur-[2px]"
+            onClick={onClose}
+            aria-label={t("closeMenu")}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+          />
+        )}
+      </AnimatePresence>
+      <motion.aside
         ref={drawerRef}
         id="app-navigation-drawer"
         role="dialog"
@@ -89,7 +95,10 @@ export default function Sidebar({
         aria-hidden={!isOpen}
         inert={!isOpen}
         tabIndex={-1}
-        className={`fixed top-0 ${drawerPosition} z-[1000] flex h-dvh w-[280px] max-w-[85vw] flex-col border-hairline bg-surface-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-body shadow-lg transition-transform duration-200 ease-in-out ${isRTL ? "border-l" : "border-r"} ${isOpen ? "translate-x-0" : drawerClosedPosition}`}
+        className={`fixed top-0 ${drawerPosition} z-[1000] flex h-dvh w-[280px] max-w-[85vw] flex-col border-hairline bg-surface-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-body shadow-lg ${isRTL ? "border-l" : "border-r"}`}
+        initial={false}
+        animate={{ x: isOpen ? 0 : isRTL ? "100%" : "-100%" }}
+        transition={{ type: "spring", stiffness: 390, damping: 36 }}
       >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-hairline px-4 py-3 font-semibold text-heading">
           <span>{t("menu")}</span>
@@ -140,7 +149,7 @@ export default function Sidebar({
             {lang === "ur" ? t("switchToEnglish") : t("switchToUrdu")}
           </button>
         </div>
-      </aside>
+      </motion.aside>
     </>
   );
 }

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import quranData from "../../data/quran.json";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
+import { useAccountProfile } from "../account/AccountProfileProvider";
+import { getIslamicDate } from "./islamicDateService";
 import AppIcon from "../../components/icons/AppIcon";
 import Card from "../../components/ui/Card";
 import "./dashboard.css";
@@ -19,22 +21,37 @@ function getDailyAyah(date = new Date()) {
   return ayahs[(dayOfYear - 1) % ayahs.length];
 }
 
-function getIslamicDate(date, lang) {
-  const locale = lang === "ur" ? "ur-u-ca-islamic" : "en-u-ca-islamic";
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}
-
 export default function Dashboard() {
   const { t, lang } = useLang();
   const { user } = useAuth();
+  const { profile } = useAccountProfile();
   const navigate = useNavigate();
   const [today] = useState(() => new Date());
   const [ayah] = useState(() => getDailyAyah(today));
-  const [islamicDate] = useState(() => getIslamicDate(today, lang));
+  const [islamicDate, setIslamicDate] = useState({
+    text: "",
+    loading: true,
+    error: false,
+  });
+  const [dateRetry, setDateRetry] = useState(0);
+  const countryCode = profile?.country_code || null;
+
+  useEffect(() => {
+    let cancelled = false;
+    setIslamicDate({ text: "", loading: true, error: false });
+    getIslamicDate({ countryCode, locale: lang, now: new Date() })
+      .then(({ text }) => {
+        if (!cancelled) setIslamicDate({ text, loading: false, error: false });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setIslamicDate({ text: "", loading: false, error: true });
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [countryCode, lang, dateRetry]);
   const username =
     user?.user_metadata?.username ||
     user?.user_metadata?.full_name ||
@@ -70,7 +87,21 @@ export default function Dashboard() {
           </span>
           <span className="dashboard__date-copy">
             <span className="dashboard__date-label">{t("dashboardIslamicDate")}</span>
-            <span>{islamicDate}</span>
+            {islamicDate.loading ? (
+              <span role="status">{t("dashboardIslamicDateLoading")}</span>
+            ) : islamicDate.error ? (
+              <span className="dashboard__date-error" role="alert">
+                {t("dashboardIslamicDateError")}
+                <button
+                  type="button"
+                  onClick={() => setDateRetry((retry) => retry + 1)}
+                >
+                  {t("dashboardIslamicDateRetry")}
+                </button>
+              </span>
+            ) : (
+              <span>{islamicDate.text}</span>
+            )}
           </span>
         </div>
       </section>

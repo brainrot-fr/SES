@@ -5,6 +5,7 @@
 
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import "./App.css";
@@ -16,6 +17,14 @@ import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
 import { initNaqlNotificationLifecycle } from "./notifications/naqlNotifications";
+import homeNavIcon from "./assets/icons/home.svg";
+import quranNavIcon from "./assets/icons/quran.svg";
+import nuqoolNavIcon from "./assets/icons/nuqool.svg";
+import reelsNavIcon from "./assets/icons/reels.svg";
+import socialNavIcon from "./assets/icons/social.svg";
+import murshidNavIcon from "./assets/icons/murshid.svg";
+import timelineNavIcon from "./assets/icons/timeline.svg";
+import settingsNavIcon from "./assets/icons/settings.svg";
 
 const NaqlDashboard = lazy(() => import("./features/nuqool/en/naqlDashboard"));
 const Timeline = lazy(() => import("./features/timeline/timeline"));
@@ -25,6 +34,7 @@ const SettingsDashboard = lazy(() => import("./features/settings/SettingsDashboa
 const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
 const SocialFeed = lazy(() => import("./features/social/SocialFeed"));
 const ReelUpload = lazy(() => import("./features/social/ReelUpload"));
+const PostCreate = lazy(() => import("./features/social/PostCreate"));
 
 const MurshidIcon = () => <AppIcon name="murshid" size={20} />;
 
@@ -42,16 +52,19 @@ const SocialIcon = () => <AppIcon name="social" size={20} />;
 
 function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
   const renderItem = (it) => (
-    <button
+    <motion.button
       type="button"
       key={it.id}
       className={`bottom-nav__item ${activePage === it.id ? "bottom-nav__item--active" : ""}`}
       onClick={() => onNavigate(it.id)}
       aria-current={activePage === it.id ? "page" : undefined}
+      aria-label={it.label}
+      whileTap={{ scale: 0.94 }}
+      transition={{ duration: 0.14 }}
     >
       <span className="bottom-nav__icon">{it.icon}</span>
       <span className="bottom-nav__label">{it.label}</span>
-    </button>
+    </motion.button>
   );
 
   return (
@@ -62,21 +75,80 @@ function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
 }
 
 function DesktopNav({ items, activePage, onNavigate, label }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <nav className="desktop-nav" aria-label={label}>
-      {items.map((item) => (
-        <button
-          type="button"
-          key={item.id}
-          className={`desktop-nav__item${activePage === item.id ? " desktop-nav__item--active" : ""}`}
-          onClick={() => onNavigate(item.id)}
-          aria-current={activePage === item.id ? "page" : undefined}
-        >
-          <span className="desktop-nav__icon">{item.icon}</span>
-          <span className="desktop-nav__label">{item.label}</span>
-        </button>
-      ))}
-    </nav>
+    <motion.nav
+      className="desktop-nav"
+      aria-label={label}
+      initial={false}
+      animate={{ width: expanded ? 236 : 64 }}
+      transition={{ type: "spring", stiffness: 360, damping: 34 }}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      onFocusCapture={() => setExpanded(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setExpanded(false);
+      }}
+    >
+      <motion.button
+        type="button"
+        className="desktop-nav__brand"
+        aria-label={items.find((item) => item.id === "dashboard")?.label}
+        onClick={() => onNavigate("dashboard")}
+        whileTap={{ scale: 0.95 }}
+      >
+        <img src="/app-mark.png" alt="" className="desktop-nav__brand-mark" />
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.span
+              className="desktop-nav__brand-name"
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.14 }}
+            >
+              SES
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
+      <div className="desktop-nav__items">
+        {items.map((item) => (
+          <motion.button
+            type="button"
+            key={item.id}
+            className={`desktop-nav__item${activePage === item.id ? " desktop-nav__item--active" : ""}`}
+            onClick={() => onNavigate(item.id)}
+            aria-label={item.label}
+            aria-current={activePage === item.id ? "page" : undefined}
+            title={!expanded ? item.label : undefined}
+            whileHover={{ scale: 1.025 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.14 }}
+          >
+            <span
+              aria-hidden="true"
+              className="desktop-nav__icon"
+              style={{ "--nav-icon": `url("${item.navIcon}")` }}
+            />
+            <AnimatePresence initial={false}>
+              {expanded && (
+                <motion.span
+                  className="desktop-nav__label"
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -6 }}
+                  transition={{ duration: 0.14 }}
+                >
+                  {item.label}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        ))}
+      </div>
+    </motion.nav>
   );
 }
 
@@ -180,17 +252,18 @@ export default function App() {
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
-    { id: "dashboard", label: t("navDashboard"), icon: <HomeIcon /> },
-    { id: "quran", label: t("navQuran"), icon: <BookIcon /> },
-    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon /> },
-    { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon /> },
-    { id: "social", label: t("navSocial"), icon: <SocialIcon /> },
-    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon /> },
-    { id: "settings", label: t("titleSettings"), icon: <MoreIcon /> },
+    { id: "dashboard", label: t("navDashboard"), icon: <HomeIcon />, navIcon: homeNavIcon },
+    { id: "quran", label: t("navQuran"), icon: <BookIcon />, navIcon: quranNavIcon },
+    { id: "nuqool", label: t("navNuqool"), icon: <ScrollIcon />, navIcon: nuqoolNavIcon },
+    { id: "reels", label: t("navReels"), icon: <AppIcon name="reels" size={20} />, navIcon: reelsNavIcon },
+    { id: "social", label: t("navSocial"), icon: <SocialIcon />, navIcon: socialNavIcon },
+    { id: "murshid", label: t("navMurshid"), icon: <MurshidIcon />, navIcon: murshidNavIcon },
+    { id: "timeline", label: t("navTimeline"), icon: <ClockIcon />, navIcon: timelineNavIcon },
+    { id: "settings", label: t("titleSettings"), icon: <MoreIcon />, navIcon: settingsNavIcon },
   ];
 
-  const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "murshid", "social"].includes(it.id));
-  const secondaryNavItems = navItems.filter((it) => ["timeline", "settings"].includes(it.id));
+  const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "reels", "social"].includes(it.id));
+  const secondaryNavItems = navItems.filter((it) => ["murshid", "timeline", "settings"].includes(it.id));
 
   return (
     <div className="app-root">
@@ -236,39 +309,51 @@ export default function App() {
       />
 
       <main id="main-content" className="app-main" inert={sidebarOpen}>
-        <Suspense fallback={<div className="app-loading" role="status">{t("settingsLoading")}</div>}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-            <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-            <Route path="/quran" element={<QuranRoute />} />
-            <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
-            <Route path="/quran/:surahNumber" element={<QuranRoute />} />
-            <Route path="/timeline" element={<Timeline />} />
-            <Route path="/murshid" element={<Murshid />} />
-            <Route path="/social" element={<SocialFeed />} />
-            <Route path="/reels" element={<SocialFeed mode="reels" />} />
-            <Route path="/reels/create" element={<ReelUpload />} />
-            <Route
-              path="/settings"
-              element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
-            />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Suspense>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            className="route-transition"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <Suspense fallback={<motion.div className="app-loading" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{t("settingsLoading")}</motion.div>}>
+              <Routes location={location}>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+                <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+                <Route path="/quran" element={<QuranRoute />} />
+                <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
+                <Route path="/quran/:surahNumber" element={<QuranRoute />} />
+                <Route path="/timeline" element={<Timeline />} />
+                <Route path="/murshid" element={<Murshid />} />
+                <Route path="/social" element={<SocialFeed />} />
+                <Route path="/social/create" element={<PostCreate />} />
+                <Route path="/reels" element={<SocialFeed mode="reels" />} />
+                <Route path="/reels/create" element={<ReelUpload />} />
+                <Route
+                  path="/settings"
+                  element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
+                />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <BottomNav
         items={primaryNavItems}
-        activePage={currentPage === "reels" ? "social" : currentPage}
+        activePage={currentPage}
         onNavigate={(id) => navigate(`/${id}`)}
         label={t("primaryNavigation")}
         inert={sidebarOpen}
       />
       <DesktopNav
         items={navItems}
-        activePage={currentPage === "reels" ? "social" : currentPage}
+        activePage={currentPage}
         onNavigate={(id) => navigate(`/${id}`)}
         label={t("primaryNavigation")}
       />

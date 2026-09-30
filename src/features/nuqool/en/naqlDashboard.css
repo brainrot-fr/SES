@@ -1,12 +1,14 @@
 /*
  * naqlDashboard.css
- * Layout and navigation styling for the Naql dashboard.
+ * Reading presentation and navigation styling for the Naql dashboard.
  */
 
 .naql-container {
-  width: min(100%, 900px);
+  width: min(100%, 960px);
+  min-width: 0;
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem) 1rem calc(190px + env(safe-area-inset-bottom));
+  padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2rem)
+    calc(220px + env(safe-area-inset-bottom, 0px));
 }
 
 .naql-scroll-anchor {
@@ -14,158 +16,240 @@
   visibility: hidden;
 }
 
-.naql-title {
-  margin: 1.25rem 0 1rem;
-  color: var(--text-large);
-  font-size: clamp(1.1rem, 4vw, 1.35rem);
+.naql-body {
+  min-width: 0;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      ellipse 120% 90% at 50% 0%,
+      color-mix(in srgb, var(--primary-soft) 60%, var(--surface-1)),
+      transparent 62%
+    ),
+    var(--surface-1);
+  box-shadow: var(--shadow-md);
+}
+
+.bismillah {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 0 var(--space-4);
+  color: var(--primary);
+  font-family: var(--font-arabic, serif);
+  font-size: clamp(1.75rem, 6vw, 2.4rem);
+  line-height: 1.8;
   text-align: center;
 }
 
-.naql-body {
-  padding: clamp(1.15rem, 4vw, 2rem);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--panel);
-  box-shadow: var(--shadow-sm);
+.naql-reading {
+  min-width: 0;
+}
+
+.naql-title {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--space-4) auto var(--space-6);
+  padding-block-end: var(--space-3);
+  color: var(--text-large);
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: var(--leading-tight);
+  text-align: center;
+}
+
+.naql-title::after {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: 0;
+  width: 2.5rem;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  content: "";
+  transform: translateX(-50%);
+}
+
+[dir="rtl"] .naql-title::after {
+  transform: translateX(50%);
+}
+
+.naql-content {
+  min-width: 0;
+  color: var(--text-small);
 }
 
 .naql-content p {
-  max-width: 68ch;
-  margin: 0 auto 1rem;
+  max-width: 70ch;
+  margin: 0 auto;
   color: var(--text-small);
-  font-size: 1rem;
-  line-height: 1.85;
+  font-size: clamp(1rem, 1.3vw, 1.08rem);
+  line-height: 1.9;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.naql-content strong {
+  color: var(--text-large);
+  font-weight: 750;
 }
 
 .naql-content cite {
   display: block;
-  padding-top: 0.8rem;
-  border-top: 1px solid var(--border);
+  max-width: 100%;
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border);
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: var(--text-sm);
   font-style: normal;
-  line-height: 1.7;
+  font-weight: 600;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
 }
 
 .naql-content summary {
   min-height: 44px;
-  margin: 1rem 0;
-  padding: 0.65rem 0.9rem;
+  margin-block: var(--space-4);
+  padding: 0.7rem 1rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--panel-2);
-  cursor: pointer;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
   color: var(--primary);
-  font-weight: 600;
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    background-color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
+}
+
+.naql-content summary:hover {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--border));
 }
 
 .naql-content details {
-  margin: 1.5rem auto;
-  font-size: 1rem;
+  margin: var(--space-5) auto;
+  font-size: var(--text-base);
 }
 
-/* ── Fixed bottom navigation bar ── */
+/* Floating reading controls stay clear of the app's mobile tab bar. */
 .naql-nav {
   position: fixed;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  left: 0;
-  right: 0;
+  z-index: 90;
+  left: 50%;
+  bottom: calc(var(--bottom-nav-height) + var(--space-5) + env(safe-area-inset-bottom, 0px));
   display: flex;
+  width: min(calc(100% - 24px), 430px);
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  width: min(calc(100% - 2rem), 360px);
+  align-items: stretch;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
   box-shadow: var(--shadow-lg);
-  z-index: 20;
-  justify-self: center;
+  backdrop-filter: blur(18px) saturate(1.2);
+  transform: translateX(-50%);
 }
 
-/* Each row inside the nav */
 .naql-nav__row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
   width: 100%;
   max-width: 520px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
-/* ── Main prev/next row ── */
 .naql-nav__main {
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 
 .naql-nav__position {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  min-width: 0;
   flex: 1;
+  align-items: center;
   justify-content: center;
+  gap: var(--space-2);
 }
 
-/* Primary prev/next buttons */
 .naql-nav__btn {
   display: grid;
   width: 48px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   place-items: center;
   padding: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   background: var(--primary);
   color: var(--on-primary);
-  border: none;
-  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: filter 150ms ease, box-shadow 150ms ease;
+  font: inherit;
+  transition:
+    filter var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard),
+    background-color var(--duration-base) var(--ease-standard);
 }
 
 .naql-nav__btn:hover:not(:disabled) {
-  filter: brightness(1.12);
+  filter: brightness(1.08);
   box-shadow: var(--shadow-md);
 }
 
+.naql-nav__btn:active:not(:disabled) {
+  filter: brightness(0.96);
+}
+
 .naql-nav__btn:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+.naql-nav__btn:focus-visible,
+.naql-nav__jump:focus-visible,
+.naql-nav__input:focus-visible,
+.naql-nav__jump-menu > summary:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .naql-nav__icon {
   display: inline-block;
-  vertical-align: middle;
   width: 20px;
   height: 20px;
   color: currentColor;
+  vertical-align: middle;
 }
 
 [dir="rtl"] .naql-nav__icon {
   transform: scaleX(-1);
 }
 
-/* Number input */
 .naql-nav__input {
-  width: 64px;
-  min-height: 44px;
-  padding: 0.4rem 0.4rem;
-  background: var(--panel-2);
-  color: var(--text-small);
+  width: 68px;
+  min-width: 56px;
+  min-height: 48px;
+  padding: 0.4rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-large);
+  font: inherit;
+  font-size: var(--text-base);
+  font-variant-numeric: tabular-nums;
   text-align: center;
-  outline: none;
   -moz-appearance: textfield;
 }
 
 .naql-nav__input::-webkit-outer-spin-button,
 .naql-nav__input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
   margin: 0;
+  -webkit-appearance: none;
 }
 
 .naql-nav__input:focus {
@@ -175,14 +259,9 @@
 
 .naql-nav__sep {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-/* ── Quick-jump row ── */
-.naql-nav__jumps {
-  flex-wrap: wrap;
-  gap: 0.3rem;
 }
 
 .naql-nav__jump-menu {
@@ -190,80 +269,162 @@
 }
 
 .naql-nav__jump-menu > summary {
+  display: flex;
   min-height: 44px;
-  padding: 0.6rem;
-  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
   color: var(--primary);
+  cursor: pointer;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
+  list-style: none;
   text-align: center;
+  transition: background-color var(--duration-base) var(--ease-standard);
+}
+
+.naql-nav__jump-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.naql-nav__jump-menu > summary::after {
+  width: 7px;
+  height: 7px;
+  border-inline-end: 1.5px solid currentColor;
+  border-block-end: 1.5px solid currentColor;
+  content: "";
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.naql-nav__jump-menu[open] > summary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.naql-nav__jump-menu > summary:hover {
+  background: color-mix(in srgb, var(--primary-soft) 60%, var(--surface-2));
+}
+
+.naql-nav__jumps {
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding-block-start: var(--space-2);
 }
 
 .naql-nav__jump {
   min-width: 44px;
   min-height: 44px;
-  padding: 0.3rem 0.45rem;
-  background: var(--panel-2);
-  color: var(--text-small);
+  flex: 1 0 44px;
+  padding: 0.3rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-small);
   cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 500;
-  transition: background 150ms, color 150ms, border-color 150ms;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard);
 }
 
 .naql-nav__jump:hover:not(:disabled) {
+  border-color: var(--primary);
   background: var(--primary);
   color: var(--on-primary);
-  border-color: var(--primary);
 }
 
 .naql-nav__jump:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .naql-nav__divider {
   width: 1px;
-  height: 20px;
+  height: 24px;
+  flex: 0 0 1px;
+  margin-inline: var(--space-1);
   background: var(--border);
-  margin: 0 0.2rem;
-  flex-shrink: 0;
 }
 
-/* ── Bismillah heading ── */
-.bismillah {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'QPCHafs', serif;
-  margin: 0.25rem 0 1rem;
-  color: var(--primary);
-  font-size: clamp(1.6rem, 6vw, 2rem);
-  line-height: 1.8;
-}
-
-@media (width < 480px) {
-  .naql-nav__jumps {
-    gap: 0.2rem;
+@media (min-width: 768px) {
+  .naql-container {
+    padding-block-start: var(--space-6);
+    padding-inline: clamp(1.5rem, 4vw, 3rem);
   }
 
-  .naql-nav__jump {
-    padding-inline: 0.25rem;
+  .naql-body {
+    padding: clamp(2rem, 4vw, 3.5rem);
   }
 }
 
 @media (min-width: 1024px) {
+  .naql-container {
+    padding-block-end: 240px;
+  }
+
   .naql-nav {
-    inset-inline-start: calc(200px + (100vw - 200px) / 2);
-    inset-inline-end: auto;
+    right: auto;
     bottom: var(--space-4);
-    width: min(360px, calc(100vw - 232px));
+    left: calc(var(--sidebar-width) + (100vw - var(--sidebar-width)) / 2);
+    width: min(430px, calc(100vw - var(--sidebar-width) - 32px));
     transform: translateX(-50%);
   }
 
   [dir="rtl"] .naql-nav {
+    right: calc(var(--sidebar-width) + (100vw - var(--sidebar-width)) / 2);
+    left: auto;
     transform: translateX(50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .naql-container {
+    padding-inline: var(--space-3);
+  }
+
+  .naql-body {
+    padding: var(--space-4);
+    border-radius: 20px;
+  }
+
+  .naql-nav {
+    width: calc(100% - 16px);
+    padding: var(--space-2);
+  }
+
+  .naql-nav__main {
+    gap: var(--space-2);
+  }
+
+  .naql-nav__jumps {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .naql-nav__jumps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
+  }
+
+  .naql-nav__divider {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .naql-content summary,
+  .naql-nav__btn,
+  .naql-nav__jump-menu > summary,
+  .naql-nav__jump-menu > summary::after,
+  .naql-nav__jump {
+    transition: none;
   }
 }

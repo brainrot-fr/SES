@@ -2,11 +2,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
-import PostComposer from "./PostComposer";
 import PostCard from "./PostCard";
 import ReelCard from "./ReelCard";
 import AppIcon from "../../components/icons/AppIcon";
-import { createPost, deletePost, fetchPosts, fetchReels, POSTS_PAGE_SIZE, setReelLike } from "./postsApi";
+import {
+  deletePost,
+  fetchPosts,
+  fetchReels,
+  POSTS_PAGE_SIZE,
+  recordPostShare,
+  recordPostView,
+  setFollow,
+  setPostLike,
+} from "./postsApi";
 import { readReelPreferences, recordReelPreference } from "./reelRanking";
 import ReelEndCard from "./ReelEndCard";
 import Skeleton from "../../components/ui/Skeleton";
@@ -22,6 +30,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   const navigate = useNavigate();
   const isReels = mode === "reels";
   const prioritizedReelId = isReels ? new URLSearchParams(location.search).get("reel") : null;
+  const prioritizedPostId = !isReels ? new URLSearchParams(location.search).get("post") : null;
   const requestIdRef = useRef(0);
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
@@ -45,7 +54,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     try {
       const nextPosts = isReels
         ? await fetchReels(pageNumber, user?.id, readReelPreferences(user?.id), pageNumber === 0 ? prioritizedReelId : null)
-        : await fetchPosts(pageNumber);
+        : await fetchPosts(pageNumber, undefined, pageNumber === 0 ? prioritizedPostId : null);
       if (requestId !== requestIdRef.current) return;
       setPosts((current) => append ? [...current, ...nextPosts] : nextPosts);
       const nextHasMore = nextPosts.length === POSTS_PAGE_SIZE;
@@ -62,7 +71,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         setLoading(false);
       }
     }
-  }, [isReels, prioritizedReelId, t, user?.id]);
+  }, [isReels, prioritizedPostId, prioritizedReelId, t, user?.id]);
 
   useEffect(() => {
     loadingRef.current = false;
@@ -89,26 +98,46 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     }
   }, [posts.length, hasMore]);
 
-  const handleCreate = async (post) => {
-    const created = await createPost(post);
-    setPosts((current) => [created, ...current]);
-  };
-
   const handleLike = async (post) => {
     const liked = !post.liked_by_me;
-    await setReelLike(post.id, user.id, liked);
+    await setPostLike(post.id, user.id, liked);
     setPosts((current) => current.map((item) => item.id === post.id
-      ? { ...item, liked_by_me: liked, like_count: Math.max(0, item.like_count + (liked ? 1 : -1)) }
+      ? { ...item, liked_by_me: liked, like_count: Math.max(0, (item.like_count || 0) + (liked ? 1 : -1)) }
       : item));
-    recordReelPreference(user.id, post.body, liked ? 1 : -1);
+    if (isReels) recordReelPreference(user.id, post.body, liked ? 1 : -1);
   };
 
+  const handleFollow = async (post, following) => {
+    await setFollow(user.id, post.author_id, following);
+    setPosts((current) => current.map((item) => item.id === post.id ? { ...item, is_following: following } : item));
+  };
+
+  const handleView = useCallback(async (postId) => {
+    try {
+      const isNewView = await recordPostView(postId, user.id);
+      if (isNewView) {
+        setPosts((current) => current.map((post) => post.id === postId
+          ? { ...post, view_count: (post.view_count || 0) + 1 }
+          : post));
+      }
+    } catch (viewError) {
+      console.error("[SocialFeed] failed to record view", viewError);
+    }
+  }, [user?.id]);
+
+  const handleShare = useCallback(async (post) => {
+    await recordPostShare(post.id, user.id);
+    setPosts((current) => current.map((item) => item.id === post.id
+      ? { ...item, share_count: (item.share_count || 0) + 1 }
+      : item));
+  }, [user?.id]);
+
   const handleCommentCreated = useCallback((postId, body, delta = 1) => {
-    if (body && delta > 0) recordReelPreference(user.id, body, 0.5);
+    if (isReels && body && delta > 0) recordReelPreference(user.id, body, 0.5);
     setPosts((current) => current.map((post) => post.id === postId
-      ? { ...post, comment_count: Math.max(0, post.comment_count + delta) }
+      ? { ...post, comment_count: Math.max(0, (post.comment_count || 0) + delta) }
       : post));
-  }, [user.id]);
+  }, [isReels, user?.id]);
 
   const handleShareStatus = (message) => {
     setStatus(message);
@@ -146,13 +175,10 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     }
   };
 
-  const focusComposer = () => document.getElementById("social-post-body")?.focus();
-
   return (
     <section className={`social-feed${isReels ? " social-feed--reels" : ""}`}>
       {isReels ? (
         <header className="social-reels__topbar">
-          <IconButton className="social-reels__top-action" icon="back" onClick={() => navigate("/social")} label={t("goBack")} />
           <div className="social-reels__title">
             <h1>{t("navReels")}</h1>
             <span title={t("reelsRankingInfo")}><AppIcon name="sparkle" size={15} /> {t("reelsForYou")}</span>
@@ -168,15 +194,18 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
                 <h1>{t("titleSocial")}</h1>
                 <p>{t("socialIntro")}</p>
               </div>
+              <IconButton
+                as={Link}
+                className="social-feed__create-action"
+                icon="plus"
+                to="/social/create"
+                label={t("socialCreatePost")}
+                title={t("socialCreatePost")}
+              />
             </div>
           </header>
-          <nav className="social-feed__tabs" aria-label={t("socialViewLabel")}>
-            <Link to="/social" className="social-feed__tab social-feed__tab--active" aria-current="page">{t("socialPostsTab")}</Link>
-            <Link to="/reels" className="social-feed__tab">{t("navReels")}</Link>
-          </nav>
         </>
       )}
-      {!isReels && <PostComposer onCreate={handleCreate} />}
       {error && <p className="social-error" role="alert">{error}</p>}
       {loadError && !isReels && (
         <div className="social-error" role="alert">
@@ -203,7 +232,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           icon="social"
           title={t("socialEmptyTitle")}
           description={t("socialEmptyDescription")}
-          action={{ label: t("socialWriteFirstPost"), onClick: focusComposer }}
+          action={{ label: t("socialWriteFirstPost"), onClick: () => navigate("/social/create") }}
         />
       )}
       <div ref={feedRef} className={isReels ? "social-feed__reels" : "social-feed__posts"}>
@@ -217,6 +246,9 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
               isOwn={post.author_id === user?.id}
               onDelete={handleDelete}
               onLike={handleLike}
+              onFollow={handleFollow}
+              onView={handleView}
+              onShare={handleShare}
               onCommentCreated={handleCommentCreated}
               onNearEnd={handleNearEnd}
               onEnded={handleReelEnd}
@@ -226,8 +258,15 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             <PostCard
               key={post.id}
               post={post}
+              user={user}
               isOwn={post.author_id === user?.id}
               onDelete={handleDelete}
+              onLike={handleLike}
+              onFollow={handleFollow}
+              onView={handleView}
+              onShare={handleShare}
+              onCommentCreated={handleCommentCreated}
+              onStatus={handleShareStatus}
             />
           )
         ))}

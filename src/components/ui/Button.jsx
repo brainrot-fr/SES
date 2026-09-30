@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import "./ui.css";
 
 export default function Button({
@@ -19,14 +20,17 @@ export default function Button({
   ].filter(Boolean).join(" ");
 
   return (
-    <button
+    <motion.button
       {...props}
       className={classes}
       disabled={disabled || busy}
       aria-busy={busy || undefined}
+      whileHover={!disabled && !busy ? { y: -1 } : undefined}
+      whileTap={!disabled && !busy ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.14 }}
     >
       {busy && <span className="ui-button__spinner" aria-hidden="true" />}
       {children}
-    </button>
+    </motion.button>
   );
 }

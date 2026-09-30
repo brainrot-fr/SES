@@ -27,3 +27,16 @@
     border-radius: var(--radius-sm);
     padding: 0.5rem;
 }
+
+.quran,
+.hadees {
+    border: 1px solid color-mix(in srgb, var(--primary) 12%, var(--border));
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface-1));
+    padding: clamp(1rem, 3vw, 1.5rem);
+    line-height: 2.2;
+}
+
+.quran {
+    font-size: clamp(1.65rem, 5vw, 2rem);
+}

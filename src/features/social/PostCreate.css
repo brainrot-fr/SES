@@ -1,0 +1,38 @@
+.post-create-page {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2rem);
+}
+
+.post-create-page__header {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.post-create-page__header h1 {
+  margin: 0;
+  color: var(--text-large);
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+  line-height: 1.2;
+}
+
+.post-create-page__header .social-feed__eyebrow {
+  margin: 0 0 0.25rem;
+}
+
+.post-create-page__form {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 768px) {
+  .post-create-page {
+    padding-top: 2rem;
+  }
+}

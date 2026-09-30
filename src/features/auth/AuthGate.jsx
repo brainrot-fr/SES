@@ -108,6 +108,7 @@ export default function AuthGate() {
                 required
                 maxLength={40}
                 autoComplete="nickname"
+                placeholder={t('authUsernamePlaceholder')}
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
               />
@@ -130,6 +131,7 @@ export default function AuthGate() {
               required
               minLength={mode === 'signup' ? 8 : undefined}
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              placeholder={t('authPasswordPlaceholder')}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               dir="ltr"

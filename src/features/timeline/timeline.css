@@ -1,13 +1,17 @@
 .tl-root {
-  max-width: 640px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 2.5rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem) 3rem;
 }
 
 @media (min-width: 1024px) {
   .tl-root {
     max-width: none;
     padding-inline: var(--space-8);
+  }
+
+  .tl-card:active {
+    transform: translateX(2px) scale(0.995);
   }
 }
 
@@ -20,14 +24,15 @@
 }
 
 .tl-hero__name {
-  font-size: 1.3rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--text-large);
   margin: 0 0 0.35rem;
+  letter-spacing: -0.04em;
 }
 
 .tl-hero__span {
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
   color: var(--muted);
   letter-spacing: 0.12em;
   margin: 0;
@@ -53,7 +58,7 @@
   inset-block: 0;
   inset-inline-start: 10px;
   width: 2px;
-  background: var(--primary);
+  background: color-mix(in srgb, var(--primary) 38%, var(--border));
   content: "";
 }
 
@@ -84,8 +89,8 @@
   background: var(--panel);
   border: 1px solid var(--border);
   border-inline-start: 3px solid var(--primary);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
   transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
@@ -103,7 +108,7 @@
 
 .tl-card__year {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--muted);
   letter-spacing: 0.05em;
   margin-bottom: 0.3rem;
@@ -111,7 +116,7 @@
 
 .tl-card__title {
   margin: 0 0 0.35rem;
-  font-size: 0.92rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--text-large);
   line-height: 1.4;
@@ -119,7 +124,7 @@
 
 .tl-card__summary {
   margin: 0 0 0.55rem;
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   color: var(--text-small);
   line-height: 1.6;
 }
@@ -128,7 +133,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 0.72rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--primary);
   opacity: 0.8;
@@ -191,14 +196,14 @@
 }
 
 .tl-dialog {
-  max-width: 36rem;
+  max-width: 42rem;
 }
 
 .tl-dialog__body p {
   color: var(--text-small);
   line-height: 1.8;
   margin: 0 0 0.9rem;
-  font-size: 0.9rem;
+  font-size: var(--text-base);
 }
 
 .tl-dialog__body p:last-child {

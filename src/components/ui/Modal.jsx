@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import "./ui.css";
 
 export default function Modal({
@@ -53,7 +54,14 @@ export default function Modal({
       onCancel={handleCancel}
       onClick={handleBackdropClick}
     >
-      {children}
+      <motion.div
+        className="ui-modal__content"
+        initial={open ? { opacity: 0, y: 8 } : false}
+        animate={open ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
     </dialog>
   );
 }

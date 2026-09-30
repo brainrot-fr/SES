@@ -25,6 +25,7 @@ import {
   signOut as signOutSession,
   deleteAccount as deleteAccountSession,
 } from "../features/auth/authSession";
+import { AccountProfileProvider } from "../features/account/AccountProfileProvider";
 
 const Ctx = createContext(null);
 
@@ -104,7 +105,13 @@ export function AuthProvider({ children }) {
         deleteAccount,
       }}
     >
-      {children}
+      <AccountProfileProvider
+        user={user}
+        isAnonymous={isAnonymous}
+        authReady={ready}
+      >
+        {children}
+      </AccountProfileProvider>
     </Ctx.Provider>
   );
 }

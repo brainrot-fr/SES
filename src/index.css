@@ -29,6 +29,8 @@
   --color-on-primary: var(--on-primary);
   --color-primary-2: var(--primary-2);
   --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-heading: var(--text-large);
   --color-body: var(--text-small);
   --color-muted: var(--muted);
@@ -95,6 +97,18 @@ textarea {
   font-family: var(--font-body);
 }
 
+html {
+  background: var(--bg);
+  color-scheme: light;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 :focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
@@ -131,6 +145,9 @@ body {
   background: var(--bg);
   color: var(--text-small);
   line-height: 1.5;
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button:not(:disabled),
@@ -139,9 +156,37 @@ label[for],
 summary,
 [role="button"] {
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 button:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: var(--text-large);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

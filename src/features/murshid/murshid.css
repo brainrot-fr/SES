@@ -1,7 +1,7 @@
 .murshid-root {
-  max-width: 640px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 2.5rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem) 3rem;
 }
 
 .murshid-intro {
@@ -11,7 +11,8 @@
 .murshid-intro h1 {
   margin: 0 0 var(--space-2);
   color: var(--text-large);
-  font-size: var(--text-2xl);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.045em;
 }
 
 .murshid-intro p {
@@ -25,7 +26,7 @@
 }
 
 .murshid-section__title {
-  font-size: 1.05rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-large);
   margin: 0 0 1rem;
@@ -50,8 +51,10 @@
   gap: var(--space-3);
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  transition: border-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
 }
 
 .murshid-chain__item:not(:last-child)::after {
@@ -86,20 +89,25 @@
 
 .murshid-chain__name {
   margin: 0 0 0.15rem;
-  font-size: 0.92rem;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-large);
 }
 
 .murshid-chain__meta {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--text-sm);
   color: var(--muted);
 }
 
 .murshid-chain__note {
   margin: 0.35rem 0 0;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--text-small);
   line-height: 1.5;
+}
+
+.murshid-chain__item:hover {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+  box-shadow: var(--shadow-sm);
 }

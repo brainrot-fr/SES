@@ -18,10 +18,12 @@ import {
   saveReciter,
   setReciterBitrate,
   nextAudioBitrate,
+  fetchSurahAudioDuration,
 } from "./quranApi";
 
 const FG_NOTIFICATION_ID = 5501;
 const FG_CHANNEL_ID = "quran-playback";
+const FALLBACK_AYAH_SECONDS = 5;
 
 const isNative = () => Capacitor.isNativePlatform();
 const isAndroid = () => Capacitor.getPlatform() === "android";
@@ -320,7 +322,7 @@ export function useQuranAudioPlayer(surah) {
 
   /* Start playback from the first ayah of the current surah and keep auto-advancing. */
   const playSurahFromStart = useCallback(() => {
-    const first = surahRef.current?.ayahs[0];
+    const first = surahRef.current?.ayahs.find((ayah) => ayah.numberInSurah === 1);
     if (first) play(first, true);
   }, [play]);
 
@@ -380,6 +382,7 @@ export function useQuranAudioPlayer(surah) {
    */
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [indexedSurahDuration, setIndexedSurahDuration] = useState(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -395,18 +398,6 @@ export function useQuranAudioPlayer(surah) {
     };
   }, []);
 
-  useEffect(() => {
-    setCurrentTime(0);
-    setDuration(0);
-  }, [activeAyahNumber, surah?.number, reciterId]);
-
-  /*
-   * Each ayah is a separate audio file fetched on demand, so the true
-   * length of the whole surah isn't known upfront (see quranApi.js — we
-   * deliberately avoid prefetching a surah's audio just to read duration).
-   * Record actual durations as they load and use the first one as a stable
-   * per-reciter estimate for the ayahs whose audio hasn't loaded yet.
-   */
   const [ayahDurations, setAyahDurations] = useState({});
 
   useEffect(() => {
@@ -430,60 +421,58 @@ export function useQuranAudioPlayer(surah) {
     ) {
       return;
     }
-    setAyahDurations((prev) =>
-      prev[activeAyahNumber] === duration
-        ? prev
-        : { ...prev, [activeAyahNumber]: duration },
+    setAyahDurations((previous) =>
+      previous[activeAyahNumber] === duration
+        ? previous
+        : { ...previous, [activeAyahNumber]: duration },
     );
   }, [activeAyahNumber, duration, audioMetadataMatchesActiveAyah]);
 
-  const durationEstimateKey = `${surah?.number ?? ""}:${reciterId}`;
-  const [durationEstimate, setDurationEstimate] = useState({
-    key: "",
-    seconds: 0,
-  });
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+  }, [activeAyahNumber, surah?.number, reciterId]);
 
   useEffect(() => {
-    if (
-      activeAyahNumber == null ||
-      !Number.isFinite(duration) ||
-      duration <= 0 ||
-      audioRef.current.readyState < 1 ||
-      !audioMetadataMatchesActiveAyah
-    ) {
-      return;
-    }
-    setDurationEstimate((previous) =>
-      previous.key === durationEstimateKey
-        ? previous
-        : { key: durationEstimateKey, seconds: duration },
-    );
-  }, [
-    activeAyahNumber,
-    duration,
-    durationEstimateKey,
-    audioMetadataMatchesActiveAyah,
-  ]);
+    let cancelled = false;
+    if (!surah?.number) return () => { cancelled = true; };
+    fetchSurahAudioDuration(surah.number, reciterId).then((seconds) => {
+      if (!cancelled) {
+        setIndexedSurahDuration({
+          key: `${surah.number}:${reciterId}`,
+          seconds,
+        });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [surah?.number, reciterId]);
 
-  // Keep the surah-wide estimate anchored while later ayah metadata loads.
-  const estimatedAyahDuration =
-    durationEstimate.key === durationEstimateKey
-      ? durationEstimate.seconds
-      : duration || 0;
-
-  const surahTotalTime = useMemo(() => {
-    const count = surah?.ayahs?.length ?? 0;
-    return count * estimatedAyahDuration;
-  }, [surah, estimatedAyahDuration]);
+  // Before an index is generated, use a fixed average instead of letting
+  // whichever ayah happens to load first change the displayed surah length.
+  const ayahCount = surah?.ayahs?.length ?? 0;
+  const durationKey = `${surah?.number ?? ''}:${reciterId}`;
+  const indexedDuration = indexedSurahDuration?.key === durationKey
+    ? indexedSurahDuration.seconds
+    : null;
+  const estimatedAyahDuration = indexedDuration
+    ? indexedDuration / ayahCount
+    : FALLBACK_AYAH_SECONDS;
+  const surahTotalTime = indexedDuration ?? ayahCount * estimatedAyahDuration;
 
   const surahElapsedTime = useMemo(() => {
     if (activeAyahNumber == null) return 0;
-    let total = currentTime;
-    for (let n = 1; n < activeAyahNumber; n += 1) {
-      total += ayahDurations[n] ?? estimatedAyahDuration;
+    let elapsed = currentTime;
+    for (let number = 1; number < activeAyahNumber; number += 1) {
+      elapsed += ayahDurations[number] ?? estimatedAyahDuration;
     }
-    return total;
-  }, [activeAyahNumber, currentTime, ayahDurations, estimatedAyahDuration]);
+    return Math.min(surahTotalTime, elapsed);
+  }, [
+    activeAyahNumber,
+    currentTime,
+    ayahDurations,
+    estimatedAyahDuration,
+    surahTotalTime,
+  ]);
 
   const seek = useCallback((time) => {
     const audio = audioRef.current;

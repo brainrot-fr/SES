@@ -214,6 +214,11 @@
   .account-onboarding__actions {
     flex-direction: column-reverse;
   }
+
+  .account-onboarding__actions .account-onboarding__button {
+    width: 100%;
+    flex: 0 0 auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

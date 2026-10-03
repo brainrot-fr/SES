@@ -125,53 +125,23 @@
   outline-offset: 3px;
 }
 
-.tl-dialog__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: var(--space-4) var(--space-4) var(--space-3);
-}
-
 .tl-dialog__year {
   color: var(--muted);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
-.tl-dialog__close {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-small);
-  cursor: pointer;
-}
-
-.tl-dialog__close:hover {
-  color: var(--primary);
-}
-
-.tl-dialog__close:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
 .tl-dialog__title {
-  margin: 0 1.25rem 1rem;
-  padding-block-end: 0.75rem;
+  margin: 0;
+  padding-block-end: var(--space-3);
   border-block-end: 1px solid var(--hairline);
   color: var(--text-large);
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   font-weight: 700;
 }
 
 .tl-dialog__body {
-  padding: 0 1.25rem 1.75rem;
+  padding-block-end: var(--space-2);
 }
 
 .tl-dialog {

@@ -1,17 +1,35 @@
 import { useState, useEffect, useRef } from "react";
-import { fetchSurah, RECITERS } from "./quranApi";
+import { fetchSurah, QURAN_SURAH_LIST, RECITERS } from "./quranApi";
 import { quranTranslations } from "./quranTranslations";
 import { useLang } from "../../context/LanguageContext";
 import {
   PlayIcon,
   PauseIcon,
-  PrevIcon,
-  NextIcon,
   TopArrowIcon,
 } from "../../components/icons/MediaIcons.jsx";
 import AppIcon from "../../components/icons/AppIcon";
 import { Skeleton } from "../../components/shadcn/skeleton";
-import Sheet from "../../components/layout/Sheet";
+import { Button } from "../../components/shadcn/button";
+import { Progress } from "../../components/shadcn/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/shadcn/select";
+import { Slider } from "../../components/shadcn/slider";
+import { Switch } from "../../components/shadcn/switch";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "../../components/shadcn/sheet";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "../../components/shadcn/tabs";
 import Band from "../../components/layout/Band";
 import { useQuranAudioPlayer } from "./useQuranAudioPlayer";
 import "./quran.css";
@@ -61,8 +79,6 @@ function AyahEndMark({ number, small = false }) {
   );
 }
 
-import Popover from "../../components/ui/Popover";
-
 export default function QuranReader({ initialSurah, initialAyah }) {
   const { t } = useLang();
 
@@ -76,6 +92,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
   const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
+  const [seekFraction, setSeekFraction] = useState(0);
 
   const [viewMode, setViewMode] = useState(
     () => localStorage.getItem(VIEW_MODE_KEY) || "verse",
@@ -104,48 +121,9 @@ export default function QuranReader({ initialSurah, initialAyah }) {
   const sentinelRef = useRef(null);
   const ayahRefs = useRef({});
   const deepLinkHandledRef = useRef(false);
+  const seekingRef = useRef(false);
 
   const goTo = (n) => setCurrentSurah(Math.max(1, Math.min(TOTAL_SURAHS, n)));
-  const changeQuranZoom = (amount) => {
-    setQuranZoom((current) =>
-      Math.min(
-        MAX_QURAN_ZOOM,
-        Math.max(MIN_QURAN_ZOOM, Number((current + amount).toFixed(1))),
-      ),
-    );
-  };
-  const quranZoomControls = (
-    <div
-      className="quran-zoom-controls"
-      role="group"
-      aria-label={t("quranTextSize")}
-    >
-      <button
-        type="button"
-        className="quran-zoom-controls__button"
-        onClick={() => changeQuranZoom(-QURAN_ZOOM_STEP)}
-        disabled={quranZoom <= MIN_QURAN_ZOOM}
-        aria-label={t("quranZoomOut")}
-        title={t("quranZoomOut")}
-      >
-        <AppIcon name="zoomOut" size={18} />
-      </button>
-      <output className="quran-zoom-controls__value" aria-live="polite">
-        {Math.round(quranZoom * 100)}%
-      </output>
-      <button
-        type="button"
-        className="quran-zoom-controls__button"
-        onClick={() => changeQuranZoom(QURAN_ZOOM_STEP)}
-        disabled={quranZoom >= MAX_QURAN_ZOOM}
-        aria-label={t("quranZoomIn")}
-        title={t("quranZoomIn")}
-      >
-        <AppIcon name="zoomIn" size={18} />
-      </button>
-    </div>
-  );
-
   const {
     activeAyahNumber,
     isPlaying,
@@ -156,6 +134,8 @@ export default function QuranReader({ initialSurah, initialAyah }) {
     resume,
     toggleAyah,
     playSurahFromStart,
+    nextAyah,
+    prevAyah,
     playAyahOnly,
     playAyahFromHere,
     currentTime,
@@ -165,19 +145,19 @@ export default function QuranReader({ initialSurah, initialAyah }) {
     seekToSurahFraction,
   } = useQuranAudioPlayer(surah);
 
-  const [ayahMenu, setAyahMenu] = useState(null); // { anchorEl, ayah } | null
+  const [ayahMenu, setAyahMenu] = useState(null);
 
   useEffect(() => {
     setAyahMenu(null);
   }, [currentSurah, loadAttempt]);
 
-  const handleAyahClick = (event, ayah) => {
+  const handleAyahClick = (ayah) => {
     if (activeAyahNumber === ayah.numberInSurah) {
       if (isPlaying) pause();
       else resume();
       return;
     }
-    setAyahMenu({ anchorEl: event.currentTarget, ayah });
+    setAyahMenu({ ayah });
   };
 
   const closeAyahMenu = () => setAyahMenu(null);
@@ -273,6 +253,11 @@ export default function QuranReader({ initialSurah, initialAyah }) {
             totalAyahs,
         )
       : 0;
+  const nextSurah = QURAN_SURAH_LIST[currentSurah];
+
+  useEffect(() => {
+    if (!seekingRef.current) setSeekFraction(surahProgress);
+  }, [surahProgress, playerOpen]);
 
   useEffect(() => {
     if (!activeAyahNumber) return;
@@ -323,40 +308,67 @@ export default function QuranReader({ initialSurah, initialAyah }) {
             )}
           </Band>
 
-          <div
-            className="quran-view-toggle"
-            role="tablist"
-            aria-label={t("quranViewMode")}
-          >
-            <button
+          <div className="flex items-center justify-between gap-2 bg-background py-2">
+            <Tabs value={viewMode} onValueChange={setViewMode} aria-label={t("quranViewMode")}>
+              <TabsList>
+                <TabsTrigger value="verse">{t("quranVerseByVerse")}</TabsTrigger>
+                <TabsTrigger value="reading">{t("quranReadingMode")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
               type="button"
-              role="tab"
-              aria-selected={viewMode === "verse"}
-              className={`quran-view-toggle__btn ${viewMode === "verse" ? "quran-view-toggle__btn--active" : ""}`}
-              onClick={() => setViewMode("verse")}
+              variant="outline"
+              size="sm"
+              onClick={() => setSettingsOpen((open) => !open)}
+              aria-expanded={settingsOpen}
+              aria-controls="quran-display-controls"
             >
-              {t("quranVerseByVerse")}
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={viewMode === "reading"}
-              className={`quran-view-toggle__btn ${viewMode === "reading" ? "quran-view-toggle__btn--active" : ""}`}
-              onClick={() => setViewMode("reading")}
-            >
-              {t("quranReadingMode")}
-            </button>
+              <AppIcon name="display" />
+              {t("quranDisplay")}
+            </Button>
           </div>
 
-          <button
-            type="button"
-            className="quran-settings-trigger"
-            onClick={() => setSettingsOpen(true)}
-            aria-label={t("quranReaderSettings")}
-            aria-haspopup="dialog"
-          >
-            Aa
-          </button>
+          {settingsOpen && (
+            <section
+              id="quran-display-controls"
+              aria-label={t("quranReaderSettings")}
+              className="grid gap-4 py-3"
+            >
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="quran-text-size" className="text-sm font-medium">{t("quranTextSize")}</label>
+                  <output className="text-sm tabular-nums text-muted-foreground">{Math.round(quranZoom * 100)}%</output>
+                </div>
+                <Slider
+                  id="quran-text-size"
+                  min={MIN_QURAN_ZOOM}
+                  max={MAX_QURAN_ZOOM}
+                  step={QURAN_ZOOM_STEP}
+                  value={[quranZoom]}
+                  onValueChange={([value]) => setQuranZoom(Number(value.toFixed(1)))}
+                  aria-label={t("quranTextSize")}
+                />
+                <p
+                  lang="ar"
+                  dir="rtl"
+                  className="m-0 text-center font-[var(--font-arabic)] text-[calc(1.5rem*var(--quran-text-zoom))] leading-[2.1] text-foreground"
+                  style={{ "--quran-text-zoom": quranZoom }}
+                >
+                  {surah.ayahs[0].text}
+                </p>
+              </div>
+              <div className="flex min-h-12 items-center justify-between gap-3 border-t border-border pt-3">
+                <span id="quran-translation-label">
+                  {t(showTranslation ? "quranHideTranslation" : "quranShowTranslation")}
+                </span>
+                <Switch
+                  checked={showTranslation}
+                  onCheckedChange={setShowTranslation}
+                  aria-labelledby="quran-translation-label"
+                />
+              </div>
+            </section>
+          )}
 
           {viewMode === "reading" ? (
             <p className="quran-reading" lang="ar" dir="rtl">
@@ -370,11 +382,11 @@ export default function QuranReader({ initialSurah, initialAyah }) {
                     role="button"
                     tabIndex={0}
                     className={`quran-reading__ayah ${isThisPlaying ? "quran-reading__ayah--playing" : ""}`}
-                    onClick={(e) => handleAyahClick(e, ayah)}
+                    onClick={() => handleAyahClick(ayah)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        handleAyahClick(e, ayah);
+                        handleAyahClick(ayah);
                       }
                     }}
                     ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)}
@@ -427,11 +439,11 @@ export default function QuranReader({ initialSurah, initialAyah }) {
                         dir="rtl"
                         role="button"
                         tabIndex={0}
-                        onClick={(e) => handleAyahClick(e, ayah)}
+                        onClick={() => handleAyahClick(ayah)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            handleAyahClick(e, ayah);
+                            handleAyahClick(ayah);
                           }
                         }}
                       >
@@ -491,38 +503,47 @@ export default function QuranReader({ initialSurah, initialAyah }) {
               {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
             </div>
           )}
+          {!hasMore && nextSurah && (
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-6 w-full"
+              onClick={() => goTo(currentSurah + 1)}
+            >
+              {t("quranNextSurahNamed").replace("{name}", nextSurah.englishName)}
+            </Button>
+          )}
         </section>
       )}
 
-      <nav className="quran-nav">
-        <div className="quran-nav__row">
-          <button
-            className="quran-nav__btn"
-            onClick={() => goTo(currentSurah - 1)}
-            disabled={currentSurah === 1}
-            aria-label={t("quranPrevSurahLabel")}
-          >
-            <PrevIcon
-              className="quran-nav__icon"
-              title={t("quranPrevSurahLabel")}
-            />
-          </button>
-
-          <button
+      <nav className="quran-nav fixed inset-x-0 bottom-[var(--dock-offset)] z-[90] mx-auto flex w-[min(38rem,calc(100vw-24px))] items-center gap-1 rounded-[var(--radius-md)] border border-border bg-card/95 p-2 shadow-lg supports-[backdrop-filter]:bg-card/75 supports-[backdrop-filter]:backdrop-blur-md">
+          <Button
             type="button"
-            className="quran-nav__track"
+            variant="ghost"
+            className="h-11 min-w-0 flex-1 flex-col items-start justify-center gap-0 px-2 text-start"
             onClick={() => setPlayerOpen(true)}
             aria-haspopup="dialog"
             aria-label={t("quranSeek")}
           >
-            <span className="quran-nav__track-name">{surah?.englishName ?? t("titleQuran")}</span>
-            <span className="quran-nav__track-position">
+            <span className="max-w-full truncate text-sm font-semibold text-foreground">{surah?.englishName ?? t("titleQuran")}</span>
+            <span className="text-xs text-muted-foreground tabular-nums">
               {t("quranAyahLabel")} {activeAyahNumber || 1} / {totalAyahs}
             </span>
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="quran-nav__play"
+            variant="ghost"
+            size="icon"
+            onClick={prevAyah}
+            disabled={!surah || !activeAyahNumber || activeAyahNumber <= 1}
+            aria-label={t("quranPrevAyah")}
+          >
+            <AppIcon name="skipBack" className="rtl:rotate-180" />
+          </Button>
+          <Button
+            type="button"
+            size="icon"
+            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => {
               if (activeAyahNumber) {
                 if (isPlaying) pause();
@@ -534,132 +555,123 @@ export default function QuranReader({ initialSurah, initialAyah }) {
             disabled={!surah}
             aria-label={isPlaying ? t("quranPause") : t("quranPlaySurah")}
           >
-            {isPlaying ? <PauseIcon className="quran-nav__icon" title={t("quranPause")} /> : <PlayIcon className="quran-nav__icon" title={t("quranPlaySurah")} />}
-          </button>
-          <button
-            className="quran-nav__btn"
-            onClick={() => goTo(currentSurah + 1)}
-            disabled={currentSurah === TOTAL_SURAHS}
-            aria-label={t("quranNextSurahLabel")}
-          >
-            <NextIcon
-              className="quran-nav__icon"
-              title={t("quranNextSurahLabel")}
-            />
-          </button>
-          <button
+            {isPlaying ? <PauseIcon title={t("quranPause")} /> : <PlayIcon title={t("quranPlaySurah")} />}
+          </Button>
+          <Button
             type="button"
-            className="quran-nav__expand"
-            onClick={() => setPlayerOpen(true)}
-            aria-label={t("quranSeek")}
-            aria-haspopup="dialog"
+            variant="ghost"
+            size="icon"
+            onClick={nextAyah}
+            disabled={!surah || !activeAyahNumber || activeAyahNumber >= totalAyahs}
+            aria-label={t("quranNextAyah")}
           >
-            <AppIcon name="more" size={20} />
-          </button>
-        </div>
+            <AppIcon name="skipForward" className="rtl:rotate-180" />
+          </Button>
+          <Progress value={surahProgress * 100} aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 rounded-none bg-transparent" />
       </nav>
 
-      <Sheet
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        labelledBy="quran-settings-title"
-        className="quran-settings-sheet"
-      >
-        <h2 id="quran-settings-title">{t("quranReaderSettings")}</h2>
-        <label className="quran-sheet__label" htmlFor="reciter-select">{t("quranReciter")}</label>
-        <select
-          id="reciter-select"
-          className="quran-reciter__select"
-          value={reciterId}
-          onChange={(e) => changeReciter(e.target.value)}
-          aria-label={t("quranReciter")}
-        >
-          {RECITERS.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-        <div className="quran-sheet__row">
-          <span>{t("quranTextSize")}</span>
-          {quranZoomControls}
-        </div>
-        <button
-          type="button"
-          className="quran-sheet__toggle"
-          onClick={() => setShowTranslation((value) => !value)}
-          aria-pressed={showTranslation}
-        >
-          {showTranslation ? t("quranHideTranslation") : t("quranShowTranslation")}
-        </button>
+      <Sheet open={playerOpen} onOpenChange={setPlayerOpen}>
+        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="gap-5 rounded-t-[var(--radius-md)] border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+          <SheetTitle>{surah?.englishName ?? t("titleQuran")}</SheetTitle>
+          <div className="flex justify-between gap-3 text-sm text-muted-foreground">
+            <span>{t("quranAyahLabel")} {activeAyahNumber || 1} / {totalAyahs}</span>
+            <span>{RECITERS.find((r) => r.id === reciterId)?.name}</span>
+          </div>
+          <Slider
+            min={0}
+            max={1}
+            step={0.001}
+            value={[seekFraction]}
+            onValueChange={([value]) => {
+              seekingRef.current = true;
+              setSeekFraction(value);
+            }}
+            onValueCommit={([value]) => {
+              seekingRef.current = false;
+              setSeekFraction(value);
+              seekToSurahFraction(value);
+            }}
+            aria-label={t("quranSeek")}
+          />
+          <div className="flex justify-between gap-3 text-xs tabular-nums text-muted-foreground">
+            <span>{formatTime(surahElapsedTime)}</span>
+            <span>{formatTime(surahTotalTime)}</span>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              disabled={currentSurah <= 1}
+              onClick={() => {
+                goTo(currentSurah - 1);
+                setPlayerOpen(false);
+              }}
+            >
+              <AppIcon name="chevronLeft" className="rtl:rotate-180" />
+              {t("quranPrevSurahLabel")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              disabled={currentSurah >= TOTAL_SURAHS}
+              onClick={() => {
+                goTo(currentSurah + 1);
+                setPlayerOpen(false);
+              }}
+            >
+              {t("quranNextSurahLabel")}
+              <AppIcon name="chevronRight" className="rtl:rotate-180" />
+            </Button>
+          </div>
+          <label htmlFor="player-reciter-select" className="text-sm font-medium">{t("quranReciter")}</label>
+          <Select value={reciterId} onValueChange={changeReciter}>
+            <SelectTrigger id="player-reciter-select" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {RECITERS.map((reciter) => (
+                <SelectItem key={reciter.id} value={reciter.id}>{reciter.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SheetContent>
       </Sheet>
 
-      <Sheet
-        open={playerOpen}
-        onClose={() => setPlayerOpen(false)}
-        labelledBy="quran-player-title"
-        className="quran-player-sheet"
-      >
-        <h2 id="quran-player-title">{surah?.englishName}</h2>
-        <div className="quran-player__meta">
-          <span>{t("quranAyahLabel")} {activeAyahNumber || 1} / {totalAyahs}</span>
-          <span>{RECITERS.find((r) => r.id === reciterId)?.name}</span>
-        </div>
-        <input
-          type="range"
-          className="quran-player__range"
-          style={{ "--progress": `${surahProgress * 100}%` }}
-          min={0}
-          max={1}
-          step={0.001}
-          value={surahProgress}
-          onChange={(e) => seekToSurahFraction(Number(e.target.value))}
-          aria-label={t("quranSeek")}
-        />
-        <div className="quran-player__time">
-          <span>{formatTime(surahElapsedTime)}</span>
-          <span>{formatTime(surahTotalTime)}</span>
-        </div>
-        <label className="quran-sheet__label" htmlFor="player-reciter-select">{t("quranReciter")}</label>
-        <select
-          id="player-reciter-select"
-          className="quran-reciter__select"
-          value={reciterId}
-          onChange={(e) => changeReciter(e.target.value)}
-        >
-          {RECITERS.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
+      <Sheet open={!!ayahMenu} onOpenChange={(open) => { if (!open) closeAyahMenu(); }}>
+        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="gap-2 rounded-t-[var(--radius-md)] border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <SheetTitle>{t("quranAyahActions")}</SheetTitle>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              playAyahOnly(ayahMenu.ayah);
+              closeAyahMenu();
+            }}
+          >
+            {t("quranPlayThisAyah")}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => {
+              playAyahFromHere(ayahMenu.ayah);
+              closeAyahMenu();
+            }}
+          >
+            {t("quranPlayFromHere")}
+          </Button>
+        </SheetContent>
       </Sheet>
-
-      <Popover
-        open={!!ayahMenu}
-        anchorEl={ayahMenu?.anchorEl}
-        onClose={closeAyahMenu}
-        label={t("quranAyahActions")}
-      >
-        <button
-          type="button"
-          role="menuitem"
-          className="ui-popover__item"
-          onClick={() => {
-            playAyahOnly(ayahMenu.ayah);
-            closeAyahMenu();
-          }}
-        >
-          {t("quranPlayThisAyah")}
-        </button>
-        <button
-          type="button"
-          role="menuitem"
-          className="ui-popover__item"
-          onClick={() => {
-            playAyahFromHere(ayahMenu.ayah);
-            closeAyahMenu();
-          }}
-        >
-          {t("quranPlayFromHere")}
-        </button>
-      </Popover>
 
       {showBackToTop && (
-        <button
-          className="quran-back-to-top"
+        <Button
+          variant="secondary"
+          size="icon"
+          className="quran-back-to-top fixed end-4 z-40"
           onClick={() =>
             topRef.current?.scrollIntoView({
               behavior: "smooth",
@@ -668,8 +680,8 @@ export default function QuranReader({ initialSurah, initialAyah }) {
           }
           aria-label={t("quranBackToTop")}
         >
-          <TopArrowIcon className="quran-back-to-top__icon" />
-        </button>
+          <TopArrowIcon />
+        </Button>
       )}
     </div>
   );

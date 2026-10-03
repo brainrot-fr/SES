@@ -29,7 +29,7 @@ Colors, gradients and tokens are final and live in src/styles/tokens.css. Never 
 1. Cards are the exception. Default is content on the page canvas. The shadcn Card is allowed only in the Feed template.
 2. Never nest containers. A container is anything with a border, a background different from its parent, or a shadow.
 3. Separate with hairlines (1px var(--hairline)) and whitespace, not boxes.
-4. No shadows on in-flow content. Floating layers (sheet, popover, docked player, fixed navigation) may use the shared soft layered shadow tokens and their subtle top highlight. Avoid backdrop blur on expensive fixed controls; use an opaque token surface instead.
+4. No shadows on in-flow content. Floating layers (sheet, popover, docked player, fixed navigation) may use the shared soft layered shadow tokens and their subtle top highlight. Backdrop blur is approved only on the bottom navigation, the header while scrolled, and the Quran mini player. Each uses an opaque `bg-card/95` (or `bg-background/95` for the header) fallback with `supports-[backdrop-filter]:bg-card/75 supports-[backdrop-filter]:backdrop-blur-md` (or the matching background variant). Never animate blur or use it on sheets, toasts, or the Naql bar.
 5. No icon-in-tinted-square tiles. No tile grids that repeat the navigation.
 6. No eyebrow + h1 + muted subtitle header stack. The page title lives in the app header. If a page needs a hero, it is one strong element (large numeral, Arabic display text, or a band), not three stacked lines.
 7. Pills are for chips, filters and segmented controls only. Actions are icon buttons, text buttons or one solid primary button.
@@ -46,7 +46,7 @@ Colors, gradients and tokens are final and live in src/styles/tokens.css. Never 
 | Band | full-bleed tinted region with a centered fading token glow and faint static star mask | none | none | none |
 | Row | item in a list, divided by hairlines | hairline between rows only | none | none |
 | Group | one grouped surface for settings-style rows | none or one hairline | var(--radius-md) on the outer edge only | none |
-| Panel | modal, sheet, popover, docked player, composer input when floating | yes | var(--radius-lg) on floating edges | soft layered token shadow with a subtle top highlight |
+| Panel | modal, sheet, popover, docked player, composer input when floating | yes | var(--radius-lg) on floating edges; fixed navigation and player bars use var(--radius-md) | soft layered token shadow with a subtle top highlight |
 | Media | image or video in a feed | none | var(--radius-sm) | none |
 
 Depth budget: Canvas > (Band | Row list | Group | Panel) > content. Nothing goes inside a Group, Band or Row that has its own border, background or shadow. Sheets and modals reset depth to 0.
@@ -153,6 +153,7 @@ Use var(--...) from tokens.css only: colors, spacing, radius, durations, easing.
 - i18n: every string in both en.js and ur.js. No hardcoded text.
 - A11y: 44px targets, visible :focus-visible ring, aria labels on icon buttons, dialogs use the Modal or Sheet.
 - Capacitor: respect env(safe-area-inset-*), no hover-only affordances, no fixed elements colliding with the bottom nav or dock.
+- Fixed-layer blur: only the bottom nav, scrolled header, and Quran mini player may blur, using the approved opaque fallback and support variants from section 2. Never animate blur.
 - Motion: framer-motion for route and sheet transitions. The app canvas may use one fixed ambient `::before` layer with low-amplitude transform-only drift over 38 seconds; hide it during Reels and disable it for `prefers-reduced-motion`. Keep centered Band glows, star masks, reading-surface, component and functional gradients static. Suppress press-scale motion for reduced-motion users. Honor reduced motion for all transitions (MotionConfig already does).
 - Dark mode: works through tokens automatically. Test both themes.
 

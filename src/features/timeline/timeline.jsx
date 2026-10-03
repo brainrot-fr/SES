@@ -6,39 +6,30 @@
  * - Opens event detail dialogs with accessible keyboard support.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { timelineEvents } from './timelineData';
 import { useLang } from '../../context/LanguageContext';
-import Sheet from '../../components/layout/Sheet';
 import AppIcon from '../../components/icons/AppIcon';
 import Page from '../../components/layout/Page';
 import Split from '../../components/layout/Split';
+import { Button } from '../../components/shadcn/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '../../components/shadcn/sheet';
 import './timeline.css';
 
 export default function Timeline() {
   const { t } = useLang();
 
-  /*
-   * `openEvent` holds the content to render; `isOpen` only controls visibility.
-   * Keeping them separate means the dialog still shows the right event while
-   * it animates closed, instead of blanking out mid-transition.
-   */
-
   const [openEvent, setOpenEvent] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const closeBtnRef = useRef(null);
-
-  /* When the dialog opens, move focus to the close button for accessibility. */
-  useEffect(() => {
-    if (isOpen) closeBtnRef.current?.focus();
-  }, [isOpen]);
 
   const openDetails = (ev) => {
-    /* Store the selected event and make the dialog visible. */
     setOpenEvent(ev);
-    setIsOpen(true);
   };
-  const closeDetails = () => setIsOpen(false);
 
   return (
     <Page className="tl-root">
@@ -68,32 +59,25 @@ export default function Timeline() {
         </ol>
       </Split>
 
-      <Sheet
-        open={isOpen}
-        onClose={closeDetails}
-        labelledBy="tl-dialog-title"
-        className="tl-dialog"
-      >
-        <div className="tl-dialog__header">
-          <span className="tl-dialog__year">{openEvent?.year}</span>
-          <button
-            ref={closeBtnRef}
-            type="button"
-            className="tl-dialog__close"
-            onClick={closeDetails}
-            aria-label={t('tlCloseLabel')}
-          >
-            <AppIcon name="close" />
-          </button>
-        </div>
-
-        <h2 className="tl-dialog__title" id="tl-dialog-title">
-          {openEvent?.title}
-        </h2>
-
-        <div className="tl-dialog__body">
-          {openEvent?.detail}
-        </div>
+      <Sheet open={Boolean(openEvent)} onOpenChange={(open) => { if (!open) setOpenEvent(null); }}>
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          closeLabel={t('closeSheet')}
+          className="tl-dialog mx-auto w-full gap-4 rounded-t-[var(--radius-md)] border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+        >
+          <SheetHeader className="gap-3 p-0">
+            <div className="flex items-center justify-between gap-3">
+              <span className="tl-dialog__year">{openEvent?.year}</span>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setOpenEvent(null)} aria-label={t('tlCloseLabel')}>
+                <AppIcon name="close" />
+              </Button>
+            </div>
+            <SheetTitle className="tl-dialog__title">{openEvent?.title}</SheetTitle>
+            <SheetDescription className="text-base leading-relaxed">{openEvent?.summary}</SheetDescription>
+          </SheetHeader>
+          <div className="tl-dialog__body">{openEvent?.detail}</div>
+        </SheetContent>
       </Sheet>
     </Page>
   );

@@ -232,13 +232,13 @@ export const nuqoolObject = {
     </p>
   ),
   18: (
-    <p>
+    <div className="naql-paragraph">
       Naiz {HMAS} ne apni dono ungaliyan ek doosre mein milayein aur farmaya ke Muhammad aur khuda aise (wasl) ho gaye. Chunanche Haq Subhanahu wa Ta'ala ne farmaya ke
       <div className="quran">ثُمَّ دَنَا فَتَدَلَّىٰ ٨ فَكَانَ قَابَ قَوْسَيْنِ أَوْ أَدْنَىٰ ٩</div>
       "Phir nazdeek hua aur phir aur nazdeek hua pas do kamanon ya us se bhi qareeb fasla reh gaya."
       <br /><br /><br />
       <cite> Surah najm Ayat 8,9</cite>
-    </p>
+    </div>
   ),
   19: (
     <p>
@@ -290,7 +290,7 @@ export const nuqoolObject = {
     </p>
   ),
   24: (
-    <p>
+    <div className="naql-paragraph">
       {IMAS} se bhi riwayat ki gayi hai ke farmaya {R_SAWS} mab'oos hue taake kuffar se kufr ka qala qama karein aur Islam ko aashkara karein taake deen tamaam tar Allah ke liye hojaye. Jaisa ke irshad-e- Baari Ta'ala hai
       <div className="quran">هُوَ ٱلَّذِىٓ أَرْسَلَ رَسُولَهُۥ بِٱلْهُدَىٰ وَدِينِ ٱلْحَقِّ لِيُظْهِرَهُۥ عَلَى ٱلدِّينِ كُلِّهِۦ</div>
       "Woh aisa hai jis ne apne Rasool ko hidayat ke saath deen-e-haq de kar bheja taake us ko doosre tamaam deenon par ghaalib kar de."
@@ -300,7 +300,7 @@ export const nuqoolObject = {
         <br />
         Raunaq-ul-Muttaqeen pgno. 22
       </cite>
-    </p>
+    </div>
   ),
   25: (
     <p>
@@ -312,7 +312,7 @@ export const nuqoolObject = {
     </p>
   ),
   26: (
-    <p>
+    <div className="naql-paragraph">
       {HMAS} farmate hain <strong>"Jis ne mujhe pehchana us ne {KHUDA_T} ko pehchana"</strong>, phir farmate hain <strong>"Jis ne mujhe dekha us ne Khuda ko dekha."</strong>
       <br /><br />
       <cite>
@@ -323,7 +323,7 @@ export const nuqoolObject = {
       <strong>"Jis ne mujhe dekha us ne Haq dekha."</strong>
       <br />
       <cite>Bukhari Hadees 6997</cite>
-    </p>
+    </div>
   ),
   27: (
     <p>

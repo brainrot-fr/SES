@@ -64,6 +64,7 @@ export default {
 
   /* Sidebar */
   menu: "Menu",
+  closeSheet: "Close",
   testNotification: "Send test notification",
 
   /* Notifications */
@@ -111,6 +112,10 @@ export default {
   quranNextSurah: "→",
   quranPrevSurahLabel: "Previous Surah",
   quranNextSurahLabel: "Next Surah",
+  quranPrevAyah: "Previous ayah",
+  quranNextAyah: "Next ayah",
+  quranNextSurahNamed: "Next surah: {name}",
+  quranDisplay: "Display",
 
   quranReciter: "Reciter",
   quranReaderSettings: "Reading settings",

@@ -5,6 +5,8 @@ import AppIcon from '../../components/icons/AppIcon';
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../../components/shadcn/empty';
 import { Skeleton } from '../../components/shadcn/skeleton';
 import { Button } from '../../components/shadcn/button';
+import { Input } from '../../components/shadcn/input';
+import { ScrollArea } from '../../components/shadcn/scroll-area';
 import RowList from '../../components/layout/RowList';
 import PageHeader from '../../components/layout/PageHeader';
 import './quran.css';
@@ -74,18 +76,21 @@ export default function QuranSurahList({
     );
   }
 
-  return (
+  const listContent = (
     <div className={`quran-list${compact ? ' quran-list--compact' : ''}`}>
       <PageHeader className="quran-list__header">
         <h1>{t("titleQuran")}</h1>
-        <input
-          type="search"
-          className="quran-list__search"
-          placeholder={t('quranSearchPlaceholder')}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label={t("quranSearchLabel")}
-        />
+        <div className="relative min-w-0">
+          <AppIcon name="search" size={18} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            className="ps-10"
+            placeholder={t('quranSearchPlaceholder')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label={t("quranSearchLabel")}
+          />
+        </div>
       </PageHeader>
 
       {continueSurah && surahs[continueSurah - 1] && (
@@ -133,4 +138,7 @@ export default function QuranSurahList({
       )}
     </div>
   );
+  return compact ? (
+    <ScrollArea className="quran-list__rail-scroll">{listContent}</ScrollArea>
+  ) : listContent;
 }

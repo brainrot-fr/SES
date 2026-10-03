@@ -1,5 +1,12 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import "./ui.css";
+
+function getCssDurationSeconds(tokenName) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+  const duration = Number.parseFloat(value);
+  if (!Number.isFinite(duration)) return 0;
+  return value.endsWith("ms") ? duration / 1000 : duration;
+}
 
 export default function Button({
   children,
@@ -11,6 +18,7 @@ export default function Button({
   disabled,
   ...props
 }) {
+  const prefersReducedMotion = useReducedMotion();
   const classes = [
     "ui-button",
     `ui-button--${variant}`,
@@ -25,9 +33,9 @@ export default function Button({
       className={classes}
       disabled={disabled || busy}
       aria-busy={busy || undefined}
-      whileHover={!disabled && !busy ? { y: -1 } : undefined}
-      whileTap={!disabled && !busy ? { scale: 0.98 } : undefined}
-      transition={{ duration: 0.14 }}
+      whileHover={!disabled && !busy && !prefersReducedMotion ? { y: -1 } : undefined}
+      whileTap={!disabled && !busy && !prefersReducedMotion ? { scale: 0.98 } : undefined}
+      transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-fast") }}
     >
       {busy && <span className="ui-button__spinner" aria-hidden="true" />}
       {children}

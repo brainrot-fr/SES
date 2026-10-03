@@ -3,18 +3,16 @@
  *
  * Run locally with: node scripts/fetch-quran-text.mjs
  *
- * Fetches the full Uthmani Quran text (all 114 surahs) from the same
- * Al Quran Cloud API the app already uses, and writes it to
- * src/data/quran.json. After this exists, quranApi.js reads from it
- * directly instead of fetching over the network — text works fully
- * offline. Audio is NOT touched by this script; it stays streamed live
- * from the CDN, unchanged.
+ * Refreshes only ayah text from Al Quran Cloud in src/data/quran.json.
+ * Existing surah metadata and the data shape are retained verbatim.
+ * Audio is NOT touched by this script; it stays streamed live from the
+ * CDN, unchanged.
  *
  * Needs Node 18+ (native fetch). Re-run any time you want to refresh
  * the bundled text from the source.
  */
 
-import { writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -26,47 +24,51 @@ const OUT_FILE = join(OUT_DIR, 'quran.json');
 async function fetchJson(path) {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-  const { data } = await res.json();
+  const payload = await res.json();
+  if (payload.code !== 200 || !payload.data) {
+    throw new Error(`${path} returned an invalid API response`);
+  }
+  const { data } = payload;
   return data;
 }
 
 async function main() {
-  console.log('Fetching surah list...');
-  const rawList = await fetchJson('/surah');
-  const surahList = rawList.map((s) => ({
-    number: s.number,
-    name: s.name,
-    englishName: s.englishName,
-    englishNameTranslation: s.englishNameTranslation,
-    revelationType: s.revelationType,
-    numberOfAyahs: s.numberOfAyahs,
-  }));
+  const quranData = JSON.parse(await readFile(OUT_FILE, 'utf-8'));
+  if (!Array.isArray(quranData.surahList) || !quranData.surahs) {
+    throw new Error(`${OUT_FILE} does not have the expected Quran data shape`);
+  }
 
-  const surahs = {};
   for (let n = 1; n <= 114; n++) {
     console.log(`Fetching surah ${n}/114...`);
     const raw = await fetchJson(`/surah/${n}/quran-uthmani`);
-    surahs[n] = {
-      number: raw.number,
-      name: raw.name,
-      englishName: raw.englishName,
-      englishNameTranslation: raw.englishNameTranslation,
-      revelationType: raw.revelationType,
-      numberOfAyahs: raw.numberOfAyahs,
-      ayahs: raw.ayahs.map((a) => ({
-        number: a.number,
-        numberInSurah: a.numberInSurah,
-        ruku: a.ruku,
-        sajda: a.sajda,
-        text: a.text, // raw, unstripped — quranApi.js still strips Bismillah at read time
-      })),
+    const existing = quranData.surahs[n];
+    if (
+      !existing
+      || raw.number !== n
+      || !Array.isArray(raw.ayahs)
+      || raw.ayahs.length !== existing.ayahs.length
+    ) {
+      throw new Error(`Surah ${n} does not match the existing Quran data`);
+    }
+
+    quranData.surahs[n] = {
+      ...existing,
+      ayahs: existing.ayahs.map((ayah, index) => {
+        const sourceAyah = raw.ayahs[index];
+        if (
+          sourceAyah.numberInSurah !== ayah.numberInSurah
+          || typeof sourceAyah.text !== 'string'
+        ) {
+          throw new Error(`Ayah ${n}:${ayah.numberInSurah} does not match upstream`);
+        }
+        return { ...ayah, text: sourceAyah.text };
+      }),
     };
     // Be polite to the free API between requests.
     await new Promise((r) => setTimeout(r, 150));
   }
 
-  await mkdir(OUT_DIR, { recursive: true });
-  await writeFile(OUT_FILE, JSON.stringify({ surahList, surahs }), 'utf-8');
+  await writeFile(OUT_FILE, JSON.stringify(quranData, null, 4), 'utf-8');
   console.log(`Done. Wrote ${OUT_FILE}`);
 }
 

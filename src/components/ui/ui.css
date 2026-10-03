@@ -10,9 +10,7 @@
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color var(--duration-base) var(--ease-standard),
-    color var(--duration-base) var(--ease-standard),
-    transform var(--duration-base) var(--ease-standard);
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 
 .ui-button--sm {
@@ -56,6 +54,16 @@
   color: var(--on-danger);
 }
 
+.ui-button--danger-outline {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+  background: transparent;
+  color: var(--danger);
+}
+
+.ui-button--danger-outline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
 .ui-button:active:not(:disabled) {
   transform: scale(0.98);
 }
@@ -75,18 +83,17 @@
   border: 2px solid currentColor;
   border-inline-end-color: transparent;
   border-radius: 50%;
-  animation: ui-spin 700ms linear infinite;
+  animation: ui-spin calc(var(--duration-slow) + var(--duration-slow) + var(--duration-base)) linear infinite;
 }
 
 .ui-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
 }
 
 .ui-card--interactive {
-  transition: background-color var(--duration-base) var(--ease-standard),
-    transform var(--duration-base) var(--ease-standard);
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 
 .ui-card--interactive:hover {
@@ -104,7 +111,7 @@
   border-radius: var(--radius-sm);
   background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2));
   background-size: 200% 100%;
-  animation: ui-shimmer 1.5s ease-in-out infinite;
+  animation: ui-shimmer calc(var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-base)) ease-in-out infinite;
 }
 
 .ui-skeleton--line {
@@ -199,9 +206,9 @@
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
   color: var(--text-small);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   text-align: center;
   animation: ui-toast-in var(--duration-base) var(--ease-standard);
 }
@@ -226,9 +233,7 @@
   background: transparent;
   color: var(--text-small);
   cursor: pointer;
-  transition: background-color var(--duration-base) var(--ease-standard),
-    color var(--duration-base) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 
 .ui-icon-button:hover:not(:disabled) {
@@ -255,9 +260,9 @@
   padding: clamp(var(--space-5), 5vw, var(--space-7));
   border: 1px solid var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
   color: var(--text-small);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   overscroll-behavior: contain;
 }
 
@@ -268,7 +273,6 @@
 
 .ui-modal::backdrop {
   background: rgb(0 0 0 / 52%);
-  backdrop-filter: blur(2px);
 }
 
 .ui-field {
@@ -292,9 +296,6 @@
   background: var(--surface-0);
   color: var(--text-small);
   font: inherit;
-  transition: border-color var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-base) var(--ease-standard),
-    background-color var(--duration-base) var(--ease-standard);
 }
 
 .ui-field__input:focus-visible {
@@ -323,8 +324,8 @@
   padding: var(--space-1);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-lg);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  box-shadow: var(--shadow-md);
   transform: translateX(-50%);
   animation: ui-modal-in var(--duration-fast) var(--ease-standard);
 }

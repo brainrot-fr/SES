@@ -1,11 +1,7 @@
 .naql-container {
   max-width: var(--content-width);
   padding-block: var(--space-5) calc(var(--dock-offset) + 6rem);
-  background: radial-gradient(
-    ellipse 120% 90% at 50% 0%,
-    color-mix(in srgb, var(--primary-soft) 60%, var(--surface-1)),
-    transparent 62%
-  );
+  background: var(--gradient-reader);
 }
 
 .naql-scroll-anchor {
@@ -47,6 +43,7 @@
 .naql-title {
   margin: 0 0 var(--space-5);
   color: var(--muted);
+  font-family: var(--font-hero);
   font-size: clamp(3rem, 9vw, 5rem);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
@@ -124,9 +121,8 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+  background: var(--surface-1);
   box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(18px) saturate(1.2);
   translate: -50% 0;
 }
 
@@ -149,6 +145,12 @@
 }
 
 .naql-nav__btn:hover:not(:disabled) {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.naql-nav__btn:active:not(:disabled),
+.naql-nav__position:active {
   background: var(--primary-soft);
   color: var(--primary);
 }

@@ -41,6 +41,26 @@ function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function AyahEndMark({ number, small = false }) {
+  const digits = toArabicNumber(number);
+  return (
+    <span
+      className={`ayah-mark${small ? " ayah-mark--small" : ""}`}
+      data-len={digits.length}
+      dir="rtl"
+    >
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round">
+          <rect x="6" y="6" width="20" height="20" rx="2.5" />
+          <rect x="6" y="6" width="20" height="20" rx="2.5" transform="rotate(45 16 16)" />
+          <circle cx="16" cy="16" r="7.2" />
+        </g>
+      </svg>
+      <span className="ayah-mark__num">{digits}</span>
+    </span>
+  );
+}
+
 import Popover from "../../components/ui/Popover";
 
 export default function QuranReader({ initialSurah, initialAyah }) {
@@ -226,19 +246,17 @@ export default function QuranReader({ initialSurah, initialAyah }) {
     return () => cancelAnimationFrame(frame);
   }, [currentSurah, initialAyah, surah, visibleCount]);
 
-  useEffect(() => {
-    if (activeAyahNumber && activeAyahNumber > visibleCount) {
-      setVisibleCount((c) => Math.max(c, activeAyahNumber));
-    }
-  }, [activeAyahNumber, visibleCount]);
-
   const translationForAyah = (numberInSurah) =>
     quranTranslations[currentSurah]?.[numberInSurah];
 
-  const visibleAyahs = surah ? surah.ayahs.slice(0, visibleCount) : [];
-  const hasMore = surah ? visibleCount < surah.ayahs.length : false;
-
   const totalAyahs = surah ? surah.ayahs.length : 0;
+  const renderedCount = Math.min(
+    totalAyahs,
+    Math.max(visibleCount, activeAyahNumber || 0),
+  );
+  const visibleAyahs = surah ? surah.ayahs.slice(0, renderedCount) : [];
+  const hasMore = surah ? renderedCount < surah.ayahs.length : false;
+
   const firstRukuNumber = surah?.ayahs?.[0]?.ruku;
   const getAyahMarkers = (ayah) => {
     const nextAyah = surah?.ayahs?.[ayah.numberInSurah];
@@ -257,11 +275,12 @@ export default function QuranReader({ initialSurah, initialAyah }) {
       : 0;
 
   useEffect(() => {
+    if (!activeAyahNumber) return;
     ayahRefs.current[activeAyahNumber]?.scrollIntoView({
       behavior: "smooth",
       block: "center",
     });
-  }, [activeAyahNumber, visibleCount]);
+  }, [activeAyahNumber]);
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   useEffect(() => {
@@ -357,9 +376,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
                     ref={(el) => (ayahRefs.current[ayah.numberInSurah] = el)}
                   >
                     {ayah.text}
-                    <span className="quran-reading__marker">
-                      ﴿{toArabicNumber(ayah.numberInSurah)}﴾
-                    </span>{" "}
+                    <AyahEndMark number={ayah.numberInSurah} />
                     {(markers.isRukuEnd || markers.hasSajdah) && (
                       <span className="quran-reading__markers" dir="ltr">
                         {markers.isRukuEnd && (
@@ -415,6 +432,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
                         }}
                       >
                         {ayah.text}
+                        <AyahEndMark number={ayah.numberInSurah} small />
                       </p>
 
                       <button

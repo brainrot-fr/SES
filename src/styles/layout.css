@@ -28,11 +28,63 @@
 }
 
 .layout-band--glow {
-  background: radial-gradient(
-    ellipse 120% 100% at 0% 0%,
-    color-mix(in srgb, var(--ayah-glow) 58%, transparent),
-    transparent 70%
-  );
+  position: relative;
+  isolation: isolate;
+  background: var(--gradient-band);
+}
+
+.layout-band--glow::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--primary);
+  opacity: 0.12;
+  mask-image: var(--band-star-mask);
+  mask-position: center;
+  mask-repeat: repeat;
+  mask-size: 2.125rem 2.125rem;
+  -webkit-mask-image: var(--band-star-mask);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: repeat;
+  -webkit-mask-size: 2.125rem 2.125rem;
+  content: "";
+  pointer-events: none;
+}
+
+.app-header .app-header__title {
+  font-family: var(--font-page-title);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.app-root::before {
+  position: fixed;
+  z-index: -1;
+  inset: -14%;
+  background: var(--gradient-ambient);
+  content: "";
+  pointer-events: none;
+  animation: app-canvas-drift 38s ease-in-out infinite alternate;
+}
+
+.app-root:has(.social-feed--reels)::before {
+  display: none;
+}
+
+@keyframes app-canvas-drift {
+  to {
+    transform: translate3d(1%, 1%, 0);
+  }
+}
+
+.layout-row:is(button, a):active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  transform: scale(0.98);
+}
+
+.layout-row:is(button, a) {
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 
 .layout-split {
@@ -127,5 +179,16 @@
   .layout-split__rail {
     position: sticky;
     inset-block-start: calc(var(--header-height) + var(--space-4));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-root::before {
+    display: none;
+    animation: none;
+  }
+
+  .layout-row:is(button, a):active {
+    transform: none;
   }
 }

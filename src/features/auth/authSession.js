@@ -25,6 +25,18 @@ export function isAnonymousUser(user) {
   return !!user && user.is_anonymous === true;
 }
 
+export function getDisplayName(user) {
+  const metadata = user?.user_metadata ?? {};
+  return (
+    metadata.display_name ||
+    metadata.username ||
+    metadata.full_name ||
+    metadata.name ||
+    user?.email?.split("@")[0] ||
+    ""
+  ).trim();
+}
+
 export function onAuthStateChange(callback) {
   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
     callback(event, session);
@@ -82,7 +94,10 @@ export async function signUpWithPassword(username, email, password) {
     throw new Error('Username must be between 2 and 40 characters.');
   }
   const { data: { session } } = await supabase.auth.getSession();
-  const userMetadata = { username: trimmedUsername };
+  const userMetadata = {
+    username: trimmedUsername,
+    display_name: trimmedUsername,
+  };
 
   if (isAnonymousUser(session?.user)) {
     const { error } = await supabase.auth.updateUser(

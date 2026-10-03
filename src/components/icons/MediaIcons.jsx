@@ -1,14 +1,7 @@
-/**
- * MediaIcons.jsx
- * Reusable SVG components for audio playback controls.
- *
- * - Exports Prev, Next, Play, and Pause icons.
- * - Each icon supports accessible titles and customizable size.
- */
+import React from "react";
 
-import React from 'react';
-
-export function PrevIcon({ size = 20, className = '', title }) {
+// Lucide path data is ISC licensed: https://lucide.dev/license
+function MediaIcon({ size = 20, className = "", title, children }) {
   return (
     <svg
       className={className}
@@ -16,101 +9,60 @@ export function PrevIcon({ size = 20, className = '', title }) {
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      aria-hidden={title ? 'false' : 'true'}
-      role="img"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden={title ? undefined : "true"}
+      role={title ? "img" : undefined}
+      aria-label={title}
     >
       {title ? <title>{title}</title> : null}
-      <path
-        d="M15 6L8 12L15 18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {children}
     </svg>
   );
 }
 
-export function NextIcon({ size = 20, className = '', title }) {
+export function PrevIcon(props) {
   return (
-    <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden={title ? 'false' : 'true'}
-      role="img"
-    >
-      {title ? <title>{title}</title> : null}
-      <path
-        d="M9 6L16 12L9 18"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <MediaIcon {...props}>
+      <path d="m15 18-6-6 6-6" />
+    </MediaIcon>
   );
 }
 
-export function TopArrowIcon({ size = 20, className = '', title }) {
+export function NextIcon(props) {
   return (
-  <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden={title ? 'false' : 'true'}
-      role="img"
-    >
-      {title ? <title>{title}</title> : null}
-      <path
-        d="M12 19V5M6 11l6-6 6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>);
-}
-
-export function PlayIcon({ size = 20, className = '', title }) {
-  return (
-    <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden={title ? 'false' : 'true'}
-      role="img"
-    >
-      {title ? <title>{title}</title> : null}
-      <path fill="currentColor" d="M6 4l14 8-14 8V4z" />
-    </svg>
+    <MediaIcon {...props}>
+      <path d="m9 18 6-6-6-6" />
+    </MediaIcon>
   );
 }
 
-export function PauseIcon({ size = 20, className = '', title }) {
+export function TopArrowIcon(props) {
   return (
-    <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      aria-hidden={title ? 'false' : 'true'}
-      role="img"
-    >
-      {title ? <title>{title}</title> : null}
-      <rect x="5" y="4" width="4" height="16" fill="currentColor" />
-      <rect x="15" y="4" width="4" height="16" fill="currentColor" />
-    </svg>
+    <MediaIcon {...props}>
+      <path d="M12 17V3" />
+      <path d="m5 10 7-7 7 7" />
+      <path d="M5 21h14" />
+    </MediaIcon>
+  );
+}
+
+export function PlayIcon(props) {
+  return (
+    <MediaIcon {...props}>
+      <path d="m7 4 14 8-14 8V4Z" fill="currentColor" stroke="none" />
+    </MediaIcon>
+  );
+}
+
+export function PauseIcon(props) {
+  return (
+    <MediaIcon {...props}>
+      <path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" stroke="none" />
+    </MediaIcon>
   );
 }
 

@@ -2,6 +2,10 @@
   padding-block: var(--space-4) calc(var(--dock-offset) + var(--space-7));
 }
 
+.dashboard__ayah:active {
+  background-color: var(--primary-soft);
+}
+
 .dashboard__greeting {
   padding-block-end: var(--space-5);
 }
@@ -10,9 +14,10 @@
   display: inline;
   margin: 0;
   color: var(--text-large);
+  font-family: var(--font-page-title);
   font-size: clamp(var(--text-lg), 3vw, var(--text-2xl));
-  font-weight: 650;
-  letter-spacing: -0.035em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .dashboard__date-separator,
@@ -87,7 +92,7 @@
 }
 
 .dashboard__reference {
-  color: var(--muted);
+  color: var(--text-small);
   font-size: var(--text-sm);
   text-align: center;
 }
@@ -139,6 +144,7 @@
 .dashboard__number {
   min-width: 3ch;
   color: var(--muted);
+  font-family: var(--font-hero);
   font-size: var(--text-2xl);
   font-variant-numeric: tabular-nums;
   font-weight: 500;

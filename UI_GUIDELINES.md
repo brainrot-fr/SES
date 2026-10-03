@@ -29,23 +29,24 @@ Colors, gradients and tokens are final and live in src/styles/tokens.css. Never 
 1. Cards are the exception. Default is content on the page canvas.
 2. Never nest containers. A container is anything with a border, a background different from its parent, or a shadow.
 3. Separate with hairlines (1px var(--hairline)) and whitespace, not boxes.
-4. No shadows on in-flow content. Shadows exist only on floating layers: sheet, popover, docked player.
+4. No shadows on in-flow content. Floating layers (sheet, popover, docked player, fixed navigation) may use the shared soft layered shadow tokens and their subtle top highlight. Avoid backdrop blur on expensive fixed controls; use an opaque token surface instead.
 5. No icon-in-tinted-square tiles. No tile grids that repeat the navigation.
 6. No eyebrow + h1 + muted subtitle header stack. The page title lives in the app header. If a page needs a hero, it is one strong element (large numeral, Arabic display text, or a band), not three stacked lines.
 7. Pills are for chips, filters and segmented controls only. Actions are icon buttons, text buttons or one solid primary button.
 8. On desktop, use a real 2D layout. Do not center a phone column and leave the rest empty.
 9. Max one docked bar above the bottom nav at a time.
 10. Replace, do not layer. Never append an override block to a CSS file. Edit or delete the original rule.
+11. Existing page-canvas ambient gradients and full-bleed Band gradients are the only gradient-surface exceptions; use their named tokens from tokens.css. Bands may use the centered fading glow and faint static star mask tokens. These effects must not create a content container.
 
 ## 3. Surface tiers
 
 | Tier | What | Border | Radius | Shadow |
 |---|---|---|---|---|
 | Canvas | page background, most content | none | none | none |
-| Band | full-bleed tinted or gradient region | none | none | none |
+| Band | full-bleed tinted region with a centered fading token glow and faint static star mask | none | none | none |
 | Row | item in a list, divided by hairlines | hairline between rows only | none | none |
 | Group | one grouped surface for settings-style rows | none or one hairline | var(--radius-md) on the outer edge only | none |
-| Panel | modal, sheet, popover, docked player, composer input when floating | yes | var(--radius-lg) on floating edges | yes |
+| Panel | modal, sheet, popover, docked player, composer input when floating | yes | var(--radius-lg) on floating edges | soft layered token shadow with a subtle top highlight |
 | Media | image or video in a feed | none | var(--radius-sm) | none |
 
 Depth budget: Canvas > (Band | Row list | Group | Panel) > content. Nothing goes inside a Group, Band or Row that has its own border, background or shadow. Sheets and modals reset depth to 0.
@@ -57,7 +58,7 @@ Depth budget: Canvas > (Band | Row list | Group | Panel) > content. Nothing goes
 - Feed: Social. Column max var(--measure-feed). Rows with avatar gutter, hairlines, full-bleed on mobile.
 - Split: Dashboard, Timeline, Murshid, ReelUpload. Two regions on desktop (sticky region + scrolling region). Mobile stacks with bands and dividers, not cards.
 - Settings/Form: grouped lists (Group), sticky action bar for the primary action.
-- Immersive: Reels. Full screen, dark, overlay controls. Do not touch.
+- Immersive: Reels. Full screen, dark, overlay controls. Approved exception: allow the Reels media and layout refinements in the active brief, including contain-fit video, Cloudinary posters, progress and tag overlays, and a desktop action rail beside the frame. Hide page-canvas ambient gradients while Reels is active; other gradient and container rules still apply.
 - Entry: Auth, Account onboarding, Language onboarding. No card. Desktop: split screen with brand panel and form on canvas. Mobile: full page, sticky bottom action.
 
 Route map: /dashboard Split, /nuqool Reader, /quran Index, /quran/:s Reader, /timeline Split, /murshid Split, /social Feed, /social/create Form, /reels Immersive, /reels/create Split, /settings Settings, auth and onboarding Entry.
@@ -98,8 +99,7 @@ Patterns:
 
 .band {
   padding: var(--space-6) var(--page-gutter);
-  background: radial-gradient(ellipse 120% 100% at 0% 0%,
-    color-mix(in srgb, var(--ayah-glow) 58%, transparent), transparent 70%);
+  background: var(--gradient-band);
 }
 
 .split { display: grid; gap: var(--space-6); }
@@ -117,6 +117,7 @@ Patterns:
 ## 6. Component patterns
 
 - Buttons: one solid primary per screen region at most. Others are ghost or text. Icon buttons are 44px, no background until hover or active.
+- Pressed tappable rows use a `var(--primary-soft)` tint and `scale(0.98)`; suppress the scale for reduced-motion users.
 - Chips (pill): only for filters, topics, segmented controls.
 - Segmented control: for view modes and 2 to 3 option switches (Verse/Reading, EN/اردو, Tarbiyat/Faqiri).
 - Selected or playing state: full-width primary-soft band plus a 3px inline-start bar. Never a bordered box.
@@ -130,6 +131,7 @@ Patterns:
 ## 7. Typography
 
 - Hierarchy comes from size and weight contrast, not from labels. Use a big numeral, big Arabic text, or a strong title. Do not add eyebrows.
+- Use Manrope 800 (`--font-page-title`) with approximately `-0.03em` tracking for page titles; use Cormorant Garamond (`--font-hero`) for larger hero numerals or display figures, clearly sized above body text.
 - Arabic reading text uses --font-arabic (QPCHafs), Indopak for bismillah where already used. Numerals use font-variant-numeric: tabular-nums.
 - Body 16px minimum, reading text line-height 1.9 or more, measure capped at var(--measure-reading).
 - Uppercase letter-spaced labels are banned except tiny metadata.
@@ -150,7 +152,7 @@ Use var(--...) from tokens.css only: colors, spacing, radius, durations, easing.
 - i18n: every string in both en.js and ur.js. No hardcoded text.
 - A11y: 44px targets, visible :focus-visible ring, aria labels on icon buttons, dialogs use the Modal or Sheet.
 - Capacitor: respect env(safe-area-inset-*), no hover-only affordances, no fixed elements colliding with the bottom nav or dock.
-- Motion: framer-motion for route and sheet transitions; ambient gradients may use one slow, low-amplitude drift on full-page/app-canvas backgrounds only. Keep component and functional gradients still. Disable ambient drift for prefers-reduced-motion; honor reduced motion for all transitions (MotionConfig already does).
+- Motion: framer-motion for route and sheet transitions. The app canvas may use one fixed ambient `::before` layer with low-amplitude transform-only drift over 38 seconds; hide it during Reels and disable it for `prefers-reduced-motion`. Keep centered Band glows, star masks, reading-surface, component and functional gradients static. Suppress press-scale motion for reduced-motion users. Honor reduced motion for all transitions (MotionConfig already does).
 - Dark mode: works through tokens automatically. Test both themes.
 
 ## 11. Banned (with examples found in this repo)

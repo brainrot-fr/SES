@@ -4,36 +4,13 @@ import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
+import { usePostActions } from "./PostCard";
+import { getReelPosterUrl, splitCaption } from "./reelRanking";
+
+export { getReelPosterUrl, splitCaption };
 
 export const REEL_MUTE_KEY = "ses-reels-muted-v1";
 const DOUBLE_TAP_WINDOW_MS = 280;
-
-export function getReelPosterUrl(post, width = 540, blurred = false) {
-  const url = post?.media_url;
-  if (url?.includes("/video/upload/")) {
-    const blurTransform = blurred ? ",e_blur:1000" : "";
-    return url
-      .replace(
-        "/video/upload/",
-        `/video/upload/so_0,f_jpg,q_auto,w_${width}${blurTransform}/`,
-      )
-      .replace(/\.[a-z0-9]+$/i, ".jpg");
-  }
-  return width === 540 && !blurred
-    ? post?.poster_url || post?.thumbnail_url || ""
-    : "";
-}
-
-function splitCaption(body) {
-  const hashtags = body.match(/#[\p{L}\p{N}_-]+/gu) || [];
-  const caption = body
-    .replace(/#[\p{L}\p{N}_-]+/gu, "")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-  return { caption, hashtags };
-}
 
 export default function ReelCard({
   post,
@@ -53,6 +30,7 @@ export default function ReelCard({
   onEnded,
   onActive = () => {},
   onShareStatus,
+  onReport,
 }) {
   const { lang, t } = useLang();
   const videoRef = useRef(null);
@@ -62,15 +40,20 @@ export default function ReelCard({
   const lastTapRef = useRef(0);
   const [mediaError, setMediaError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [likeBusy, setLikeBusy] = useState(false);
-  const [followBusy, setFollowBusy] = useState(false);
-  const [liked, setLiked] = useState(post.liked_by_me);
-  const [following, setFollowing] = useState(post.is_following);
-  const [likeCount, setLikeCount] = useState(post.like_count);
-  const [commentCount, setCommentCount] = useState(post.comment_count);
-  const [viewCount, setViewCount] = useState(post.view_count || 0);
-  const [shareCount, setShareCount] = useState(post.share_count || 0);
+  const actions = usePostActions(post, {
+    onLike,
+    onFollow,
+    onShare,
+    onCommentCreated,
+    onStatus: onShareStatus,
+    likeErrorMessage: t("reelsLikeError"),
+    followErrorMessage: t("socialFollowError"),
+  });
+  const { likeBusy, followBusy, liked, following, likeCount, commentCount, viewCount, shareCount } = actions;
   const viewRecorded = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [likeBurst, setLikeBurst] = useState(0);
@@ -82,15 +65,6 @@ export default function ReelCard({
   const date = new Intl.DateTimeFormat(lang === "ur" ? "ur" : "en", {
     dateStyle: "medium",
   }).format(new Date(post.created_at));
-
-  useEffect(() => {
-    setLiked(post.liked_by_me);
-    setFollowing(post.is_following);
-    setLikeCount(post.like_count);
-    setCommentCount(post.comment_count);
-    setViewCount(post.view_count || 0);
-    setShareCount(post.share_count || 0);
-  }, [post.is_following, post.liked_by_me, post.like_count, post.comment_count, post.view_count, post.share_count]);
 
   useEffect(() => {
     if (commentsOpen) videoRef.current?.pause();
@@ -151,47 +125,17 @@ export default function ReelCard({
 
   const closeComments = useCallback(() => setCommentsOpen(false), []);
 
-  const handleLike = async () => {
-    if (likeBusy) return;
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
-    setLikeBusy(true);
-    try {
-      await onLike(post);
-    } catch (likeError) {
-      console.error("[Reels] failed to update like", likeError);
-      setLiked(!nextLiked);
-      setLikeCount((count) => Math.max(0, count + (nextLiked ? -1 : 1)));
-      onShareStatus(likeError.message || t("reelsLikeError"));
-    } finally {
-      setLikeBusy(false);
-    }
-  };
+  const handleLike = actions.toggleLike;
 
-  const handleShare = async () => {
-    const shareData = { title: authorName, text: post.body || t("reelsShareText"), url: `${window.location.origin}${window.location.pathname}#/reels?reel=${post.id}` };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        onShareStatus(t("reelsShareSuccess"));
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareData.url);
-        onShareStatus(t("reelsLinkCopied"));
-      }
-      else throw new Error(t("reelsShareError"));
-      try {
-        await onShare(post);
-        setShareCount((count) => count + 1);
-      } catch (shareRecordError) {
-        console.error("[Reels] failed to record share", shareRecordError);
-      }
-    } catch (shareError) {
-      if (shareError.name !== "AbortError") {
-        console.error("[Reels] failed to share", shareError);
-        onShareStatus(shareError.message || t("reelsShareError"));
-      }
-    }
+  const handleShare = () => {
+    actions.share({
+      title: authorName,
+      text: post.body || t("reelsShareText"),
+      url: `${window.location.origin}${window.location.pathname}#/reels?reel=${post.id}`,
+      successMessage: t("reelsShareSuccess"),
+      copiedMessage: t("reelsLinkCopied"),
+      errorMessage: t("reelsShareError"),
+    });
   };
 
   const togglePlayback = () => {
@@ -225,24 +169,16 @@ export default function ReelCard({
     }, DOUBLE_TAP_WINDOW_MS);
   };
 
-  const updateCommentCount = (postId, body, delta = 1) => {
-    const change = body === null ? -1 : delta;
-    setCommentCount((count) => Math.max(0, count + change));
-    onCommentCreated(postId, body, change);
-  };
-
-  const toggleFollow = async () => {
-    if (followBusy) return;
-    const nextFollowing = !following;
-    setFollowing(nextFollowing);
-    setFollowBusy(true);
+  const submitReport = async () => {
+    setReportBusy(true);
     try {
-      await onFollow(post, nextFollowing);
-    } catch (followError) {
-      setFollowing(!nextFollowing);
-      onShareStatus(followError.message || t("socialFollowError"));
+      await onReport(post.id, reportReason);
+      setReportDialogOpen(false);
+      onShareStatus(t("socialReportSuccess"));
+    } catch (reportError) {
+      onShareStatus(reportError.message || t("socialReportError"));
     } finally {
-      setFollowBusy(false);
+      setReportBusy(false);
     }
   };
 
@@ -296,7 +232,7 @@ export default function ReelCard({
               <span className="social-reel__author-name">{authorName}</span>
               <time dateTime={post.created_at}>{date}</time>
             </span>
-            {!isOwn && <button type="button" className="social-reel__follow" onClick={toggleFollow} disabled={followBusy} aria-pressed={following}>{following ? t("socialUnfollow") : t("socialFollow")}</button>}
+            {!isOwn && <button type="button" className="social-reel__follow" onClick={actions.toggleFollow} disabled={followBusy} aria-pressed={following}>{following ? t("socialUnfollow") : t("socialFollow")}</button>}
           </div>
           {caption && <p className="social-reel__body">{caption}</p>}
           {hashtags.length > 0 && (
@@ -330,6 +266,7 @@ export default function ReelCard({
           <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}</span>
         </button>
         <span className="social-reel__views" aria-label={`${t("socialViews")} ${viewCount}`}>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)} {t("socialViewsShort")}</span>
+        {!isOwn && <button type="button" className="social-reel__action" onClick={() => setReportDialogOpen(true)}>{t("socialReport")}</button>}
         <button type="button" className="social-reel__action" onClick={() => {
           onMutedChange((current) => !current);
         }} aria-label={muted ? t("reelsUnmute") : t("reelsMute")} aria-pressed={!muted}>
@@ -352,12 +289,33 @@ export default function ReelCard({
           }}>{t("socialDeleteYes")}</Button>
         </div>
       </Modal>
+      <Modal
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        labelledBy={`reel-report-title-${post.id}`}
+        className="ui-auth-dialog"
+      >
+        <h2 className="ui-dialog-title" id={`reel-report-title-${post.id}`}>{t("socialReportTitle")}</h2>
+        <fieldset className="social-report__reasons">
+          <legend>{t("socialReportReason")}</legend>
+          {[["spam", "socialReportSpam"], ["harassment", "socialReportHarassment"], ["inappropriate", "socialReportInappropriate"]].map(([reason, label]) => (
+            <label key={reason}>
+              <input type="radio" name={`reel-report-${post.id}`} value={reason} checked={reportReason === reason} onChange={() => setReportReason(reason)} />
+              {t(label)}
+            </label>
+          ))}
+        </fieldset>
+        <div className="ui-dialog-actions">
+          <Button type="button" variant="secondary" onClick={() => setReportDialogOpen(false)}>{t("socialDeleteNo")}</Button>
+          <Button type="button" busy={reportBusy} disabled={!reportReason} onClick={submitReport}>{t("socialReportSubmit")}</Button>
+        </div>
+      </Modal>
       {commentsOpen && (
         <SocialCommentsSheet
           post={post}
           user={user}
           onClose={closeComments}
-          onCommentCreated={updateCommentCount}
+          onCommentCreated={actions.updateCommentCount}
         />
       )}
     </article>

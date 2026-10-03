@@ -91,6 +91,15 @@ export default {
   socialShareError: "پوسٹ شیئر نہیں ہو سکی۔ لنک کاپی کرنے کی کوشش کریں۔",
   socialShareSuccess: "پوسٹ شیئر ہو گئی۔",
   socialLinkCopied: "پوسٹ کا لنک کاپی ہو گیا۔",
+  socialReport: "رپورٹ کریں",
+  socialReportTitle: "اس پوسٹ کی رپورٹ کریں",
+  socialReportReason: "آپ اس کی رپورٹ کیوں کر رہے ہیں؟",
+  socialReportSpam: "فضول مواد",
+  socialReportHarassment: "ہراسانی یا بدسلوکی",
+  socialReportInappropriate: "نامناسب مواد",
+  socialReportSubmit: "رپورٹ بھیجیں",
+  socialReportSuccess: "رپورٹ بھیج دی گئی۔",
+  socialReportError: "رپورٹ نہیں بھیجی جا سکی۔",
 
   /* Page titles */
   titleNuqool: "نقول امام مہدی علیہ السلام",
@@ -259,24 +268,7 @@ export default {
   murshidIntro: "یہاں روحانی سلسلوں کو موجودہ درج شدہ معلومات کے مطابق پیش کیا گیا ہے۔",
 
   authBackupData: "ڈیٹا محفوظ کریں",
-  authUpgradeTitle: "اپنا ڈیٹا محفوظ کریں",
-  authUpgradeDesc:
-    "اپنی ای میل شامل کریں تاکہ ری انسٹال کے بعد بھی آپ کی ترجیحات محفوظ رہیں۔ یہ اختیاری ہے۔",
   authUpgradeEmailPlaceholder: "you@example.com",
-  authUpgradeSendCode: "کوڈ بھیجیں",
-  authUpgradeSending: "بھیجا جا رہا ہے…",
-  authUpgradeWaitingDesc: "ہم نے تصدیقی لنک بھیج دیا ہے",
-  authUpgradeWaitingHint:
-    "ڈیٹا محفوظ کرنے کے لیے ای میل میں دیا گیا لنک دبائیں۔ آپ اس دوران ایپ استعمال کرتے رہ سکتے ہیں۔",
-  authUpgradeCloseWhileWaiting: "بند کریں",
-  authUpgradeSuccess: "آپ کا ڈیٹا اب اس ای میل پر محفوظ ہو گیا ہے۔",
-  authUpgradeClose: "مکمل",
-  authUpgradeSkip: "ابھی نہیں",
-  authUpgradeError: "کچھ غلط ہو گیا۔ دوبارہ کوشش کریں۔",
-  authUpgradePasswordPlaceholder: "پاس ورڈ بنائیں",
-  authUpgradePasswordHint:
-    "دوسرے آلات پر سائن ان کے لیے یہ پاس ورڈ استعمال کریں۔",
-  authUpgradePasswordTooShort: "پاس ورڈ کم از کم ۸ حروف کا ہونا چاہیے۔",
 
   settingsAccount: "اکاؤنٹ",
   settingsPreferences: "ترجیحات",
@@ -286,12 +278,8 @@ export default {
 
   signInMenuLabel: "موجودہ اکاؤنٹ میں سائن ان کریں",
   signInTitle: "سائن ان",
-  signInDesc:
-    "سائن ان کرنے سے اس ڈیوائس کا مقامی ڈیٹا آپ کے اکاؤنٹ کے ڈیٹا سے بدل جائے گا۔",
-  signInPasswordPlaceholder: "پاس ورڈ",
   signInSubmit: "سائن ان کریں",
   signInSubmitting: "سائن ان ہو رہا ہے…",
-  signInError: "سائن ان نہیں ہو سکا۔ ای میل اور پاس ورڈ چیک کریں۔",
   authRequiredTitle: "جاری رکھنے کے لیے سائن ان کریں",
   authRequiredDescription: "نقول استعمال کرنے اور مختلف آلات پر اپنا اکاؤنٹ دستیاب رکھنے کے لیے اکاؤنٹ بنائیں یا سائن ان کریں۔",
   authModeLabel: "اکاؤنٹ کا عمل",
@@ -363,4 +351,5 @@ export default {
   accountProfileErrorTitle: "پروفائل لوڈ نہیں ہو سکا",
   accountProfileError: "اپنا کنکشن دیکھ کر دوبارہ کوشش کریں۔ سیٹ اپ کی تصدیق کے لیے پروفائل دستیاب ہونے تک اکاؤنٹ بند رہے گا۔",
   accountTryAgain: "دوبارہ کوشش کریں",
+  accountContinueOffline: "آف لائن جاری رکھیں",
 };

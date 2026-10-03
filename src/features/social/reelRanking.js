@@ -17,6 +17,37 @@ export const REEL_TAGS = [
 const TAG_TOPICS = new Map(REEL_TAGS.map(({ topic, slug }) => [slug.toLowerCase(), topic]));
 export const REEL_PREFERENCES_KEY = "ses-reel-topics-v1";
 
+export function hasMoreForPage(rowCount, pageSize) {
+  return rowCount === pageSize;
+}
+
+export function getReelPosterUrl(post, width = 540, blurred = false) {
+  const url = post?.media_url;
+  if (url?.includes("/video/upload/")) {
+    const blurTransform = blurred ? ",e_blur:1000" : "";
+    return url
+      .replace(
+        "/video/upload/",
+        `/video/upload/so_0,f_jpg,q_auto,w_${width}${blurTransform}/`,
+      )
+      .replace(/\.[a-z0-9]+$/i, ".jpg");
+  }
+  return width === 540 && !blurred
+    ? post?.poster_url || post?.thumbnail_url || ""
+    : "";
+}
+
+export function splitCaption(body = "") {
+  const hashtags = body.match(/#[\p{L}\p{N}_-]+/gu) || [];
+  const caption = body
+    .replace(/#[\p{L}\p{N}_-]+/gu, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return { caption, hashtags };
+}
+
 export function getReelTags(text = "") {
   const tags = text.match(/#[a-z0-9_-]+/gi) || [];
   return [...new Set(tags.map((tag) => TAG_TOPICS.get(tag.slice(1).toLowerCase())).filter(Boolean))];
@@ -68,7 +99,6 @@ function scoreReel(post, preferences, now) {
     ? Math.min(1, interest / 2) * 0.65 + tagInterest * 0.35
     : Math.min(1, interest / 2);
   const engagement = Math.log1p((post.like_count || 0) + (post.comment_count || 0) * 1.5);
-  const creatorNovelty = 1 / (1 + (post.creator_seen_count || 0) * 0.8);
   const exploration = Math.max(0, 1 - Math.log1p(post.like_count || 0) / 5);
 
   return {
@@ -78,7 +108,6 @@ function scoreReel(post, preferences, now) {
       freshness * 0.3 +
       interestScore * 0.27 +
       Math.min(1, engagement / 6) * 0.14 +
-      creatorNovelty * 0.17 +
       exploration * 0.12,
   };
 }

@@ -15,7 +15,7 @@ import Page from '../../components/layout/Page';
 import Split from '../../components/layout/Split';
 import './timeline.css';
 
-export default function timeline() {
+export default function Timeline() {
   const { t } = useLang();
 
   /*

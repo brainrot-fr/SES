@@ -195,22 +195,6 @@ export const timelineEvents = [
       </>
     ),
   },
-  {
-    id: 9,
-    year: '1992',
-    title: 'Test',
-    summary: 'This is a test summary',
-    detail: (
-      <>
-        <p>
-          1st para
-        </p>
-        <p>
-          2nd para
-        </p>
-      </>
-    )
-  },
   /* new object template */
   /*
   {

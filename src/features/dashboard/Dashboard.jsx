@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import quranData from "../../data/quran.json";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
 import { getDisplayName } from "../auth/authSession";
@@ -19,16 +18,13 @@ function getStoredProgress(key, total) {
   return Number.isInteger(value) && value >= 1 && value <= total ? value : 1;
 }
 
-function getDailyAyah(date = new Date()) {
-  const ayahs = Object.values(quranData.surahs).flatMap((surah) =>
-    surah.ayahs.map((ayah) => ({ ...ayah, surah })),
-  );
+function getDayOfYear(date) {
   const dayOfYear = Math.floor(
     (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) -
       Date.UTC(date.getFullYear(), 0, 0)) /
       86400000,
   );
-  return ayahs[(dayOfYear - 1) % ayahs.length];
+  return dayOfYear;
 }
 
 export default function Dashboard() {
@@ -37,7 +33,8 @@ export default function Dashboard() {
   const { profile } = useAccountProfile();
   const navigate = useNavigate();
   const [today] = useState(() => new Date());
-  const [ayah] = useState(() => getDailyAyah(today));
+  const [ayah, setAyah] = useState(null);
+  const [surahList, setSurahList] = useState([]);
   const [islamicDate, setIslamicDate] = useState({
     text: "",
     loading: true,
@@ -48,8 +45,40 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    import("../quran/quranApi").then(async ({ QURAN_SURAH_LIST, fetchSurah }) => {
+      const totalAyahs = QURAN_SURAH_LIST.reduce((total, surah) => total + surah.numberOfAyahs, 0);
+      let ayahIndex = (getDayOfYear(today) - 1) % totalAyahs;
+      let selectedSurah = QURAN_SURAH_LIST[0];
+      for (const surah of QURAN_SURAH_LIST) {
+        if (ayahIndex < surah.numberOfAyahs) {
+          selectedSurah = surah;
+          break;
+        }
+        ayahIndex -= surah.numberOfAyahs;
+      }
+      const surahData = await fetchSurah(selectedSurah.number, { includeBismillah: true });
+      if (cancelled) return;
+      setSurahList(QURAN_SURAH_LIST);
+      setAyah({ ...surahData.ayahs[ayahIndex], surah: selectedSurah });
+    }).catch((error) => {
+      console.error("[Dashboard] failed to load daily ayah", error);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
+
+  useEffect(() => {
+    let cancelled = false;
     setIslamicDate({ text: "", loading: true, error: false });
-    getIslamicDate({ countryCode, locale: lang, now: new Date() })
+    getIslamicDate({
+      countryCode,
+      locale: lang,
+      now: new Date(),
+      onRefresh: ({ text }) => {
+        if (!cancelled) setIslamicDate({ text, loading: false, error: false });
+      },
+    })
       .then(({ text }) => {
         if (!cancelled) setIslamicDate({ text, loading: false, error: false });
       })
@@ -68,7 +97,7 @@ export default function Dashboard() {
     : t("dashboardWelcome");
   const currentSurah = getStoredProgress("ses-current-surah", 114);
   const currentNaql = getStoredProgress("ses-current-naql", 55);
-  const currentSurahName = quranData.surahList[currentSurah - 1]?.englishName ?? t("navQuran");
+  const currentSurahName = surahList[currentSurah - 1]?.englishName ?? t("navQuran");
 
   return (
     <Page className="dashboard">
@@ -99,18 +128,19 @@ export default function Dashboard() {
             type="button"
             glow
             className="dashboard__ayah"
-            onClick={() => navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
-            aria-label={`${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}`}
+            onClick={() => ayah && navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
+            disabled={!ayah}
+            aria-label={ayah ? `${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}` : t("dashboardAyahOfDay")}
           >
             <span className="dashboard__ayah-label">{t("dashboardAyahOfDay")}</span>
-            <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>
-            <span className="dashboard__reference">
+            {ayah && <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>}
+            {ayah && <span className="dashboard__reference">
               {ayah.surah.englishName} · {t("quranAyahLabel")} {ayah.numberInSurah}
-            </span>
-            <span className="dashboard__ayah-link">
+            </span>}
+            {ayah && <span className="dashboard__ayah-link">
               {t("dashboardReadQuran")}
               <AppIcon name="arrowRight" size={18} />
-            </span>
+            </span>}
           </Band>
         )}
       >

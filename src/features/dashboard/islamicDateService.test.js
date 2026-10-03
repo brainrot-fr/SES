@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getIslamicDate,
+  getIslamicDateCacheKey,
   getIslamicDateCountryOffset,
 } from "./islamicDateService.js";
 
@@ -79,4 +80,60 @@ test("rejects failed or malformed public API responses", async () => {
     }),
     /unreadable date/,
   );
+});
+
+test("uses the keyed Hijri cache first and refreshes it in the background", async () => {
+  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const values = new Map();
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key),
+    },
+  });
+  const now = new Date("2026-09-29T20:59:00.000Z");
+  const key = getIslamicDateCacheKey("29-09-2026", "sa", "en");
+  let requests = 0;
+  let refreshed;
+
+  try {
+    const first = await getIslamicDate({
+      countryCode: "SA",
+      locale: "en",
+      now,
+      fetcher: async () => {
+        requests += 1;
+        return { ok: true, json: async () => mockHijriResponse };
+      },
+    });
+    assert.equal(first.day, 12);
+    assert.ok(values.has(key));
+
+    const cached = await getIslamicDate({
+      countryCode: "SA",
+      locale: "en",
+      now,
+      onRefresh: (value) => { refreshed = value; },
+      fetcher: async () => {
+        requests += 1;
+        return {
+          ok: true,
+          json: async () => ({
+            ...mockHijriResponse,
+            data: { hijri: { ...mockHijriResponse.data.hijri, day: "13" } },
+          }),
+        };
+      },
+    });
+    assert.equal(cached.day, 12);
+    assert.equal(requests, 2);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(refreshed.day, 13);
+    assert.equal(JSON.parse(values.get(key)).day, 13);
+  } finally {
+    if (previousStorage) Object.defineProperty(globalThis, "localStorage", previousStorage);
+    else delete globalThis.localStorage;
+  }
 });

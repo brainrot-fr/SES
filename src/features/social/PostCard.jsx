@@ -5,6 +5,111 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
 
+export function usePostActions(post, {
+  onLike,
+  onFollow,
+  onShare,
+  onCommentCreated,
+  onStatus,
+  likeErrorMessage,
+  followErrorMessage,
+}) {
+  const [likeBusy, setLikeBusy] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [liked, setLiked] = useState(post.liked_by_me);
+  const [following, setFollowing] = useState(post.is_following);
+  const [likeCount, setLikeCount] = useState(post.like_count || 0);
+  const [commentCount, setCommentCount] = useState(post.comment_count || 0);
+  const [viewCount, setViewCount] = useState(post.view_count || 0);
+  const [shareCount, setShareCount] = useState(post.share_count || 0);
+
+  useEffect(() => {
+    setLiked(post.liked_by_me);
+    setFollowing(post.is_following);
+    setLikeCount(post.like_count || 0);
+    setCommentCount(post.comment_count || 0);
+    setViewCount(post.view_count || 0);
+    setShareCount(post.share_count || 0);
+  }, [post.is_following, post.liked_by_me, post.like_count, post.comment_count, post.view_count, post.share_count]);
+
+  const toggleLike = async () => {
+    if (likeBusy) return;
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
+    setLikeBusy(true);
+    try {
+      await onLike(post);
+    } catch (error) {
+      setLiked(!nextLiked);
+      setLikeCount((count) => Math.max(0, count + (nextLiked ? -1 : 1)));
+      onStatus(error.message || likeErrorMessage);
+    } finally {
+      setLikeBusy(false);
+    }
+  };
+
+  const toggleFollow = async () => {
+    if (followBusy) return;
+    const nextFollowing = !following;
+    setFollowing(nextFollowing);
+    setFollowBusy(true);
+    try {
+      await onFollow(post, nextFollowing);
+    } catch (error) {
+      setFollowing(!nextFollowing);
+      onStatus(error.message || followErrorMessage);
+    } finally {
+      setFollowBusy(false);
+    }
+  };
+
+  const share = async ({ url, title, text, successMessage, copiedMessage, errorMessage }) => {
+    try {
+      let message;
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        message = successMessage;
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        message = copiedMessage;
+      } else {
+        throw new Error(errorMessage);
+      }
+      try {
+        await onShare(post);
+        setShareCount((count) => count + 1);
+      } catch (shareError) {
+        console.error("[Social] failed to record share", shareError);
+      }
+      onStatus(message);
+    } catch (error) {
+      if (error.name !== "AbortError") onStatus(error.message || errorMessage);
+    }
+  };
+
+  const updateCommentCount = (postId, body, delta = 1) => {
+    const change = body === null ? -1 : delta;
+    setCommentCount((count) => Math.max(0, count + change));
+    onCommentCreated(postId, body, change);
+  };
+
+  return {
+    liked,
+    following,
+    likeBusy,
+    followBusy,
+    likeCount,
+    commentCount,
+    viewCount,
+    shareCount,
+    toggleLike,
+    toggleFollow,
+    share,
+    updateCommentCount,
+  };
+}
+
 export default function PostCard({
   post,
   user,
@@ -16,21 +121,27 @@ export default function PostCard({
   onShare,
   onCommentCreated,
   onStatus,
+  onReport,
 }) {
   const { lang, t } = useLang();
   const cardRef = useRef(null);
   const viewRecorded = useRef(false);
   const [mediaError, setMediaError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [likeBusy, setLikeBusy] = useState(false);
-  const [followBusy, setFollowBusy] = useState(false);
-  const [liked, setLiked] = useState(post.liked_by_me);
-  const [following, setFollowing] = useState(post.is_following);
-  const [likeCount, setLikeCount] = useState(post.like_count || 0);
-  const [commentCount, setCommentCount] = useState(post.comment_count || 0);
-  const [viewCount, setViewCount] = useState(post.view_count || 0);
-  const [shareCount, setShareCount] = useState(post.share_count || 0);
+  const actions = usePostActions(post, {
+    onLike,
+    onFollow,
+    onShare,
+    onCommentCreated,
+    onStatus: (message) => onStatus(message || t("socialLikeError")),
+    likeErrorMessage: t("socialLikeError"),
+    followErrorMessage: t("socialFollowError"),
+  });
+  const { likeBusy, followBusy, liked, following, likeCount, commentCount, viewCount, shareCount } = actions;
   const createdAt = new Date(post.created_at);
   const absoluteDate = new Intl.DateTimeFormat(lang === "ur" ? "ur" : "en", {
     dateStyle: "medium",
@@ -48,15 +159,6 @@ export default function PostCard({
   const authorAvatar = post.author_avatar_url || (post.author_id === user?.id ? user.user_metadata?.avatar_url : null);
 
   useEffect(() => {
-    setLiked(post.liked_by_me);
-    setFollowing(post.is_following);
-    setLikeCount(post.like_count || 0);
-    setCommentCount(post.comment_count || 0);
-    setViewCount(post.view_count || 0);
-    setShareCount(post.share_count || 0);
-  }, [post.is_following, post.liked_by_me, post.like_count, post.comment_count, post.view_count, post.share_count]);
-
-  useEffect(() => {
     const card = cardRef.current;
     if (!card || typeof IntersectionObserver === "undefined") return undefined;
     const observer = new IntersectionObserver(([entry]) => {
@@ -69,64 +171,29 @@ export default function PostCard({
     return () => observer.disconnect();
   }, [onView, post.id]);
 
-  const toggleLike = async () => {
-    if (likeBusy) return;
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    setLikeCount((count) => Math.max(0, count + (nextLiked ? 1 : -1)));
-    setLikeBusy(true);
-    try {
-      await onLike(post);
-    } catch (error) {
-      setLiked(!nextLiked);
-      setLikeCount((count) => Math.max(0, count + (nextLiked ? -1 : 1)));
-      onStatus(error.message || t("socialLikeError"));
-    } finally {
-      setLikeBusy(false);
-    }
-  };
-
-  const toggleFollow = async () => {
-    if (followBusy) return;
-    const nextFollowing = !following;
-    setFollowing(nextFollowing);
-    setFollowBusy(true);
-    try {
-      await onFollow(post, nextFollowing);
-    } catch (error) {
-      setFollowing(!nextFollowing);
-      onStatus(error.message || t("socialFollowError"));
-    } finally {
-      setFollowBusy(false);
-    }
-  };
-
-  const share = async () => {
+  const share = () => {
     const url = `${window.location.origin}${window.location.pathname}#/social?post=${post.id}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: authorName, text: post.body || t("socialShareText"), url });
-      } else if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-      } else {
-        throw new Error(t("socialShareError"));
-      }
-      try {
-        await onShare(post);
-        setShareCount((count) => count + 1);
-      } catch (shareError) {
-        console.error("[Social] failed to record share", shareError);
-      }
-      onStatus(navigator.share ? t("socialShareSuccess") : t("socialLinkCopied"));
-    } catch (error) {
-      if (error.name !== "AbortError") onStatus(error.message || t("socialShareError"));
-    }
+    actions.share({
+      url,
+      title: authorName,
+      text: post.body || t("socialShareText"),
+      successMessage: t("socialShareSuccess"),
+      copiedMessage: t("socialLinkCopied"),
+      errorMessage: t("socialShareError"),
+    });
   };
 
-  const updateCommentCount = (postId, body, delta = 1) => {
-    const change = body === null ? -1 : delta;
-    setCommentCount((count) => Math.max(0, count + change));
-    onCommentCreated(postId, body, change);
+  const submitReport = async () => {
+    setReportBusy(true);
+    try {
+      await onReport(post.id, reportReason);
+      setReportDialogOpen(false);
+      onStatus(t("socialReportSuccess"));
+    } catch (error) {
+      onStatus(error.message || t("socialReportError"));
+    } finally {
+      setReportBusy(false);
+    }
   };
 
   return (
@@ -140,7 +207,7 @@ export default function PostCard({
         <span className="social-post__identity">
           <span className="social-post__author">{authorName}</span>
         {!isOwn && (
-          <button type="button" className="social-post__action" disabled={followBusy} onClick={toggleFollow} aria-pressed={following}>
+          <button type="button" className="social-post__action" disabled={followBusy} onClick={actions.toggleFollow} aria-pressed={following}>
             {following ? t("socialUnfollow") : t("socialFollow")}
           </button>
         )}
@@ -171,13 +238,13 @@ export default function PostCard({
       )}
       {post.media_url && mediaError && <p className="social-post__media-error">{t("socialMediaLoadError")}</p>}
       <div className="social-post__actions">
-        <button type="button" className={`social-post__action${liked ? " social-post__action--liked" : ""}`} onClick={toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`}>
+          <button type="button" className={`social-post__action${liked ? " social-post__action--liked" : ""}`} onClick={actions.toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`}>
         <AppIcon name="heart" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
         </button>
         <button type="button" className="social-post__action" onClick={() => setCommentsOpen(true)}>
         <AppIcon name="comment" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
         </button>
-        <button type="button" className="social-post__action" onClick={share}>
+          <button type="button" className="social-post__action" onClick={share}>
         <AppIcon name="share" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
         </button>
         <span className="social-post__views" aria-label={`${t("socialViews")} ${viewCount}`}>
@@ -186,6 +253,7 @@ export default function PostCard({
         {isOwn && (
           <button type="button" className="social-post__action" onClick={() => setDeleteDialogOpen(true)}>{t("socialDeletePost")}</button>
         )}
+        {!isOwn && <button type="button" className="social-post__action" onClick={() => setReportDialogOpen(true)}>{t("socialReport")}</button>}
       </div>
       <Modal
         open={deleteDialogOpen}
@@ -202,12 +270,33 @@ export default function PostCard({
           }}>{t("socialDeleteYes")}</Button>
         </div>
       </Modal>
+      <Modal
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        labelledBy={`social-report-title-${post.id}`}
+        className="ui-auth-dialog"
+      >
+        <h2 className="ui-dialog-title" id={`social-report-title-${post.id}`}>{t("socialReportTitle")}</h2>
+        <fieldset className="social-report__reasons">
+          <legend>{t("socialReportReason")}</legend>
+          {[["spam", "socialReportSpam"], ["harassment", "socialReportHarassment"], ["inappropriate", "socialReportInappropriate"]].map(([reason, label]) => (
+            <label key={reason}>
+              <input type="radio" name={`social-report-${post.id}`} value={reason} checked={reportReason === reason} onChange={() => setReportReason(reason)} />
+              {t(label)}
+            </label>
+          ))}
+        </fieldset>
+        <div className="ui-dialog-actions">
+          <Button type="button" variant="secondary" onClick={() => setReportDialogOpen(false)}>{t("socialDeleteNo")}</Button>
+          <Button type="button" busy={reportBusy} disabled={!reportReason} onClick={submitReport}>{t("socialReportSubmit")}</Button>
+        </div>
+      </Modal>
       {commentsOpen && (
         <SocialCommentsSheet
           post={post}
           user={user}
           onClose={() => setCommentsOpen(false)}
-          onCommentCreated={updateCommentCount}
+          onCommentCreated={actions.updateCommentCount}
         />
       )}
     </article>

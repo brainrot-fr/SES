@@ -11,7 +11,6 @@
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { App } from '@capacitor/app';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
 const NEXT_NOTIF_ID = 500001; // fixed id — only ever one of these pending
@@ -34,28 +33,21 @@ const FULL_LENGTH = 800;
 
 /* TEXT HELPERS — unchanged */
 
-function decodeReactEscapedHtml(str) {
-  return str
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&amp;/g, '&');
-}
-
 function jsxToPlainText(node, maxLength) {
-  const html = renderToStaticMarkup(node);
-  const withoutTags = html.replace(/<[^>]*>/g, ' ');
-  const text = decodeReactEscapedHtml(withoutTags).replace(/\s+/g, ' ').trim();
+  function walkChildren(child) {
+    if (typeof child === 'string' || typeof child === 'number') return String(child);
+    if (Array.isArray(child)) return child.map(walkChildren).join(' ');
+    if (child && typeof child === 'object') return walkChildren(child.props?.children);
+    return '';
+  }
+
+  const text = walkChildren(node).replace(/\s+/g, ' ').trim();
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}…` : text;
 }
 
-const naqlNumbers = Object.keys(nuqoolObject)
-  .map(Number)
-  .filter((n) => jsxToPlainText(nuqoolObject[n], FULL_LENGTH).length > 0);
-
 function pickRandomNaql() {
-  return naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)];
+  const naqlNumbers = Object.keys(nuqoolObject);
+  return Number(naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)]);
 }
 
 /* Find the next TIME_OF_DAY slot strictly after `from`. */

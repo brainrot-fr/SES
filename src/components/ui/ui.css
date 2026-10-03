@@ -86,20 +86,6 @@
   animation: ui-spin calc(var(--duration-slow) + var(--duration-slow) + var(--duration-base)) linear infinite;
 }
 
-.ui-card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
-}
-
-.ui-card--interactive {
-  transition: transform var(--duration-base) var(--ease-standard);
-}
-
-.ui-card--interactive:hover {
-  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
-}
-
 .ui-skeleton-group {
   display: grid;
   gap: var(--space-3);

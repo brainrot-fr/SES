@@ -177,7 +177,7 @@ export const nuqoolObject = {
   ),
   14: (
     <p>
-      Naql hai ke ek roz {BM} Shaikh Bheek R.Z ko jazba-e-haq hua un ki zuban se baar baar yahi nikal raha tha ke <strong>"Hama Haq Ast (Sab Haq hai)"</strong> bana bareen {HMAS} un ke sarhaane tashreef farma hue aur {AAS} ne farmaya <strong>"ke dekhte ho ya kehte ho?"</strong> Unhon ne wahi jawab diya <strong>"Hama Haq Ast (Sab Haq hai)"</strong> {HMAS} ne farmaya ke <strong>"haan jaanna imaan kehna kufr hai."</strong> Unhon ne jawab mein jaha ke Hama Haq Ast. {HMAS} ne teen baar takraar farmaya ke <strong>"kyun Khuda-e-kuhna ke saath muqayyad ho gaye ho? Aage badho aur yeh bait bhi {AAS} ne padhi."</strong>
+      Naql hai ke ek roz {BM} Shaikh Bheek R.Z ko jazba-e-haq hua un ki zuban se baar baar yahi nikal raha tha ke <strong>"Hama Haq Ast (Sab Haq hai)"</strong> bana bareen {HMAS} un ke sarhaane tashreef farma hue aur {AAS} ne farmaya <strong>"ke dekhte ho ya kehte ho?"</strong> Unhon ne wahi jawab diya <strong>"Hama Haq Ast (Sab Haq hai)"</strong> {HMAS} ne farmaya ke <strong>"haan jaanna imaan kehna kufr hai."</strong> Unhon ne jawab mein kaha ke Hama Haq Ast. {HMAS} ne teen baar takraar farmaya ke <strong>"kyun Khuda-e-kuhna ke saath muqayyad ho gaye ho? Aage badho aur yeh bait bhi {AAS} ne padhi."</strong>
       <br />
       <strong>
         Bizaar hua hoon main tere kohne khuda se <br />
@@ -264,7 +264,7 @@ export const nuqoolObject = {
   ),
   21: (
     <p>
-      Phir Ulama ne poochha ke Mahdi ka naam Muhammad bin Adbullah hoga aur Aap ka naam Muhammad bin Syed Khan hai. Imam A.S ne farmaya ke khuda se kaho ke Syed Khan ke farzand ko kis liye Mahdi banaya. {KHUDA_T} qaadir hai jo kuch chahta hai karta hai. Phir farmaya ke Hazrat Risalat Panah S.A.W.S ke baap mushrik the (but parast the). Allah ke bande kaise ho sakte hain. (Jahan Muhammad bin Abdullah likha hua hai) woh sahu-e-kitaab hai dar-asl ibaarat Muhammad Abdullah aur Mahdi bhi Abdullah hai.
+      Phir Ulama ne poochha ke Mahdi ka naam Muhammad bin Abdullah hoga aur Aap ka naam Muhammad bin Syed Khan hai. Imam A.S ne farmaya ke khuda se kaho ke Syed Khan ke farzand ko kis liye Mahdi banaya. {KHUDA_T} qaadir hai jo kuch chahta hai karta hai. Phir farmaya ke Hazrat Risalat Panah S.A.W.S ke baap mushrik the (but parast the). Allah ke bande kaise ho sakte hain. (Jahan Muhammad bin Abdullah likha hua hai) woh sahu-e-kitaab hai dar-asl ibaarat Muhammad Abdullah aur Mahdi bhi Abdullah hai.
       <br /><br /><br />
       <cite>
         Maulood pgno. 67
@@ -355,7 +355,7 @@ export const nuqoolObject = {
   29: (
     <p>
 
-      Meeran AS ne farmaya ke is bande ke aage tas;heeh hoti hai jo yahan maqbool hua woh khuda ke paas maqbool hai aur jo mere paas sahih na  hoo woh khuda ke paas mardood hai.
+      Meeran AS ne farmaya ke is bande ke aage tasheeh hoti hai jo yahan maqbool hua woh khuda ke paas maqbool hai aur jo mere paas sahih na  hoo woh khuda ke paas mardood hai.
       <br /><br /><br />
       <cite>
         Aqeeda Sharifa pgno. 3
@@ -434,10 +434,10 @@ export const nuqoolObject = {
   ),
   36: (
     <p>
-      Naql hai {HMAS} ne farmaya ke farman-e-Khudae Ta'ala hota hai ke hum ne imaan ke khazana ki kunjiya tere haath mein de di hain aur hum ne tujh ko khaas deen-e-Muhammadi SAWS ki nusrat karne wala kiya hai aur main teri musrat karne wala hoon ja da'wat kar jis ne tijh ko qubool kiya momin hai aur jis ne tera inkaar kiya kaafir hai.
+      Naql hai {HMAS} ne farmaya ke farman-e-Khudae Ta'ala hota hai ke hum ne imaan ke khazana ki kunjiya tere haath mein de di hain aur hum ne tujh ko khaas deen-e-Muhammadi SAWS ki nusrat karne wala kiya hai aur main teri musrat karne wala hoon ja da'wat kar jis ne tujhe qubool kiya momin hai aur jis ne tera inkaar kiya kaafir hai.
       <br /><br /><br />
       <cite>
-        Hasihya pgno. 9
+        Hashiya pgno. 9
         <br />
         {NBMAR} pgno. 3
         <br />
@@ -522,7 +522,7 @@ export const nuqoolObject = {
   ),
   44: (
     <p>
-      Naql hai {HMAS} baithe hue the janaza laaye sahaba RZ ne {MAS} se arz kiya is murda par azaab ho raha hai. {HMAS} ne is murda ko dekha farman-e-khuda hua ke <strong>"Aye Syed Muhammad teri nazar is par padi hum ne is ko najaat di is oar namaz-e-janaza padho."</strong> {HMAS} ne is par namaz padhi Shaba RZ ne dekha aur kaha ke {MAS} ke sabab se is murde par reham hua.
+      Naql hai {HMAS} baithe hue the janaza laaye sahaba RZ ne {MAS} se arz kiya is murda par azaab ho raha hai. {HMAS} ne is murda ko dekha farman-e-khuda hua ke <strong>"Aye Syed Muhammad teri nazar is par padi hum ne is ko najaat di is oar namaz-e-janaza padho."</strong> {HMAS} ne is par namaz padhi Sahaba RZ ne dekha aur kaha ke {MAS} ke sabab se is murde par reham hua.
       <br /><br /><br />
       <cite>
         Hashiya pgno. 126
@@ -597,7 +597,7 @@ export const nuqoolObject = {
   ),
   51: (
     <p>
-      Naql hai ek roz ek mard-e-Mughal {HMAS} ke huzoor mein aakar baitha aur arz kiya ke Aye Syed {MAS} ki alamat hai ke us par shamsheer asar na kare. {HMAS} ne apni shamsheer us ke haath mein de di aur farmaya ke aazmao. Us ne shamsheer ko apne haath mein le kar bahut qasd kiya haath ooncha karne ki taqat nahi hui. Us ne kaha is ko patthar ya loha bandha hua    hai bhaari hone ke sabab se main oopar nahi kar sakta. {HMAS} ne farmaya ke Aye bhai shamsheer ka kaam kaatne ka hai aur paani ka kaam dubaane ka hai aur aag ka kaam jalane ka hai aur wa lekin {MAS} aur Mustafa SAWS par kkooi qaadir nahi ho sakta.
+      Naql hai ek roz ek mard-e-Mughal {HMAS} ke huzoor mein aakar baitha aur arz kiya ke Aye Syed {MAS} ki alamat hai ke us par shamsheer asar na kare. {HMAS} ne apni shamsheer us ke haath mein de di aur farmaya ke aazmao. Us ne shamsheer ko apne haath mein le kar bahut qasd kiya haath ooncha karne ki taqat nahi hui. Us ne kaha is ko patthar ya loha bandha hua    hai bhaari hone ke sabab se main oopar nahi kar sakta. {HMAS} ne farmaya ke Aye bhai shamsheer ka kaam kaatne ka hai aur paani ka kaam dubaane ka hai aur aag ka kaam jalane ka hai aur wa lekin {MAS} aur Mustafa SAWS par koi qaadir nahi ho sakta.
       <br /><br /><br />
       <cite>
         Hashiya pgno. 278
@@ -618,7 +618,7 @@ export const nuqoolObject = {
   ),
   52: (
     <p>
-      Naql hai Gujarat mein ek roz {HMAS} ghusl ke liye Sabarmati nadi ko gaye the wahan Aap ne ek ajnabi ghair aashna shakhs kkok bhi dekha jo jawan tha farmaya ke aa aur hamari peeth ko mal. Woh shakhs aakarr peeth mala us waqt farmaya ke tu baith hum teri peeth malte hain. Jab aap ne dast-e-mubarak us ki peeth par daala usi waqt us ko jazba hua ghaib ki cheezein nazar aane lagein.
+      Naql hai Gujarat mein ek roz {HMAS} ghusl ke liye Sabarmati nadi ko gaye the wahan Aap ne ek ajnabi ghair aashna shakhs ko bhi dekha jo jawan tha farmaya ke aa aur hamari peeth ko mal. Woh shakhs aakarr peeth mala us waqt farmaya ke tu baith hum teri peeth malte hain. Jab aap ne dast-e-mubarak us ki peeth par daala usi waqt us ko jazba hua ghaib ki cheezein nazar aane lagein.
       <br /><br /><br />
       <cite>
         Hashiya pgno. 279
@@ -627,7 +627,7 @@ export const nuqoolObject = {
   ),
   53: (
     <p>
-      Naql hai ke ek roz {HMAS} ne shehar Farah mein ghusl kiya aur sar ke baal khol kar Haq Ta'ala ki yaad mein mashghool the yakayak ek bada saanp soraakh se baahar aaya aur apna sar uthaya {HMAS} ne apna sar jhuka kar saanp ke saamne rakha aur farmaya ke agar Khuda ka farman kaatne ke liye hai to hum raazi hain is ke ba'ad saanp ne apna sar soraakh mein kheinch liya {HMAS} ne apna sar utha liya. Phir saanp aaya phir {MAS} ne apna sar saanp ke saamne kiya aur farmaya ke jo kuch Haq ki raza hai us par hum raazi hain phir saanp ne apna sar kheinch liya teesri baar phir aaya {HMAS} ne apna sar us ke saamne rakha saanp kalaam kiya aur {HMAS} se chand sawal kiya aur kaha ke hum tere mushtaq the is waqt tera jamaal dekhne aaye hain. Saanp baahar aaya {MAS} ke nazdeek aakar qadam0e0mubarak par lot kar chale gaya. (Ek riwayat mein hai ke {HMAS} ne apne dono qadam-e-mubarak laanbe karke saanp ke saamne rakha)
+      Naql hai ke ek roz {HMAS} ne shehar Farah mein ghusl kiya aur sar ke baal khol kar Haq Ta'ala ki yaad mein mashghool the yakayak ek bada saanp soraakh se baahar aaya aur apna sar uthaya {HMAS} ne apna sar jhuka kar saanp ke saamne rakha aur farmaya ke agar Khuda ka farman kaatne ke liye hai to hum raazi hain is ke ba'ad saanp ne apna sar soraakh mein kheinch liya {HMAS} ne apna sar utha liya. Phir saanp aaya phir {MAS} ne apna sar saanp ke saamne kiya aur farmaya ke jo kuch Haq ki raza hai us par hum raazi hain phir saanp ne apna sar kheinch liya teesri baar phir aaya {HMAS} ne apna sar us ke saamne rakha saanp kalaam kiya aur {HMAS} se chand sawal kiya aur kaha ke hum tere mushtaq the is waqt tera jamaal dekhne aaye hain. Saanp baahar aaya {MAS} ke nazdeek aakar qadam-e-mubarak par lot kar chale gaya. (Ek riwayat mein hai ke {HMAS} ne apne dono qadam-e-mubarak laanbe karke saanp ke saamne rakha)
       <br /><br /><br />
       <cite>
         Hashiya pgno. 280

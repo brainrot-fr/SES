@@ -344,11 +344,6 @@
   }
 }
 
-.settings-delete__input:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
 @media (min-width: 1024px) {
   .settings-dashboard {
     padding-block-start: var(--space-6);

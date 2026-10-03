@@ -14,6 +14,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
+import { getDisplayName } from '../account/accountProfile.js';
+
+export { getDisplayName };
 
 const AUTH_CALLBACK_URL = 'ses://auth-callback';
 
@@ -23,18 +26,6 @@ function getAuthRedirectTo() {
 
 export function isAnonymousUser(user) {
   return !!user && user.is_anonymous === true;
-}
-
-export function getDisplayName(user) {
-  const metadata = user?.user_metadata ?? {};
-  return (
-    metadata.display_name ||
-    metadata.username ||
-    metadata.full_name ||
-    metadata.name ||
-    user?.email?.split("@")[0] ||
-    ""
-  ).trim();
 }
 
 export function onAuthStateChange(callback) {

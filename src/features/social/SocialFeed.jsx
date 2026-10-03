@@ -10,9 +10,9 @@ import {
   deletePost,
   fetchPosts,
   fetchReels,
-  POSTS_PAGE_SIZE,
   recordPostShare,
   recordPostView,
+  reportPost,
   setFollow,
   setPostLike,
 } from "./postsApi";
@@ -63,12 +63,12 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     setError("");
     setLoadError("");
     try {
-      const nextPosts = isReels
-        ? await fetchReels(pageNumber, user?.id, readReelPreferences(user?.id), pageNumber === 0 ? prioritizedReelId : null)
-        : await fetchPosts(pageNumber, undefined, pageNumber === 0 ? prioritizedPostId : null);
+      const pageResult = isReels
+        ? await fetchReels(pageNumber, user?.id, readReelPreferences(user?.id), prioritizedReelId)
+        : await fetchPosts(pageNumber, undefined, prioritizedPostId);
       if (requestId !== requestIdRef.current) return;
+      const { posts: nextPosts, hasMore: nextHasMore } = pageResult;
       setPosts((current) => append ? [...current, ...nextPosts] : nextPosts);
-      const nextHasMore = nextPosts.length === POSTS_PAGE_SIZE;
       hasMoreRef.current = nextHasMore;
       setHasMore(nextHasMore);
       setPage(pageNumber);
@@ -164,6 +164,8 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
       ? { ...item, share_count: (item.share_count || 0) + 1 }
       : item));
   }, [user?.id]);
+
+  const handleReport = useCallback((postId, reason) => reportPost(postId, user.id, reason), [user?.id]);
 
   const handleCommentCreated = useCallback((postId, body, delta = 1) => {
     if (isReels && body && delta > 0) recordReelPreference(user.id, body, 0.5);
@@ -279,6 +281,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
               onShare={handleShare}
               onCommentCreated={handleCommentCreated}
               onStatus={handleShareStatus}
+              onReport={handleReport}
             />
             ))}
           </RowList>
@@ -303,6 +306,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             onEnded={handleReelEnd}
             onActive={handleActiveReel}
             onShareStatus={handleShareStatus}
+            onReport={handleReport}
           />
         ))}
         {isReels && posts.length > 0 && !hasMore && !loading && (

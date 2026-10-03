@@ -8,6 +8,6 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    removeConsole({ includes: ['log', 'warn', 'error', 'info', 'debug'] }),
+    removeConsole({ includes: ['log', 'debug', 'info'] }),
   ],
 })

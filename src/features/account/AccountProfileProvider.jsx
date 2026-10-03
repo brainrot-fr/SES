@@ -14,8 +14,29 @@ import { isAccountProfileComplete } from "./accountProfile";
 export { isAccountProfileComplete } from "./accountProfile";
 
 const AccountProfileContext = createContext(null);
+const PROFILE_CACHE_KEY = "ses-profile-cache-v1";
 const PROFILE_FIELDS =
   "id, onboarding_gender, follower_confirmed, country_code, onboarding_completed_at";
+
+function readCachedCompleteProfile(userId) {
+  try {
+    const profile = JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || "null");
+    return profile?.id === userId && isAccountProfileComplete(profile)
+      ? profile
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheProfile(profile) {
+  try {
+    if (profile) localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+    else localStorage.removeItem(PROFILE_CACHE_KEY);
+  } catch {
+    // Profile loading remains available if local storage is unavailable.
+  }
+}
 
 export function AccountProfileProvider({
   user,
@@ -31,6 +52,7 @@ export function AccountProfileProvider({
     profile: null,
     loading: false,
     error: null,
+    cachedProfile: null,
   });
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -68,7 +90,9 @@ export function AccountProfileProvider({
           profile: data,
           loading: false,
           error,
+          cachedProfile: error ? readCachedCompleteProfile(userId) : null,
         });
+        if (!error) cacheProfile(data);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -77,6 +101,7 @@ export function AccountProfileProvider({
           profile: null,
           loading: false,
           error,
+          cachedProfile: readCachedCompleteProfile(userId),
         });
       });
 
@@ -120,7 +145,9 @@ export function AccountProfileProvider({
         profile: data,
         loading: false,
         error: null,
+        cachedProfile: null,
       });
+      cacheProfile(data);
       return data;
     },
     [userId],
@@ -161,6 +188,20 @@ export function AccountProfileProvider({
     setReloadKey((key) => key + 1);
   }, []);
 
+  const continueWithCachedProfile = useCallback(() => {
+    const cachedProfile = profileState.userId === userId
+      ? profileState.cachedProfile
+      : null;
+    if (!cachedProfile || !isAccountProfileComplete(cachedProfile)) return;
+    setProfileState({
+      userId,
+      profile: cachedProfile,
+      loading: false,
+      error: null,
+      cachedProfile,
+    });
+  }, [profileState.cachedProfile, profileState.userId, userId]);
+
   const value = useMemo(
     () => ({
       profile,
@@ -173,6 +214,7 @@ export function AccountProfileProvider({
       confirmFollower,
       completeOnboarding,
       retryProfileLoad,
+      continueWithCachedProfile,
     }),
     [
       profile,
@@ -185,6 +227,7 @@ export function AccountProfileProvider({
       confirmFollower,
       completeOnboarding,
       retryProfileLoad,
+      continueWithCachedProfile,
     ],
   );
 
@@ -194,7 +237,11 @@ export function AccountProfileProvider({
         !profileReady ? (
           <ProfileStatus message={t("accountProfileLoading")} />
         ) : profileState.error ? (
-          <ProfileLoadError onRetry={retryProfileLoad} />
+          <ProfileLoadError
+            onRetry={retryProfileLoad}
+            onContinueOffline={continueWithCachedProfile}
+            canContinueOffline={isAccountProfileComplete(profileState.cachedProfile)}
+          />
         ) : isAccountProfileComplete(profile) ? (
           children
         ) : (
@@ -225,7 +272,7 @@ function ProfileStatus({ message }) {
   );
 }
 
-function ProfileLoadError({ onRetry }) {
+function ProfileLoadError({ onRetry, onContinueOffline, canContinueOffline }) {
   const { t } = useLang();
   return (
     <main className="account-onboarding">
@@ -240,6 +287,15 @@ function ProfileLoadError({ onRetry }) {
         >
           {t("accountTryAgain")}
         </button>
+        {canContinueOffline && (
+          <button
+            className="account-onboarding__button account-onboarding__button--secondary"
+            type="button"
+            onClick={onContinueOffline}
+          >
+            {t("accountContinueOffline")}
+          </button>
+        )}
       </section>
     </main>
   );

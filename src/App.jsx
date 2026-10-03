@@ -16,7 +16,7 @@ import Onboarding from "./components/Onboarding";
 import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
-import { initNaqlNotificationLifecycle } from "./notifications/naqlNotifications";
+import { getCssDurationSeconds } from "./components/ui/Button";
 
 const loadNaqlDashboard = () => import("./features/nuqool/en/naqlDashboard");
 const loadTimeline = () => import("./features/timeline/timeline");
@@ -60,15 +60,12 @@ function preloadPath(pathname) {
   return preloadRoute(pathname.split("/")[1] || "dashboard");
 }
 
-function getCssDurationSeconds(tokenName) {
-  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
-  const duration = Number.parseFloat(value);
-  if (!Number.isFinite(duration)) return 0;
-  return value.endsWith("ms") ? duration / 1000 : duration;
-}
-
 function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
   const prefersReducedMotion = useReducedMotion();
+  const [fastDuration, setFastDuration] = useState(0);
+  useEffect(() => {
+    setFastDuration(getCssDurationSeconds("--duration-fast"));
+  }, []);
   const renderItem = (it) => {
     const active = activePage === it.id;
     return (
@@ -82,7 +79,7 @@ function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
       aria-current={active ? "page" : undefined}
       aria-label={it.label}
       whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
-      transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-fast") }}
+      transition={{ duration: prefersReducedMotion ? 0 : fastDuration }}
     >
         <span className="bottom-nav__icon"><AppIcon name={it.iconName} size={22} filled={active} /></span>
         <span className="bottom-nav__label">{it.label}</span>
@@ -175,10 +172,15 @@ export default function App() {
   const headerSentinelRef = useRef(null);
   const previousDarkModeRef = useRef(darkMode);
   const [readyLocation, setReadyLocation] = useState(location);
+  const [baseDuration, setBaseDuration] = useState(0);
+
+  useEffect(() => {
+    setBaseDuration(getCssDurationSeconds("--duration-base"));
+  }, []);
 
   // top-level "section" for nav highlighting, derived from the URL
   const currentPage = location.pathname.split("/")[1] || "dashboard";
-  const canGoBack = currentPage === "quran" && /^\/quran\/\d+/.test(location.pathname);
+  const canGoBack = location.pathname !== "/dashboard" && window.history.state?.idx > 0;
   const pageTitles = {
     dashboard: t("titleDashboard"),
     nuqool: t("titleNuqool"),
@@ -204,11 +206,11 @@ export default function App() {
         setSidebarOpen(false);
         return;
       }
-      if (window.history.length > 1 && location.pathname !== "/quran") {
+      if (location.pathname === "/dashboard" || !(window.history.state?.idx > 0)) {
+        CapApp.exitApp();
+      } else {
         navigate(-1);
-        return;
       }
-      CapApp.exitApp();
     }).then((h) => { handle = h; });
     return () => handle?.remove();
   }, [navigate, location.pathname]);
@@ -249,11 +251,19 @@ export default function App() {
   const renderedLocation = readyLocation.key === location.key ? location : readyLocation;
 
   useEffect(() => {
-    const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
-      navigate(`/nuqool/${naqlNumber}`);
-      setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+    let cancelled = false;
+    let cleanup;
+    import("./notifications/naqlNotifications").then(({ initNaqlNotificationLifecycle }) => {
+      if (cancelled) return;
+      cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
+        navigate(`/nuqool/${naqlNumber}`);
+        setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+      });
     });
-    return cleanup;
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
   }, [navigate]);
 
   useEffect(() => {
@@ -287,7 +297,7 @@ export default function App() {
       <div ref={headerSentinelRef} className="app-header-sentinel" aria-hidden="true" />
       <header className={`app-header${headerScrolled ? " app-header--scrolled" : ""}`} inert={sidebarOpen}>
         {canGoBack ? (
-          <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate("/quran")} label={t("goBack")} />
+          <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate(-1)} label={t("goBack")} />
         ) : (
           <IconButton
             className="app-header__btn app-header__menu-btn"
@@ -333,7 +343,7 @@ export default function App() {
           className="route-transition"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-base"), ease: "easeOut" }}
+          transition={{ duration: prefersReducedMotion ? 0 : baseDuration, ease: "easeOut" }}
         >
           <Suspense fallback={<motion.div className="app-loading" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{t("settingsLoading")}</motion.div>}>
             <Routes location={renderedLocation}>

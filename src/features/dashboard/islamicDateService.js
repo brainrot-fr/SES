@@ -1,6 +1,7 @@
 // AlAdhan's conversion is Saudi-based; only the four specified countries use
 // the preceding Gregorian date to display one Hijri day behind Saudi Arabia.
 const HIJRI_API_BASE = "https://api.aladhan.com/v1/gToH";
+const HIJRI_CACHE_PREFIX = "ses-hijri-date-v1";
 const BEHIND_SAUDI_COUNTRIES = new Set(["IN", "PK", "BD", "AF"]);
 const HIJRI_MONTH_NAMES = {
   en: [
@@ -96,24 +97,14 @@ export function getIslamicDateCountryOffset(countryCode) {
   return countryDateOffset(countryCode);
 }
 
-export async function getIslamicDate({
-  countryCode = null,
-  locale = "en",
-  now = new Date(),
-  fetcher = fetch,
-  timeoutMs = 8000,
-} = {}) {
-  const dateParts = getSaudiGregorianDate(now);
-  const apiDate = formatApiDate(dateParts, countryDateOffset(countryCode));
-  const hijri = await fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs);
-  const language = locale === "ur" ? "ur" : "en";
-  const numberFormat = new Intl.NumberFormat(language, {
-    useGrouping: false,
-  });
-  const monthName =
-    HIJRI_MONTH_NAMES[language][hijri.month.number - 1] ||
-    hijri.month.en;
+export function getIslamicDateCacheKey(apiDate, countryCode, locale) {
+  return `${HIJRI_CACHE_PREFIX}:${apiDate}:${countryCode?.toUpperCase() || "SA"}:${locale === "ur" ? "ur" : "en"}`;
+}
 
+function formatHijriDate(apiDate, hijri, locale) {
+  const language = locale === "ur" ? "ur" : "en";
+  const numberFormat = new Intl.NumberFormat(language, { useGrouping: false });
+  const monthName = HIJRI_MONTH_NAMES[language][hijri.month.number - 1] || hijri.month.en;
   return {
     apiDate,
     day: Number(hijri.day),
@@ -121,4 +112,50 @@ export async function getIslamicDate({
     year: Number(hijri.year),
     text: `${numberFormat.format(Number(hijri.day))} ${monthName} ${numberFormat.format(Number(hijri.year))}${language === "ur" ? "ھ" : " AH"}`,
   };
+}
+
+function readCachedDate(key) {
+  try {
+    const cached = JSON.parse(localStorage.getItem(key) || "null");
+    return cached?.apiDate && cached?.text ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedDate(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // The calendar remains available when local storage is disabled.
+  }
+}
+
+export async function getIslamicDate({
+  countryCode = null,
+  locale = "en",
+  now = new Date(),
+  fetcher = fetch,
+  timeoutMs = 8000,
+  onRefresh,
+} = {}) {
+  const dateParts = getSaudiGregorianDate(now);
+  const apiDate = formatApiDate(dateParts, countryDateOffset(countryCode));
+  const cacheKey = getIslamicDateCacheKey(apiDate, countryCode, locale);
+  const cached = readCachedDate(cacheKey);
+  if (cached) {
+    void fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs)
+      .then((hijri) => {
+        const refreshed = formatHijriDate(apiDate, hijri, locale);
+        writeCachedDate(cacheKey, refreshed);
+        onRefresh?.(refreshed);
+      })
+      .catch(() => {});
+    return cached;
+  }
+
+  const hijri = await fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs);
+  const result = formatHijriDate(apiDate, hijri, locale);
+  writeCachedDate(cacheKey, result);
+  return result;
 }

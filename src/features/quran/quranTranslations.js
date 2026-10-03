@@ -15,12 +15,6 @@
  * Once a surah has entries here, QuranReader will show them under the
  * matching ayah automatically.
  */
-export const quranTranslations = {
-  1: {
-    1: { ur: 'ٹیسٹ ترجمہ — آیت ۱', urTransliteration: 'Test translation — Ayah 1' },
-    2: { ur: 'ٹیسٹ ترجمہ — آیت ۲', urTransliteration: 'Test translation — Ayah 2' },
-    3: { ur: 'ٹیسٹ ترجمہ — آیت ۳', urTransliteration: 'Test translation — Ayah 3' },
-  },
-};
+export const quranTranslations = {};
 
 export default quranTranslations;

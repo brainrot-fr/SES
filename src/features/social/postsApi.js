@@ -1,5 +1,5 @@
-import { supabase } from "../../lib/supabaseClient";
-import { rankReels } from "./reelRanking";
+import { supabase } from "../../lib/supabaseClient.js";
+import { hasMoreForPage, rankReels } from "./reelRanking.js";
 
 export const POSTS_PAGE_SIZE = 20;
 const POST_COLUMNS = "id, author_id, author_display_name, body, media_url, media_type, media_format, media_width, media_height, media_bytes, created_at";
@@ -43,6 +43,7 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   if (mediaType) query = query.eq("media_type", mediaType);
   else query = query.is("media_type", null).is("media_url", null);
 
+  if (page > 0 && prioritizedPostId) query = query.neq("id", prioritizedPostId);
   query = query.range(start, start + POSTS_PAGE_SIZE - 1);
   const requests = [query];
   if (page === 0 && prioritizedPostId) {
@@ -55,11 +56,12 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
 
   if (error) throw error;
   if (results[1]?.error) throw results[1].error;
+  const hasMore = hasMoreForPage(data.length, POSTS_PAGE_SIZE);
   const prioritizedPost = results[1]?.data;
   const uniquePosts = prioritizedPost
     ? [prioritizedPost, ...data.filter((post) => post.id !== prioritizedPost.id)]
     : data;
-  return addEngagement(uniquePosts);
+  return { posts: await addEngagement(uniquePosts), hasMore };
 }
 
 export async function fetchReels(page = 0, userId, preferences = {}, prioritizedReelId) {
@@ -71,6 +73,7 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
     .order("created_at", { ascending: false })
     .order("id", { ascending: false });
 
+  if (page > 0 && prioritizedReelId) postsQuery = postsQuery.neq("id", prioritizedReelId);
   postsQuery = postsQuery.range(start, start + POSTS_PAGE_SIZE - 1);
   const requests = [postsQuery];
   if (page === 0 && prioritizedReelId) {
@@ -83,11 +86,12 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
 
   if (error) throw error;
   if (results[1]?.error) throw results[1].error;
+  const hasMore = hasMoreForPage(posts.length, POSTS_PAGE_SIZE);
   const prioritizedPost = results[1]?.data;
   const uniquePosts = prioritizedPost
     ? [prioritizedPost, ...posts.filter((post) => post.id !== prioritizedPost.id)]
     : posts;
-  if (!uniquePosts.length) return uniquePosts;
+  if (!uniquePosts.length) return { posts: uniquePosts, hasMore };
 
   const postIds = uniquePosts.map((post) => post.id);
   const [{ data: engagement, error: engagementError }, profiles] = await Promise.all([
@@ -103,12 +107,13 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
     author_display_name: profiles.get(post.author_id)?.display_name || post.author_display_name,
     author_avatar_url: profiles.get(post.author_id)?.avatar_url || null,
   }));
+  // Ranking is intentionally scoped to this fetched page.
   const ranked = rankReels(enriched, preferences);
-  if (!prioritizedPost) return ranked;
-  return [
+  const ordered = !prioritizedPost ? ranked : [
     ...ranked.filter((post) => post.id === prioritizedPost.id),
     ...ranked.filter((post) => post.id !== prioritizedPost.id),
   ];
+  return { posts: ordered, hasMore };
 }
 
 export async function createPost({ body, media, user }) {
@@ -195,6 +200,15 @@ export async function recordPostView(postId, userId) {
 
 export async function recordPostShare(postId, userId) {
   const { error } = await supabase.from("post_shares").insert({ post_id: postId, user_id: userId });
+  if (error) throw error;
+}
+
+export async function reportPost(postId, reporterId, reason) {
+  const { error } = await supabase.from("post_reports").insert({
+    post_id: postId,
+    reporter_id: reporterId,
+    reason,
+  });
   if (error) throw error;
 }
 

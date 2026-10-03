@@ -65,7 +65,7 @@ export default function AccountOnboarding() {
     return profile?.follower_confirmed ? "country" : "confirmation";
   });
   const [gender, setGender] = useState(profile?.onboarding_gender || "");
-  const [confirmed, setConfirmed] = useState(false);
+  const [confirmed, setConfirmed] = useState(profile?.follower_confirmed === true);
   const [countryCode, setCountryCode] = useState(
     profile?.country_code || "",
   );
@@ -217,7 +217,7 @@ export default function AccountOnboarding() {
                 <label className="account-onboarding__confirmation">
                   <input
                     type="checkbox"
-                    checked={confirmed || profile?.follower_confirmed === true}
+                    checked={confirmed}
                     onChange={(event) => setConfirmed(event.target.checked)}
                     disabled={busy}
                   />

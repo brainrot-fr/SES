@@ -1,13 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { getCssDurationSeconds } from "./Button";
 import "./ui.css";
-
-function getCssDurationSeconds(tokenName) {
-  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
-  const duration = Number.parseFloat(value);
-  if (!Number.isFinite(duration)) return 0;
-  return value.endsWith("ms") ? duration / 1000 : duration;
-}
 
 export default function Modal({
   open,
@@ -22,7 +16,12 @@ export default function Modal({
   const returnFocusRef = useRef(null);
   const openRef = useRef(open);
   const prefersReducedMotion = useReducedMotion();
+  const [baseDuration, setBaseDuration] = useState(0);
   openRef.current = open;
+
+  useEffect(() => {
+    setBaseDuration(getCssDurationSeconds("--duration-base"));
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -72,7 +71,7 @@ export default function Modal({
         className="ui-modal__content"
         initial={open ? { opacity: 0, y: 8 } : false}
         animate={open ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-        transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-base"), ease: "easeOut" }}
+        transition={{ duration: prefersReducedMotion ? 0 : baseDuration, ease: "easeOut" }}
         onAnimationComplete={handleAnimationComplete}
       >
         {children}

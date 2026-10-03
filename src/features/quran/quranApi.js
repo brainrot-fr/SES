@@ -111,7 +111,7 @@ export async function fetchSurahList() {
  * One surah's Arabic text, with each ayah's audio URL resolved by the
  * caller via buildAudioUrl. Reads straight from the bundled offline data.
  */
-export async function fetchSurah(surahNumber) {
+export async function fetchSurah(surahNumber, { includeBismillah = false } = {}) {
   const raw = quranData.surahs[surahNumber];
   if (!raw) throw new Error(`Surah ${surahNumber} not found in bundled data`);
 
@@ -119,7 +119,9 @@ export async function fetchSurah(surahNumber) {
     ...raw,
     ayahs: raw.ayahs.map((a) => ({
       ...a,
-      text: a.numberInSurah === 1 ? stripBismillah(a.text, raw.number) : a.text,
+      text: a.numberInSurah === 1 && !includeBismillah
+        ? stripBismillah(a.text, raw.number)
+        : a.text,
     })),
   };
 }

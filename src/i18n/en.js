@@ -247,6 +247,15 @@ export default {
   socialShareError: "Could not share this post. Try copying its link instead.",
   socialShareSuccess: "Post shared.",
   socialLinkCopied: "Post link copied.",
+  socialReport: "Report",
+  socialReportTitle: "Report this post",
+  socialReportReason: "Why are you reporting this?",
+  socialReportSpam: "Spam",
+  socialReportHarassment: "Harassment or abuse",
+  socialReportInappropriate: "Inappropriate content",
+  socialReportSubmit: "Send report",
+  socialReportSuccess: "Report submitted.",
+  socialReportError: "Could not submit the report.",
 
   quranPlayThisAyah: "Play this ayah",
   quranPlayFromHere: "Play from here",
@@ -265,23 +274,7 @@ export default {
 
   /* Auth / backup */
   authBackupData: "Back up my data",
-  authUpgradeTitle: "Back up your data",
-  authUpgradeDesc:
-    "Register your email to save your data to cloud and sync across multiple devices.",
   authUpgradeEmailPlaceholder: "you@example.com",
-  authUpgradeSendCode: "Send code",
-  authUpgradeSending: "Sending…",
-  authUpgradeWaitingDesc: "We've sent a confirmation link to",
-  authUpgradeWaitingHint:
-    "Tap the link in that email to finish backing up your data. You can close this and keep using the app in the meantime.",
-  authUpgradeCloseWhileWaiting: "Close",
-  authUpgradeSuccess: "Your data is now backed up to this email.",
-  authUpgradeClose: "Done",
-  authUpgradeSkip: "Not now",
-  authUpgradeError: "Something went wrong. Please try again.",
-  authUpgradePasswordPlaceholder: "Create a password",
-  authUpgradePasswordHint: "Use this password to sign in on other devices.",
-  authUpgradePasswordTooShort: "Password must be at least 8 characters.",
 
   settingsAccount: "Account",
   settingsPreferences: "Preferences",
@@ -291,12 +284,8 @@ export default {
 
   signInMenuLabel: "Sign in to existing account",
   signInTitle: "Sign in",
-  signInDesc:
-    "Signing in replaces this device's local data with your account's data. Anything not already backed up on this device will be lost.",
-  signInPasswordPlaceholder: "Password",
   signInSubmit: "Sign in",
   signInSubmitting: "Signing in…",
-  signInError: "Could not sign in. Check your email and password.",
   authRequiredTitle: "Sign in to continue",
   authRequiredDescription: "Create an account or sign in to use Nuqool and keep your account available across devices.",
   authModeLabel: "Account action",
@@ -368,4 +357,5 @@ export default {
   accountProfileErrorTitle: "Your profile could not be loaded",
   accountProfileError: "Check your connection and try again. Your account stays locked until the profile is available, so we can confirm setup safely.",
   accountTryAgain: "Try again",
+  accountContinueOffline: "Continue offline",
 };

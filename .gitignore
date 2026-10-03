@@ -18,3 +18,5 @@ scripts/*
 !scripts/index-quran-audio.mjs
 .cache/quran-audio/
 public/quran-audio-durations.json
+.impeccable
+.github/hooks

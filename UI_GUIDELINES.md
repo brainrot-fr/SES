@@ -150,7 +150,7 @@ Use var(--...) from tokens.css only: colors, spacing, radius, durations, easing.
 - i18n: every string in both en.js and ur.js. No hardcoded text.
 - A11y: 44px targets, visible :focus-visible ring, aria labels on icon buttons, dialogs use the Modal or Sheet.
 - Capacitor: respect env(safe-area-inset-*), no hover-only affordances, no fixed elements colliding with the bottom nav or dock.
-- Motion: framer-motion for route and sheet transitions only, honor reduced motion (MotionConfig already does).
+- Motion: framer-motion for route and sheet transitions; ambient gradients may use one slow, low-amplitude drift on full-page/app-canvas backgrounds only. Keep component and functional gradients still. Disable ambient drift for prefers-reduced-motion; honor reduced motion for all transitions (MotionConfig already does).
 - Dark mode: works through tokens automatically. Test both themes.
 
 ## 11. Banned (with examples found in this repo)

@@ -171,7 +171,7 @@ async function downloadAtBitrate(url) {
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
-      if (response.status === 403 || response.status === 404) {
+      if ([403, 404, 416].includes(response.status)) {
         const error = new Error(`Audio unavailable (HTTP ${response.status}): ${url}`);
         error.unavailableAtBitrate = true;
         throw error;
@@ -216,7 +216,7 @@ async function downloadAtBitrate(url) {
   throw lastError;
 }
 
-async function getAyahAudio(reciterId, ayah) {
+async function getAyahAudio(reciterId, ayah, preferredBitrate) {
   const globalAyahNumber = ayah.number;
   const reciterCache = join(CACHE_DIR, reciterId);
   const audioFile = join(reciterCache, `${globalAyahNumber}.mp3`);
@@ -229,18 +229,21 @@ async function getAyahAudio(reciterId, ayah) {
   }
 
   let lastError;
-  for (const bitrate of AUDIO_BITRATES) {
+  const bitrateLadder = preferredBitrate
+    ? [preferredBitrate, ...AUDIO_BITRATES.filter((bitrate) => bitrate !== preferredBitrate)]
+    : AUDIO_BITRATES;
+  for (const bitrate of bitrateLadder) {
     const url = `${AUDIO_CDN}/${bitrate}/${reciterId}/${globalAyahNumber}.mp3`;
     try {
       const { file, duration } = await downloadAtBitrate(url);
       const partialFile = `${audioFile}.part`;
       await writeFile(partialFile, file);
       await rename(partialFile, audioFile);
-      return { duration, downloaded: true };
+      return { duration, downloaded: true, bitrate };
     } catch (error) {
       lastError = error;
       if (!error.unavailableAtBitrate) throw error;
-      const fallbackBitrate = AUDIO_BITRATES[AUDIO_BITRATES.indexOf(bitrate) + 1];
+      const fallbackBitrate = bitrateLadder[bitrateLadder.indexOf(bitrate) + 1];
       if (fallbackBitrate) {
         console.warn(
           `  ${reciterId} ayah ${globalAyahNumber}: ${bitrate} kbps unavailable or invalid; trying ${fallbackBitrate} kbps`,
@@ -294,11 +297,13 @@ async function main() {
   const reciterDurations = {};
   for (const reciter of RECITERS) {
     const totals = {};
+    let lastDownloadedBitrate;
     let completed = 0;
     let downloaded = 0;
     console.log(`Indexing ${reciter.name} (${ayahs.length} ayahs)...`);
     await mapWithConcurrency(ayahs, getConcurrency(), async (ayah) => {
-      const result = await getAyahAudio(reciter.id, ayah);
+      const result = await getAyahAudio(reciter.id, ayah, lastDownloadedBitrate);
+      if (result.downloaded) lastDownloadedBitrate = result.bitrate;
       completed += 1;
       if (result.downloaded) downloaded += 1;
       totals[ayah.surahNumber] = (totals[ayah.surahNumber] || 0) + result.duration;

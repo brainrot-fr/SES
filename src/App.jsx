@@ -68,7 +68,7 @@ function DesktopNav({ items, activePage, onNavigate, label }) {
 
   return (
     <motion.nav
-      className="desktop-nav"
+      className={`desktop-nav${expanded ? " desktop-nav--expanded" : ""}`}
       aria-label={label}
       initial={false}
       animate={{ width: expanded ? 236 : 64 }}

@@ -398,7 +398,7 @@
 
 .quran-reading__ayah--playing {
   background: var(--primary-soft);
-  border-inline-start: 3px solid var(--primary);
+  -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
 
@@ -444,7 +444,7 @@
   position: fixed;
   z-index: 90;
   inset-inline-start: 50%;
-  inset-block-end: calc(var(--dock-offset) + var(--space-2));
+  inset-block-end: var(--dock-offset);
   width: min(calc(100% - 2 * var(--page-gutter)), 38rem);
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);

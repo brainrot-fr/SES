@@ -2,7 +2,8 @@
   --page-gutter: clamp(1rem, 4vw, 2rem);
   --measure-reading: 68ch;
   --measure-feed: 40rem;
-  --dock-offset: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  --bottom-nav-gap: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  --dock-offset: calc(var(--bottom-nav-gap) + var(--bottom-nav-height) + var(--space-2));
 }
 
 .layout-page {

@@ -3,6 +3,7 @@ import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import { createComment, deletePostComment, fetchComments } from "./postsApi";
 
 function CommentBranch({ comment, children, depth, userId, onReply, onDelete, t }) {
@@ -58,7 +59,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
       })
       .catch((loadError) => {
         console.error("[Social] failed to load comments", loadError);
-        if (!cancelled) setError(loadError.message || t("socialCommentsError"));
+        if (!cancelled) setError(friendlyError(loadError, t, "socialCommentsError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -108,7 +109,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
       onCommentCreated(post.id, created.body);
     } catch (submitError) {
       console.error("[Social] failed to create comment", submitError);
-      setError(submitError.message || t("socialCommentFailed"));
+      setError(friendlyError(submitError, t, "socialCommentFailed"));
     } finally {
       setBusy(false);
     }
@@ -126,7 +127,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
       setCommentToDelete(null);
     } catch (deleteError) {
       console.error("[Social] failed to delete comment", deleteError);
-      setError(deleteError.message || t("socialDeleteError"));
+      setError(friendlyError(deleteError, t, "socialDeleteError"));
     } finally {
       setDeletingComment(false);
     }

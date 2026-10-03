@@ -24,6 +24,7 @@ import Toast from "../../components/ui/Toast";
 import IconButton from "../../components/ui/IconButton";
 import RowList from "../../components/layout/RowList";
 import Row from "../../components/layout/Row";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import "./socialFeed.css";
 
 export default function SocialFeed({ mode = "posts", onShareStatus }) {
@@ -75,7 +76,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     } catch (loadError) {
       if (requestId !== requestIdRef.current) return;
       console.error("[SocialFeed] failed to load posts", loadError);
-      setLoadError(loadError.message || t("socialFeedFailed"));
+      setLoadError(friendlyError(loadError, t, "socialFeedFailed"));
     } finally {
       if (requestId === requestIdRef.current) {
         loadingRef.current = false;
@@ -83,6 +84,13 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
       }
     }
   }, [isReels, prioritizedPostId, prioritizedReelId, t, user?.id]);
+
+  useEffect(() => {
+    if (!loadError) return undefined;
+    const retry = () => loadPage(page, page > 0);
+    window.addEventListener("online", retry, { once: true });
+    return () => window.removeEventListener("online", retry);
+  }, [loadError, loadPage, page]);
 
   const nextPosterUrl = isReels ? getReelPosterUrl(posts[activeReelIndex + 1]) : "";
 
@@ -159,10 +167,13 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   }, [user?.id]);
 
   const handleShare = useCallback(async (post) => {
-    await recordPostShare(post.id, user.id);
-    setPosts((current) => current.map((item) => item.id === post.id
-      ? { ...item, share_count: (item.share_count || 0) + 1 }
-      : item));
+    const isNew = await recordPostShare(post.id, user.id);
+    if (isNew) {
+      setPosts((current) => current.map((item) => item.id === post.id
+        ? { ...item, share_count: (item.share_count || 0) + 1 }
+        : item));
+    }
+    return isNew;
   }, [user?.id]);
 
   const handleReport = useCallback((postId, reason) => reportPost(postId, user.id, reason), [user?.id]);
@@ -210,7 +221,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     } catch (deleteError) {
       console.error("[SocialFeed] failed to delete post", deleteError);
       setPosts(previousPosts);
-      setError(deleteError.message || t("socialDeleteError"));
+      setError(friendlyError(deleteError, t, "socialDeleteError"));
     }
   };
 

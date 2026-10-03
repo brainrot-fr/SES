@@ -111,7 +111,7 @@
   position: fixed;
   z-index: 90;
   inset-inline-start: 50%;
-  inset-block-end: calc(var(--dock-offset) + var(--space-3));
+  inset-block-end: var(--dock-offset);
   display: flex;
   width: min(calc(100% - 24px), 26rem);
   min-height: 64px;

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
+import { friendlyError } from "../../lib/supabaseClient.js";
 
 export default function PostComposer({ onCreate }) {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ export default function PostComposer({ onCreate }) {
       setBody("");
     } catch (submitError) {
       console.error("[SocialFeed] failed to create post", submitError);
-      setError(submitError.message || t("socialPostFailed"));
+      setError(friendlyError(submitError, t, "socialPostFailed"));
     } finally {
       setBusy(false);
     }

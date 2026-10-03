@@ -26,3 +26,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
   },
 });
+
+export function friendlyError(error, t, fallbackKey = "errorGeneric") {
+  const message = String(error?.message || "");
+  const offline = (typeof navigator !== "undefined" && navigator.onLine === false)
+    || /failed to fetch|networkerror|load failed|network request failed/i.test(message);
+  if (offline) return t("errorOffline");
+  return message || t(fallbackKey);
+}

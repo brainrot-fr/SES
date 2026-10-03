@@ -5,6 +5,7 @@ import Button from '../../components/ui/Button';
 import TextField from '../../components/ui/TextField';
 import AppIcon from '../../components/icons/AppIcon';
 import EntryBrand from '../../components/layout/EntryBrand';
+import { friendlyError } from '../../lib/supabaseClient.js';
 
 export default function AuthGate() {
   const { t, lang } = useLang();
@@ -33,7 +34,7 @@ export default function AuthGate() {
         setConfirmationSent(result.confirmationRequired);
       }
     } catch (authError) {
-      setError(authError.message || t('authGenericError'));
+      setError(friendlyError(authError, t, 'authGenericError'));
     } finally {
       setBusy(false);
     }
@@ -45,7 +46,7 @@ export default function AuthGate() {
     try {
       await signInGoogle();
     } catch (authError) {
-      setError(authError.message || t('authGenericError'));
+      setError(friendlyError(authError, t, 'authGenericError'));
     } finally {
       setBusy(false);
     }

@@ -133,7 +133,7 @@ html.theme-transition body * {
 .bottom-nav {
   position: fixed;
   left: 50%;
-  inset-block-end: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  inset-block-end: var(--bottom-nav-gap);
   z-index: 100;
   display: flex;
   align-items: stretch;

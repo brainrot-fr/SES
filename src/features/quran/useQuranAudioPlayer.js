@@ -22,7 +22,7 @@ import {
 } from "./quranApi";
 
 const FG_NOTIFICATION_ID = 5501;
-const FG_CHANNEL_ID = "quran-playback";
+const FG_CHANNEL_ID = "quran-playback-v2";
 const FALLBACK_AYAH_SECONDS = 5;
 
 const isNative = () => Capacitor.isNativePlatform();
@@ -31,6 +31,7 @@ const isAndroid = () => Capacitor.getPlatform() === "android";
 let channelReady = false;
 let foregroundServiceStarted = false;
 let foregroundServiceQueue = Promise.resolve();
+let lastForegroundKey = "";
 
 function enqueueForegroundOperation(operation) {
   const result = foregroundServiceQueue.then(operation, operation);
@@ -46,11 +47,14 @@ function enqueueForegroundOperation(operation) {
 async function ensureForegroundChannel() {
   if (!isAndroid() || channelReady) return;
   try {
+    if (typeof ForegroundService.deleteNotificationChannel === "function") {
+      ForegroundService.deleteNotificationChannel({ id: "quran-playback" }).catch(() => {});
+    }
     await ForegroundService.createNotificationChannel({
       id: FG_CHANNEL_ID,
       name: "Quran playback",
       description: "Shown while Quran audio is playing",
-      importance: 3,
+      importance: 2,
     });
     channelReady = true;
   } catch (err) {
@@ -93,17 +97,29 @@ async function updateForeground(title, body) {
   });
 }
 
+function syncForeground(surahName, reciterName) {
+  const key = `${surahName}|${reciterName}`;
+  if (key === lastForegroundKey) return;
+  lastForegroundKey = key;
+  updateForeground(surahName, reciterName);
+}
+
 /* Stop the Android foreground service when playback ends or is stopped. */
 async function stopForeground() {
-  if (!isAndroid()) return;
+  if (!isAndroid()) {
+    lastForegroundKey = "";
+    return;
+  }
   return enqueueForegroundOperation(async () => {
-    if (!foregroundServiceStarted) return;
     try {
-      await ForegroundService.stopForegroundService();
+      if (foregroundServiceStarted) {
+        await ForegroundService.stopForegroundService();
+      }
     } catch {
       /* already stopped — fine */
     } finally {
       foregroundServiceStarted = false;
+      lastForegroundKey = "";
     }
   });
 }
@@ -183,7 +199,7 @@ export function useQuranAudioPlayer(surah) {
     MediaSession.setPlaybackState({
       playbackState: playing ? "playing" : "paused",
     }).catch(() => {});
-    updateForeground(label, playing ? "Playing" : "Paused");
+    syncForeground(surahRef.current.englishName, reciterName);
   }, []);
 
   /* Start playback for a selected ayah and optionally keep auto-advancing. */

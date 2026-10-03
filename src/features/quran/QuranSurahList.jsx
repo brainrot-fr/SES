@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { fetchSurahList } from './quranApi';
 import { useLang } from '../../context/LanguageContext';
-import EmptyState from '../../components/ui/EmptyState';
-import Skeleton from '../../components/ui/Skeleton';
+import AppIcon from '../../components/icons/AppIcon';
+import { Button } from "@/components/shadcn/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/shadcn/empty";
+import { Skeleton } from "@/components/shadcn/skeleton";
 import RowList from '../../components/layout/RowList';
 import PageHeader from '../../components/layout/PageHeader';
 import './quran.css';
@@ -50,16 +52,26 @@ export default function QuranSurahList({
   if (error) {
     return (
       <div className="quran-state quran-state--error" role="alert">
-        <EmptyState
-          icon="retry"
-          title={t('quranLoadError')}
-          action={{ label: t('socialRetry'), onClick: () => setLoadAttempt((attempt) => attempt + 1) }}
-        />
+        <Empty className="gap-3 rounded-none border-0 p-5 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia><AppIcon name="retry" size={25} /></EmptyMedia>
+            <EmptyTitle>{t('quranLoadError')}</EmptyTitle>
+          </EmptyHeader>
+          <Button type="button" variant="secondary" onClick={() => setLoadAttempt((attempt) => attempt + 1)}>
+            {t('socialRetry')}
+          </Button>
+        </Empty>
       </div>
     );
   }
   if (!surahs) {
-    return <Skeleton variant="list" count={8} label={t('quranLoading')} className="quran-list__skeleton" />;
+    return (
+      <div className="quran-list__skeleton grid gap-3" role="status" aria-label={t('quranLoading')}>
+        {Array.from({ length: 8 }, (_, index) => (
+          <Skeleton key={index} className="h-[4.5rem] rounded-none bg-muted" />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -89,12 +101,16 @@ export default function QuranSurahList({
       )}
 
       {filteredSurahs.length === 0 ? (
-        <EmptyState
-          icon="book"
-          title={t('quranNoResults')}
-          description={query}
-          action={{ label: t('quranClearSearch'), onClick: () => setQuery('') }}
-        />
+        <Empty className="gap-3 rounded-none border-0 p-5 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia><AppIcon name="book" size={25} /></EmptyMedia>
+            <EmptyTitle>{t('quranNoResults')}</EmptyTitle>
+            <EmptyDescription>{query}</EmptyDescription>
+          </EmptyHeader>
+          <Button type="button" variant="secondary" onClick={() => setQuery('')}>
+            {t('quranClearSearch')}
+          </Button>
+        </Empty>
       ) : (
         <RowList className="quran-list__rows">
           {filteredSurahs.map((s) => (

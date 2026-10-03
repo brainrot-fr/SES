@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/shadcn/button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
+import { toast } from "sonner";
 
 export function usePostActions(post, {
   onLike,
   onFollow,
   onShare,
   onCommentCreated,
-  onStatus,
   likeErrorMessage,
   followErrorMessage,
 }) {
@@ -43,7 +43,7 @@ export function usePostActions(post, {
     } catch (error) {
       setLiked(!nextLiked);
       setLikeCount((count) => Math.max(0, count + (nextLiked ? -1 : 1)));
-      onStatus(error.message || likeErrorMessage);
+      toast(error.message || likeErrorMessage);
     } finally {
       setLikeBusy(false);
     }
@@ -58,7 +58,7 @@ export function usePostActions(post, {
       await onFollow(post, nextFollowing);
     } catch (error) {
       setFollowing(!nextFollowing);
-      onStatus(error.message || followErrorMessage);
+      toast(error.message || followErrorMessage);
     } finally {
       setFollowBusy(false);
     }
@@ -82,9 +82,9 @@ export function usePostActions(post, {
       } catch (shareError) {
         console.error("[Social] failed to record share", shareError);
       }
-      onStatus(message);
+      toast(message);
     } catch (error) {
-      if (error.name !== "AbortError") onStatus(error.message || errorMessage);
+      if (error.name !== "AbortError") toast(error.message || errorMessage);
     }
   };
 
@@ -120,7 +120,6 @@ export default function PostCard({
   onView,
   onShare,
   onCommentCreated,
-  onStatus,
   onReport,
 }) {
   const { lang, t } = useLang();
@@ -137,7 +136,6 @@ export default function PostCard({
     onFollow,
     onShare,
     onCommentCreated,
-    onStatus: (message) => onStatus(message || t("socialLikeError")),
     likeErrorMessage: t("socialLikeError"),
     followErrorMessage: t("socialFollowError"),
   });
@@ -188,9 +186,9 @@ export default function PostCard({
     try {
       await onReport(post.id, reportReason);
       setReportDialogOpen(false);
-      onStatus(t("socialReportSuccess"));
+      toast(t("socialReportSuccess"));
     } catch (error) {
-      onStatus(error.message || t("socialReportError"));
+      toast(error.message || t("socialReportError"));
     } finally {
       setReportBusy(false);
     }
@@ -264,7 +262,7 @@ export default function PostCard({
         <h2 className="ui-dialog-title" id={`social-delete-title-${post.id}`}>{t("socialDeleteConfirm")}</h2>
         <div className="ui-dialog-actions">
           <Button type="button" variant="secondary" onClick={() => setDeleteDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" variant="danger" onClick={() => {
+          <Button type="button" variant="destructive" onClick={() => {
             setDeleteDialogOpen(false);
             onDelete(post.id);
           }}>{t("socialDeleteYes")}</Button>

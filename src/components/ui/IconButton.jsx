@@ -1,22 +1,15 @@
-import { motion } from "framer-motion";
 import AppIcon from "../icons/AppIcon";
-import "./ui.css";
+import { Button } from "@/components/shadcn/button";
 
-export default function IconButton({ as: Component = "button", icon, label, size = 22, className = "", type, ...props }) {
-  const ButtonComponent = Component === "button" ? motion.button : Component;
-  return (
-    <ButtonComponent
-      {...props}
-      {...(Component === "button" ? {
-        type: type ?? "button",
-        whileHover: { scale: 1.04 },
-        whileTap: { scale: 0.94 },
-        transition: { duration: 0.14 },
-      } : {})}
-      className={`ui-icon-button ui-icon-button--${icon}${className ? ` ${className}` : ""}`}
-      aria-label={label}
-    >
-      <AppIcon name={icon} size={size} />
-    </ButtonComponent>
+export default function IconButton({ as: Component, icon, label, size = 22, className = "", type, ...props }) {
+  const iconElement = <AppIcon name={icon} size={size} />;
+  return Component ? (
+    <Button asChild variant="ghost" size="icon" className={className} aria-label={label}>
+      <Component {...props}>{iconElement}</Component>
+    </Button>
+  ) : (
+    <Button {...props} type={type ?? "button"} variant="ghost" size="icon" className={className} aria-label={label}>
+      {iconElement}
+    </Button>
   );
 }

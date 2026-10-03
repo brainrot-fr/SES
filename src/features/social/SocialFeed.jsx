@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "sonner";
+import { Button } from "@/components/shadcn/button";
 import { getDisplayName } from "../auth/authSession";
 import PostCard from "./PostCard";
 import ReelCard, { getReelPosterUrl, REEL_MUTE_KEY } from "./ReelCard";
@@ -18,15 +20,14 @@ import {
 } from "./postsApi";
 import { readReelPreferences, recordReelPreference } from "./reelRanking";
 import ReelEndCard from "./ReelEndCard";
-import Skeleton from "../../components/ui/Skeleton";
-import EmptyState from "../../components/ui/EmptyState";
-import Toast from "../../components/ui/Toast";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/shadcn/empty";
+import { Skeleton } from "@/components/shadcn/skeleton";
 import IconButton from "../../components/ui/IconButton";
 import RowList from "../../components/layout/RowList";
 import Row from "../../components/layout/Row";
 import "./socialFeed.css";
 
-export default function SocialFeed({ mode = "posts", onShareStatus }) {
+export default function SocialFeed({ mode = "posts" }) {
   const { t } = useLang();
   const { user } = useAuth();
   const location = useLocation();
@@ -43,9 +44,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
-  const [status, setStatus] = useState("");
   const [activeReelIndex, setActiveReelIndex] = useState(0);
   const [reelMuted, setReelMuted] = useState(() => {
     try {
@@ -60,7 +59,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     loadingRef.current = true;
     const requestId = ++requestIdRef.current;
     setLoading(true);
-    setError("");
     setLoadError("");
     try {
       const pageResult = isReels
@@ -174,13 +172,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
       : post));
   }, [isReels, user?.id]);
 
-  const handleShareStatus = (message) => {
-    setStatus(message);
-    onShareStatus?.(message);
-  };
-
-  const dismissStatus = useCallback(() => setStatus(""), []);
-
   const handleNearEnd = useCallback((index) => {
     if (hasMore && !loadingRef.current && index >= posts.length - 4) {
       loadPage(page + 1, true);
@@ -204,13 +195,12 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   const handleDelete = async (postId) => {
     const previousPosts = posts;
     setPosts((current) => current.filter((post) => post.id !== postId));
-    setError("");
     try {
       await deletePost(postId);
     } catch (deleteError) {
       console.error("[SocialFeed] failed to delete post", deleteError);
       setPosts(previousPosts);
-      setError(deleteError.message || t("socialDeleteError"));
+      toast(deleteError.message || t("socialDeleteError"));
     }
   };
 
@@ -236,7 +226,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           trailing={<AppIcon name="plus" size={20} />}
         />
       )}
-      {error && <p className="social-error" role="alert">{error}</p>}
       {loadError && !isReels && (
         <div className="social-error" role="alert">
           <span>{loadError}</span>
@@ -244,12 +233,26 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         </div>
       )}
       {loading && posts.length === 0 && (
-        <Skeleton
-          variant={isReels ? "reel" : "avatar-line"}
-          count={isReels ? 1 : 3}
-          label={t("socialLoading")}
-          className={isReels ? "social-reels__skeleton" : "social-post__skeleton"}
-        />
+        isReels ? (
+          <Skeleton
+            role="status"
+            aria-label={t("socialLoading")}
+            className="social-reels__skeleton mx-auto h-[78dvh] w-full max-w-[26rem] bg-muted"
+          />
+        ) : (
+          <div className="social-post__skeleton grid" role="status" aria-label={t("socialLoading")}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className="flex gap-3 border-b border-hairline px-4 py-4">
+                <Skeleton className="size-11 shrink-0 rounded-full bg-muted" />
+                <div className="grid flex-1 gap-3 py-1">
+                  <Skeleton className="h-4 w-2/5 bg-muted" />
+                  <Skeleton className="h-4 w-full bg-muted" />
+                  <Skeleton className="h-4 w-3/4 bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
       {!loading && loadError && isReels && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
       {!loading && !loadError && posts.length === 0 && isReels && (
@@ -258,12 +261,16 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         </div>
       )}
       {!loading && !loadError && posts.length === 0 && !isReels && (
-        <EmptyState
-          icon="social"
-          title={t("socialEmptyTitle")}
-          description={t("socialEmptyDescription")}
-          action={{ label: t("socialWriteFirstPost"), onClick: () => navigate("/social/create") }}
-        />
+        <Empty className="gap-3 rounded-none border-0 p-5 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia><AppIcon name="social" size={25} /></EmptyMedia>
+            <EmptyTitle>{t("socialEmptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("socialEmptyDescription")}</EmptyDescription>
+          </EmptyHeader>
+          <Button type="button" variant="secondary" onClick={() => navigate("/social/create")}>
+            {t("socialWriteFirstPost")}
+          </Button>
+        </Empty>
       )}
       <div ref={feedRef} className={isReels ? "social-feed__reels" : "social-feed__posts"}>
         {!isReels && (
@@ -280,7 +287,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
               onView={handleView}
               onShare={handleShare}
               onCommentCreated={handleCommentCreated}
-              onStatus={handleShareStatus}
               onReport={handleReport}
             />
             ))}
@@ -305,7 +311,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             onNearEnd={handleNearEnd}
             onEnded={handleReelEnd}
             onActive={handleActiveReel}
-            onShareStatus={handleShareStatus}
             onReport={handleReport}
           />
         ))}
@@ -315,7 +320,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           </div>
         )}
       </div>
-      {status && <Toast key={status} variant="info" onDismiss={dismissStatus}>{status}</Toast>}
+
       {!isReels && hasMore && posts.length > 0 && (
         <button
           type="button"

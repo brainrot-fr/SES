@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/shadcn/button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
 import { usePostActions } from "./PostCard";
 import { getReelPosterUrl, splitCaption } from "./reelRanking";
+import { toast } from "sonner";
 
 export { getReelPosterUrl, splitCaption };
 
@@ -29,7 +30,6 @@ export default function ReelCard({
   onNearEnd,
   onEnded,
   onActive = () => {},
-  onShareStatus,
   onReport,
 }) {
   const { lang, t } = useLang();
@@ -49,7 +49,6 @@ export default function ReelCard({
     onFollow,
     onShare,
     onCommentCreated,
-    onStatus: onShareStatus,
     likeErrorMessage: t("reelsLikeError"),
     followErrorMessage: t("socialFollowError"),
   });
@@ -143,7 +142,7 @@ export default function ReelCard({
     if (!video) return;
     if (video.paused) video.play().then(() => setPlaying(true)).catch((playError) => {
       console.error("[Reels] playback could not start", playError);
-      onShareStatus(t("reelsPlaybackError"));
+      toast(t("reelsPlaybackError"));
     });
     else {
       video.pause();
@@ -174,9 +173,9 @@ export default function ReelCard({
     try {
       await onReport(post.id, reportReason);
       setReportDialogOpen(false);
-      onShareStatus(t("socialReportSuccess"));
+      toast(t("socialReportSuccess"));
     } catch (reportError) {
-      onShareStatus(reportError.message || t("socialReportError"));
+      toast(reportError.message || t("socialReportError"));
     } finally {
       setReportBusy(false);
     }
@@ -283,7 +282,7 @@ export default function ReelCard({
         <h2 className="ui-dialog-title" id={`reel-delete-title-${post.id}`}>{t("socialDeleteConfirm")}</h2>
         <div className="ui-dialog-actions">
           <Button type="button" variant="secondary" onClick={() => setDeleteDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" variant="danger" onClick={() => {
+          <Button type="button" variant="destructive" onClick={() => {
             setDeleteDialogOpen(false);
             onDelete(post.id);
           }}>{t("socialDeleteYes")}</Button>

@@ -9,9 +9,10 @@ import { useEffect, useRef, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
 import AppIcon from "../../components/icons/AppIcon";
-import Button from "../../components/ui/Button";
+import { Button } from "@/components/shadcn/button";
+import { Field, FieldDescription, FieldLabel } from "@/components/shadcn/field";
+import { Input } from "@/components/shadcn/input";
 import Modal from "../../components/ui/Modal";
-import TextField from "../../components/ui/TextField";
 import Group from "../../components/layout/Group";
 import Row from "../../components/layout/Row";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
@@ -195,7 +196,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
             </div>
           )}
           <div className="settings-profile__actions">
-            <Button type="submit" busy={profileBusy} disabled={!profileDirty} variant="primary">{t("settingsSaveProfile")}</Button>
+            <Button type="submit" busy={profileBusy} disabled={!profileDirty}>{t("settingsSaveProfile")}</Button>
             {(avatarUrl || avatarFile) && !removeAvatar && (
               <Button
                 type="button"
@@ -281,7 +282,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
           <Button
             type="button"
             disabled={accountBusy}
-            variant="danger-outline"
+            variant="destructive-outline"
             onClick={() => {
               setAccountError("");
               setDeleteConfirmation("");
@@ -309,22 +310,29 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
       >
         <h2 className="ui-dialog-title" id="settings-delete-title">{t("settingsDeleteConfirmTitle")}</h2>
         <p className="ui-dialog-copy" id="settings-delete-warning">{t("settingsDeleteWarning")}</p>
-        <TextField
-          id="settings-delete-confirmation"
-          className="settings-delete__field"
-          label={t("settingsDeleteConfirmLabel")}
-          hint={accountEmail
-            ? t("settingsDeleteConfirmHintEmail")
-            : t("settingsDeleteConfirmHintWord")}
-          type="text"
-          autoComplete="off"
-          value={deleteConfirmation}
-          onChange={(event) => setDeleteConfirmation(event.target.value)}
-          placeholder={accountEmail
-            ? t("settingsDeleteEmailPlaceholder")
-            : t("settingsDeleteWordPlaceholder")}
-          disabled={accountBusy}
-        />
+        <Field className="settings-delete__field">
+          <FieldLabel htmlFor="settings-delete-confirmation" className="text-foreground">
+            {t("settingsDeleteConfirmLabel")}
+          </FieldLabel>
+          <Input
+            id="settings-delete-confirmation"
+            type="text"
+            autoComplete="off"
+            value={deleteConfirmation}
+            onChange={(event) => setDeleteConfirmation(event.target.value)}
+            placeholder={accountEmail
+              ? t("settingsDeleteEmailPlaceholder")
+              : t("settingsDeleteWordPlaceholder")}
+            disabled={accountBusy}
+            aria-describedby="settings-delete-confirmation-hint"
+            className="h-11 rounded-sm bg-surface-0 text-base"
+          />
+          <FieldDescription id="settings-delete-confirmation-hint">
+            {accountEmail
+              ? t("settingsDeleteConfirmHintEmail")
+              : t("settingsDeleteConfirmHintWord")}
+          </FieldDescription>
+        </Field>
         <div className="ui-dialog-actions">
           <Button
             type="button"
@@ -340,7 +348,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
           <Button
             type="button"
             disabled={accountBusy || !canConfirmDelete}
-            variant="danger-outline"
+            variant="destructive-outline"
             busy={accountBusy}
             onClick={handleDeleteAccount}
           >

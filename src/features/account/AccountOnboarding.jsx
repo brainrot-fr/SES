@@ -7,6 +7,7 @@ import {
 import { useAccountProfile } from "./AccountProfileProvider";
 import { useLang } from "../../context/LanguageContext";
 import EntryBrand from "../../components/layout/EntryBrand";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import "./accountOnboarding.css";
 
 const COUNTRY_CODES = `
@@ -92,10 +93,7 @@ export default function AccountOnboarding() {
       await operation();
       setStep(nextStep);
     } catch (saveError) {
-      setError(
-        saveError.message ||
-          t("accountSaveStepError"),
-      );
+      setError(friendlyError(saveError, t, "accountSaveStepError"));
     } finally {
       setBusy(false);
     }
@@ -107,10 +105,7 @@ export default function AccountOnboarding() {
     try {
       await completeOnboarding(code);
     } catch (saveError) {
-      setError(
-        saveError.message ||
-          t("accountSaveProfileError"),
-      );
+      setError(friendlyError(saveError, t, "accountSaveProfileError"));
     } finally {
       setBusy(false);
     }

@@ -291,7 +291,7 @@
 .social-comments-backdrop {
   position: fixed;
   z-index: 110;
-  inset: 0 0 calc(78px + max(10px, env(safe-area-inset-bottom, 0px)));
+  inset: 0 0 var(--dock-offset);
   display: flex;
   align-items: flex-end;
   justify-content: center;

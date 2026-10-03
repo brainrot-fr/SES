@@ -4,6 +4,7 @@ import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
+import { friendlyError } from "../../lib/supabaseClient.js";
 
 export function usePostActions(post, {
   onLike,
@@ -11,9 +12,10 @@ export function usePostActions(post, {
   onShare,
   onCommentCreated,
   onStatus,
-  likeErrorMessage,
-  followErrorMessage,
+  likeErrorKey,
+  followErrorKey,
 }) {
+  const { t } = useLang();
   const [likeBusy, setLikeBusy] = useState(false);
   const [followBusy, setFollowBusy] = useState(false);
   const [liked, setLiked] = useState(post.liked_by_me);
@@ -43,7 +45,7 @@ export function usePostActions(post, {
     } catch (error) {
       setLiked(!nextLiked);
       setLikeCount((count) => Math.max(0, count + (nextLiked ? -1 : 1)));
-      onStatus(error.message || likeErrorMessage);
+      onStatus(friendlyError(error, t, likeErrorKey));
     } finally {
       setLikeBusy(false);
     }
@@ -58,13 +60,13 @@ export function usePostActions(post, {
       await onFollow(post, nextFollowing);
     } catch (error) {
       setFollowing(!nextFollowing);
-      onStatus(error.message || followErrorMessage);
+      onStatus(friendlyError(error, t, followErrorKey));
     } finally {
       setFollowBusy(false);
     }
   };
 
-  const share = async ({ url, title, text, successMessage, copiedMessage, errorMessage }) => {
+  const share = async ({ url, title, text, successMessage, copiedMessage, errorMessage, errorMessageKey }) => {
     try {
       let message;
       if (navigator.share) {
@@ -77,14 +79,14 @@ export function usePostActions(post, {
         throw new Error(errorMessage);
       }
       try {
-        await onShare(post);
-        setShareCount((count) => count + 1);
+        const isNew = await onShare(post);
+        if (isNew) setShareCount((count) => count + 1);
       } catch (shareError) {
         console.error("[Social] failed to record share", shareError);
       }
       onStatus(message);
     } catch (error) {
-      if (error.name !== "AbortError") onStatus(error.message || errorMessage);
+      if (error.name !== "AbortError") onStatus(friendlyError(error, t, errorMessageKey));
     }
   };
 
@@ -138,8 +140,8 @@ export default function PostCard({
     onShare,
     onCommentCreated,
     onStatus: (message) => onStatus(message || t("socialLikeError")),
-    likeErrorMessage: t("socialLikeError"),
-    followErrorMessage: t("socialFollowError"),
+    likeErrorKey: "socialLikeError",
+    followErrorKey: "socialFollowError",
   });
   const { likeBusy, followBusy, liked, following, likeCount, commentCount, viewCount, shareCount } = actions;
   const createdAt = new Date(post.created_at);
@@ -180,6 +182,7 @@ export default function PostCard({
       successMessage: t("socialShareSuccess"),
       copiedMessage: t("socialLinkCopied"),
       errorMessage: t("socialShareError"),
+      errorMessageKey: "socialShareError",
     });
   };
 
@@ -190,7 +193,7 @@ export default function PostCard({
       setReportDialogOpen(false);
       onStatus(t("socialReportSuccess"));
     } catch (error) {
-      onStatus(error.message || t("socialReportError"));
+      onStatus(friendlyError(error, t, "socialReportError"));
     } finally {
       setReportBusy(false);
     }

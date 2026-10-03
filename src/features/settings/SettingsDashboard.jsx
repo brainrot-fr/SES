@@ -15,6 +15,7 @@ import TextField from "../../components/ui/TextField";
 import Group from "../../components/layout/Group";
 import Row from "../../components/layout/Row";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import { updateSocialProfile } from "../social/postsApi";
 import { getDisplayName } from "../auth/authSession";
 import "./settingsdashboard.css";
@@ -73,7 +74,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     try {
       await signOut();
     } catch (error) {
-      setAccountError(error.message || t("settingsActionError"));
+      setAccountError(friendlyError(error, t, "settingsActionError"));
     } finally {
       setAccountBusy(false);
     }
@@ -86,7 +87,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     try {
       await deleteAccount();
     } catch (error) {
-      setAccountError(error.message || t("settingsActionError"));
+      setAccountError(friendlyError(error, t, "settingsActionError"));
       setDeleteDialogOpen(false);
     } finally {
       setAccountBusy(false);
@@ -132,7 +133,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
       setRemoveAvatar(false);
       setProfileSuccess(t("settingsProfileSaved"));
     } catch (error) {
-      setProfileError(error.message || t("settingsProfileSaveError"));
+      setProfileError(friendlyError(error, t, "settingsProfileSaveError"));
     } finally {
       setProfileBusy(false);
     }

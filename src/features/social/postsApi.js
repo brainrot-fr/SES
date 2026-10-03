@@ -199,8 +199,13 @@ export async function recordPostView(postId, userId) {
 }
 
 export async function recordPostShare(postId, userId) {
-  const { error } = await supabase.from("post_shares").insert({ post_id: postId, user_id: userId });
+  const { data, error } = await supabase
+    .from("post_shares")
+    .upsert({ post_id: postId, user_id: userId }, { onConflict: "post_id,user_id", ignoreDuplicates: true })
+    .select("post_id")
+    .maybeSingle();
   if (error) throw error;
+  return !!data;
 }
 
 export async function reportPost(postId, reporterId, reason) {

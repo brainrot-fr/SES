@@ -4,6 +4,7 @@ import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import { usePostActions } from "./PostCard";
 import { getReelPosterUrl, splitCaption } from "./reelRanking";
 
@@ -50,8 +51,8 @@ export default function ReelCard({
     onShare,
     onCommentCreated,
     onStatus: onShareStatus,
-    likeErrorMessage: t("reelsLikeError"),
-    followErrorMessage: t("socialFollowError"),
+    likeErrorKey: "reelsLikeError",
+    followErrorKey: "socialFollowError",
   });
   const { likeBusy, followBusy, liked, following, likeCount, commentCount, viewCount, shareCount } = actions;
   const viewRecorded = useRef(false);
@@ -135,6 +136,7 @@ export default function ReelCard({
       successMessage: t("reelsShareSuccess"),
       copiedMessage: t("reelsLinkCopied"),
       errorMessage: t("reelsShareError"),
+      errorMessageKey: "reelsShareError",
     });
   };
 
@@ -176,7 +178,7 @@ export default function ReelCard({
       setReportDialogOpen(false);
       onShareStatus(t("socialReportSuccess"));
     } catch (reportError) {
-      onShareStatus(reportError.message || t("socialReportError"));
+      onShareStatus(friendlyError(reportError, t, "socialReportError"));
     } finally {
       setReportBusy(false);
     }

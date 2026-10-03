@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
+import { friendlyError } from "../../lib/supabaseClient.js";
 import { createPost } from "./postsApi";
 import { REEL_TAGS } from "./reelRanking";
 import "./socialFeed.css";
@@ -75,7 +76,7 @@ export default function ReelUpload() {
       navigate("/reels", { replace: true });
     } catch (uploadError) {
       console.error("[Reels] failed to publish reel", uploadError);
-      setError(uploadError.message || t("reelsUploadFailed"));
+      setError(friendlyError(uploadError, t, "reelsUploadFailed"));
     } finally {
       setBusy(false);
       setProgress(0);

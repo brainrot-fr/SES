@@ -11,6 +11,7 @@ import Band from "../../components/layout/Band";
 import Split from "../../components/layout/Split";
 import RowList from "../../components/layout/RowList";
 import Row from "../../components/layout/Row";
+import { Skeleton } from "../../components/shadcn/skeleton";
 import "./dashboard.css";
 
 function getStoredProgress(key, total) {
@@ -133,7 +134,15 @@ export default function Dashboard() {
             aria-label={ayah ? `${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}` : t("dashboardAyahOfDay")}
           >
             <span className="dashboard__ayah-label">{t("dashboardAyahOfDay")}</span>
-            {ayah && <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>}
+            {ayah ? (
+              <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>
+            ) : (
+              <span className="grid flex-1 content-center gap-4" aria-hidden="true">
+                <Skeleton className="mx-auto h-8 w-4/5" />
+                <Skeleton className="mx-auto h-8 w-full" />
+                <Skeleton className="mx-auto h-8 w-3/5" />
+              </span>
+            )}
             {ayah && <span className="dashboard__reference">
               {ayah.surah.englishName} · {t("quranAyahLabel")} {ayah.numberInSurah}
             </span>}

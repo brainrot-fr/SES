@@ -589,6 +589,8 @@ export function useQuranAudioPlayer(surah) {
     resume,
     toggleAyah,
     playSurahFromStart,
+    nextAyah: () => advance(1),
+    prevAyah: () => advance(-1),
     playAyahOnly,
     playAyahFromHere,
     currentTime,

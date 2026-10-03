@@ -195,6 +195,7 @@ export default {
   socialRetry: "دوبارہ کوشش کریں",
   /* Sidebar */
   menu: "مینو",
+  closeSheet: "بند کریں",
   testNotification: "ٹیسٹ نوٹیفکیشن بھیجیں",
 
   notificationScheduled: "ٹیسٹ نوٹیفکیشن جلد موصول ہوگا۔",
@@ -239,6 +240,10 @@ export default {
   quranNextSurah: "←",
   quranPrevSurahLabel: "پچھلی سورت",
   quranNextSurahLabel: "اگلی سورت",
+  quranPrevAyah: "پچھلی آیت",
+  quranNextAyah: "اگلی آیت",
+  quranNextSurahNamed: "اگلی سورت: {name}",
+  quranDisplay: "نمایش",
 
   quranReciter: "قاری منتخب کریں",
   quranShowTranslation: "ترجمہ دکھائیں",

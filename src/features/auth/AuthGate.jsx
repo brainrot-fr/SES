@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLang } from '../../context/LanguageContext';
-import Button from '../../components/ui/Button';
-import TextField from '../../components/ui/TextField';
+import { Button } from '../../components/shadcn/button';
+import { Field } from '../../components/shadcn/field';
+import { Input } from '../../components/shadcn/input';
+import { Label } from '../../components/shadcn/label';
 import AppIcon from '../../components/icons/AppIcon';
 import EntryBrand from '../../components/layout/EntryBrand';
 import { friendlyError } from '../../lib/supabaseClient.js';
@@ -96,47 +98,52 @@ export default function AuthGate() {
         ) : (
           <form className="auth-gate__form" onSubmit={handleSubmit}>
             {mode === 'signup' && (
-              <TextField
-                id="auth-username"
-                label={t('authUsernameLabel')}
-                type="text"
-                required
-                maxLength={40}
-                autoComplete="nickname"
-                placeholder={t('authUsernamePlaceholder')}
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-              />
+              <Field>
+                <Label htmlFor="auth-username" className="text-foreground">{t('authUsernameLabel')}</Label>
+                <Input
+                  id="auth-username"
+                  type="text"
+                  required
+                  maxLength={40}
+                  autoComplete="nickname"
+                  placeholder={t('authUsernamePlaceholder')}
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                />
+              </Field>
             )}
-            <TextField
-              id="auth-email"
-              label={t('authEmailLabel')}
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder={t('authUpgradeEmailPlaceholder')}
-              dir="ltr"
-            />
-            <TextField
-              id="auth-password"
-              label={t('authPasswordLabel')}
-              type="password"
-              required
-              minLength={mode === 'signup' ? 8 : undefined}
-              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              placeholder={t('authPasswordPlaceholder')}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              dir="ltr"
-            />
+            <Field>
+              <Label htmlFor="auth-email" className="text-foreground">{t('authEmailLabel')}</Label>
+              <Input
+                id="auth-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder={t('authUpgradeEmailPlaceholder')}
+                dir="ltr"
+              />
+            </Field>
+            <Field>
+              <Label htmlFor="auth-password" className="text-foreground">{t('authPasswordLabel')}</Label>
+              <Input
+                id="auth-password"
+                type="password"
+                required
+                minLength={mode === 'signup' ? 8 : undefined}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                placeholder={t('authPasswordPlaceholder')}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                dir="ltr"
+              />
+            </Field>
             {error && <p className="auth-gate__error" role="alert">{error}</p>}
             <Button
               type="submit"
               busy={busy}
-              fullWidth
-              className="auth-gate__submit"
+              className="w-full auth-gate__submit"
             >
               {busy
                 ? t(mode === 'signup' ? 'authCreatingAccount' : 'signInSubmitting')
@@ -150,8 +157,7 @@ export default function AuthGate() {
           onClick={handleGoogleSignIn}
           disabled={busy}
           variant="secondary"
-          fullWidth
-          className="auth-gate__google"
+          className="w-full auth-gate__google"
         >
           <AppIcon name="google" size={18} />
           {t('googleSignIn')}
@@ -161,8 +167,7 @@ export default function AuthGate() {
           type="button"
           onClick={() => selectMode(mode === 'signup' ? 'signin' : 'signup')}
           variant="ghost"
-          fullWidth
-          className="auth-gate__mode-link"
+          className="w-full auth-gate__mode-link"
         >
           {t(mode === 'signup' ? 'authHaveAccount' : 'authNeedAccount')}
         </Button>

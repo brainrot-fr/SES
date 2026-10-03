@@ -18,16 +18,16 @@ import {
 } from "./postsApi";
 import { readReelPreferences, recordReelPreference } from "./reelRanking";
 import ReelEndCard from "./ReelEndCard";
-import Skeleton from "../../components/ui/Skeleton";
-import EmptyState from "../../components/ui/EmptyState";
-import Toast from "../../components/ui/Toast";
+import { Skeleton } from "../../components/shadcn/skeleton";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "../../components/shadcn/empty";
+import { Button } from "../../components/shadcn/button";
 import IconButton from "../../components/ui/IconButton";
 import RowList from "../../components/layout/RowList";
 import Row from "../../components/layout/Row";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import "./socialFeed.css";
 
-export default function SocialFeed({ mode = "posts", onShareStatus }) {
+export default function SocialFeed({ mode = "posts" }) {
   const { t } = useLang();
   const { user } = useAuth();
   const location = useLocation();
@@ -46,7 +46,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
-  const [status, setStatus] = useState("");
   const [activeReelIndex, setActiveReelIndex] = useState(0);
   const [reelMuted, setReelMuted] = useState(() => {
     try {
@@ -185,13 +184,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
       : post));
   }, [isReels, user?.id]);
 
-  const handleShareStatus = (message) => {
-    setStatus(message);
-    onShareStatus?.(message);
-  };
-
-  const dismissStatus = useCallback(() => setStatus(""), []);
-
   const handleNearEnd = useCallback((index) => {
     if (hasMore && !loadingRef.current && index >= posts.length - 4) {
       loadPage(page + 1, true);
@@ -255,12 +247,26 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         </div>
       )}
       {loading && posts.length === 0 && (
-        <Skeleton
-          variant={isReels ? "reel" : "avatar-line"}
-          count={isReels ? 1 : 3}
-          label={t("socialLoading")}
-          className={isReels ? "social-reels__skeleton" : "social-post__skeleton"}
-        />
+        <div
+          className={`grid gap-4 ${isReels ? "social-reels__skeleton" : "social-post__skeleton"}`}
+          role="status"
+          aria-label={t("socialLoading")}
+        >
+          {Array.from({ length: isReels ? 1 : 3 }, (_, index) => (
+            isReels ? (
+              <Skeleton key={index} className="aspect-[9/16] w-full" />
+            ) : (
+              <div key={index} className="flex gap-3">
+                <Skeleton className="size-10 shrink-0 rounded-full" />
+                <div className="grid flex-1 gap-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            )
+          ))}
+        </div>
       )}
       {!loading && loadError && isReels && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
       {!loading && !loadError && posts.length === 0 && isReels && (
@@ -269,12 +275,16 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
         </div>
       )}
       {!loading && !loadError && posts.length === 0 && !isReels && (
-        <EmptyState
-          icon="social"
-          title={t("socialEmptyTitle")}
-          description={t("socialEmptyDescription")}
-          action={{ label: t("socialWriteFirstPost"), onClick: () => navigate("/social/create") }}
-        />
+        <Empty className="py-8">
+          <EmptyHeader>
+            <EmptyMedia><AppIcon name="social" size={25} /></EmptyMedia>
+            <EmptyTitle>{t("socialEmptyTitle")}</EmptyTitle>
+            <EmptyDescription>{t("socialEmptyDescription")}</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button type="button" variant="secondary" onClick={() => navigate("/social/create")}>{t("socialWriteFirstPost")}</Button>
+          </EmptyContent>
+        </Empty>
       )}
       <div ref={feedRef} className={isReels ? "social-feed__reels" : "social-feed__posts"}>
         {!isReels && (
@@ -291,7 +301,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
               onView={handleView}
               onShare={handleShare}
               onCommentCreated={handleCommentCreated}
-              onStatus={handleShareStatus}
               onReport={handleReport}
             />
             ))}
@@ -316,7 +325,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             onNearEnd={handleNearEnd}
             onEnded={handleReelEnd}
             onActive={handleActiveReel}
-            onShareStatus={handleShareStatus}
             onReport={handleReport}
           />
         ))}
@@ -326,7 +334,6 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           </div>
         )}
       </div>
-      {status && <Toast key={status} variant="info" onDismiss={dismissStatus}>{status}</Toast>}
       {!isReels && hasMore && posts.length > 0 && (
         <button
           type="button"

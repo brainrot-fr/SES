@@ -26,7 +26,7 @@ Colors, gradients and tokens are final and live in src/styles/tokens.css. Never 
 
 ## 2. Non-negotiables
 
-1. Cards are the exception. Default is content on the page canvas.
+1. Cards are the exception. Default is content on the page canvas. The shadcn Card is allowed only in the Feed template.
 2. Never nest containers. A container is anything with a border, a background different from its parent, or a shadow.
 3. Separate with hairlines (1px var(--hairline)) and whitespace, not boxes.
 4. No shadows on in-flow content. Floating layers (sheet, popover, docked player, fixed navigation) may use the shared soft layered shadow tokens and their subtle top highlight. Avoid backdrop blur on expensive fixed controls; use an opaque token surface instead.
@@ -127,6 +127,7 @@ Patterns:
 - Sheets replace modals for pickers (number grid, reader settings, comments).
 - Player: docked bar (title, progress hairline, play/pause) that expands into a Sheet. Keep the hook where it is, restyle only.
 - Danger actions: plain danger-colored text row, separated by space, confirmation in a Modal.
+- Use components from src/components/shadcn before writing custom ones. Keep project-specific variants and sizes aligned with the 44px target minimum.
 
 ## 7. Typography
 
@@ -157,7 +158,7 @@ Use var(--...) from tokens.css only: colors, spacing, radius, durations, easing.
 
 ## 11. Banned (with examples found in this repo)
 
-- Box per item: .quran-ayah, .tl-card, .murshid-chain__item, .dashboard__card, .quran-list__item, .social-post.
+- Box per item: .quran-ayah, .tl-card, .murshid-chain__item, .dashboard__card, .quran-list__item, .social-post. The approved shadcn Card remains allowed only in the Feed template.
 - Box wrapping a page: .naql-body, .quran-body, .reel-upload, .post-create-page__form.
 - Box in a box: settings section > account box > profile form, composer inside form wrapper, cite with border-top inside a boxed reading area.
 - Centered card for auth or onboarding.

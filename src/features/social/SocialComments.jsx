@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
-import Button from "../../components/ui/Button";
+import { Button } from "../../components/shadcn/button";
 import Modal from "../../components/ui/Modal";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import { createComment, deletePostComment, fetchComments } from "./postsApi";
@@ -215,7 +215,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
           <Button type="button" variant="secondary" disabled={deletingComment} onClick={() => setCommentToDelete(null)}>
             {t("socialDeleteNo")}
           </Button>
-          <Button type="button" variant="danger" busy={deletingComment} onClick={removeComment}>
+          <Button type="button" variant="destructive" busy={deletingComment} onClick={removeComment}>
             {t("socialDeleteYes")}
           </Button>
         </div>

@@ -10,7 +10,7 @@ import {
   TopArrowIcon,
 } from "../../components/icons/MediaIcons.jsx";
 import AppIcon from "../../components/icons/AppIcon";
-import Skeleton from "../../components/ui/Skeleton";
+import { Skeleton } from "../../components/shadcn/skeleton";
 import Sheet from "../../components/layout/Sheet";
 import Band from "../../components/layout/Band";
 import { useQuranAudioPlayer } from "./useQuranAudioPlayer";
@@ -303,7 +303,11 @@ export default function QuranReader({ initialSurah, initialAyah }) {
         </div>
       )}
       {!surah && !error && (
-        <Skeleton variant="card" count={3} label={t("quranLoading")} />
+        <div className="grid gap-4" role="status" aria-label={t("quranLoading")}>
+          <Skeleton className="h-24 w-full rounded-sm" />
+          <Skeleton className="h-24 w-full rounded-sm" />
+          <Skeleton className="h-24 w-full rounded-sm" />
+        </div>
       )}
       {surah && (
         <section className="quran-body" style={{ "--quran-text-zoom": quranZoom }}>

@@ -3,7 +3,7 @@
  * Main application shell for the SES PWA.
  */
 
-import { lazy, Suspense, useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef, useMemo } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
@@ -151,8 +151,10 @@ function QuranRoute() {
 /* ── Small wrapper so NaqlDashboard's openNaqlRequest comes from the URL ── */
 function NuqoolRoute({ openNaqlRequest }) {
   const { naqlNumber } = useParams();
-  const n = parseInt(naqlNumber, 10);
-  const requestFromUrl = !isNaN(n) ? { number: n, ts: 0 } : null;
+  const requestFromUrl = useMemo(() => {
+    const number = parseInt(naqlNumber, 10);
+    return !isNaN(number) ? { number, ts: 0 } : null;
+  }, [naqlNumber]);
   // openNaqlRequest (from a notification tap) takes priority when fresher
   const effective = openNaqlRequest?.ts > 0 ? openNaqlRequest : requestFromUrl;
   return <NaqlDashboard openNaqlRequest={effective} />;

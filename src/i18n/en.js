@@ -17,8 +17,8 @@ export default {
   settingsLanguageEnglish: "English",
   settingsLanguageUrdu: "Urdu",
   settingsChangePhoto: "Change photo",
-  entryBrandVerseArabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-  entryBrandVerse: "Indeed, with hardship comes ease.",
+  entryBrandVerseArabic: "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ مَن يَرْتَدَّ مِنكُمْ عَن دِينِهِۦ فَسَوْفَ يَأْتِى ٱللَّهُ بِقَوْمٍ يُحِبُّهُمْ وَيُحِبُّونَهُۥٓ أَذِلَّةٍ عَلَى ٱلْمُؤْمِنِينَ أَعِزَّةٍ عَلَى ٱلْكَـٰفِرِينَ يُجَـٰهِدُونَ فِى سَبِيلِ ٱللَّهِ وَلَا يَخَافُونَ لَوْمَةَ لَآئِمٍ ۚ ذَٰلِكَ فَضْلُ ٱللَّهِ يُؤْتِيهِ مَن يَشَآءُ ۚ وَٱللَّهُ وَٰسِعٌ عَلِيمٌ ٥٤",
+  entryBrandVerse: "O ye who believe! if any from among you turn back from his Faith, _SOON_ will Allah produce a people whom He will love as they will love Him,- lowly with the believers, mighty against the rejecters, fighting in the way of Allah, and never afraid of the reproaches of such as find fault. That is the grace of Allah, which He will bestow on whom He pleaseth. And Allah encompasseth all, and He knoweth all things.",
   entryBrandReference: "Ash-Sharh · 94:6",
   switchToEnglish: "Switch to English",
   switchToUrdu: "Switch to Urdu",
@@ -80,7 +80,7 @@ export default {
   naqlNumberPicker: "Choose a naql",
 
   /* Timeline */
-  tlName: "Imam Mahdi A.S",
+  tlName: "Syed Muhammad Mahdi e Mauood A.S",
   tlSpan: "847 AH — 910 AH",
   tlDetails: "Details",
   tlClose: "✕",
@@ -340,7 +340,7 @@ export default {
   accountSaving: "Saving…",
   accountConfirmationTitle: "A required confirmation",
   accountConfirmationCopy: "Before continuing, please read and confirm the following statement.",
-  accountFollowerStatement: "I confirm that I am a follower of Khatim-e-wilayat-e-Muhammadi Masoom Anil Khata Syed Muhammad Mahdi-e-Mauood Jeevanpuri A.S.",
+  accountFollowerStatement: "I confirm that I am accept Khatim-e-wilayat-e-Muhammadi Masoom Anil Khata Syed Muhammad Mahdi-e-Mauood Jeevanpuri A.S. as the promised Mahdi",
   accountConfirmationRequired: "This confirmation is required to finish account setup.",
   accountConfirmContinue: "Confirm and continue",
   accountCountryTitle: "Choose your country",

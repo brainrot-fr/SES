@@ -12,6 +12,7 @@ import "./App.css";
 import AppIcon from "./components/icons/AppIcon";
 import Sidebar from "./components/sidebar";
 import IconButton from "./components/ui/IconButton";
+import { AppShellSkeleton } from "./components/layout/Page";
 import Onboarding from "./components/Onboarding";
 import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
@@ -61,35 +62,32 @@ function preloadPath(pathname) {
 }
 
 function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
-  const prefersReducedMotion = useReducedMotion();
-  const [fastDuration, setFastDuration] = useState(0);
-  useEffect(() => {
-    setFastDuration(getCssDurationSeconds("--duration-fast"));
-  }, []);
-  const renderItem = (it) => {
-    const active = activePage === it.id;
-    return (
-    <motion.button
-      type="button"
-      key={it.id}
-      className={`bottom-nav__item${active ? " bottom-nav__item--active" : ""}`}
-      onClick={() => onNavigate(it.id)}
-      onMouseEnter={() => preloadRoute(it.id)}
-      onFocus={() => preloadRoute(it.id)}
-      aria-current={active ? "page" : undefined}
-      aria-label={it.label}
-      whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
-      transition={{ duration: prefersReducedMotion ? 0 : fastDuration }}
-    >
-        <span className="bottom-nav__icon"><AppIcon name={it.iconName} size={22} filled={active} /></span>
-        <span className="bottom-nav__label">{it.label}</span>
-      </motion.button>
-    );
-  };
-
   return (
-    <nav className="bottom-nav" aria-label={label} inert={inert}>
-      {items.map(renderItem)}
+    <nav
+      aria-label={label}
+      inert={inert}
+      className="bottom-nav fixed inset-x-0 bottom-[var(--bottom-nav-gap)] z-[100] mx-auto flex w-[min(30rem,calc(100vw-24px))] rounded-[var(--radius-md)] border border-border bg-card/95 p-1 shadow-lg supports-[backdrop-filter]:bg-card/75 supports-[backdrop-filter]:backdrop-blur-md lg:hidden"
+    >
+      {items.map((it) => {
+        const active = activePage === it.id;
+        return (
+          <button
+            key={it.id}
+            type="button"
+            onClick={() => onNavigate(it.id)}
+            onMouseEnter={() => preloadRoute(it.id)}
+            onFocus={() => preloadRoute(it.id)}
+            aria-current={active ? "page" : undefined}
+            aria-label={it.label}
+            className="group flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] text-xs font-medium text-muted-foreground transition-colors active:scale-[0.98] aria-[current=page]:text-primary motion-reduce:active:scale-100"
+          >
+            <span className="grid h-7 w-14 place-items-center rounded-full transition-colors group-aria-[current=page]:bg-primary/15">
+              <AppIcon name={it.iconName} size={22} filled={active} />
+            </span>
+            {it.label}
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -275,7 +273,7 @@ export default function App() {
 
   if (!lang) return <Onboarding />;
   if (!ready) {
-    return <div className="min-h-screen flex items-center justify-center bg-bg text-sm text-muted">{t("settingsLoading")}</div>;
+    return <AppShellSkeleton label={t("settingsLoading")} />;
   }
   if (!user || isAnonymous) return <AuthGate />;
 
@@ -297,7 +295,10 @@ export default function App() {
     <div className="app-root">
       <a className="app-skip-link" href="#main-content">{t("skipToContent")}</a>
       <div ref={headerSentinelRef} className="app-header-sentinel" aria-hidden="true" />
-      <header className={`app-header${headerScrolled ? " app-header--scrolled" : ""}`} inert={sidebarOpen}>
+      <header
+        className={`app-header${headerScrolled ? " app-header--scrolled bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-md border-b border-border" : ""}`}
+        inert={sidebarOpen}
+      >
         {canGoBack ? (
           <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate(-1)} label={t("goBack")} />
         ) : (
@@ -328,8 +329,6 @@ export default function App() {
         items={secondaryNavItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        darkMode={darkMode}
-        onThemeToggle={() => setDarkMode((d) => !d)}
         activePage={currentPage === "reels" ? "social" : currentPage}
         onNavigate={(id) => {
           void preloadRoute(id).then(() => {
@@ -347,7 +346,7 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : baseDuration, ease: "easeOut" }}
         >
-          <Suspense fallback={<motion.div className="app-loading" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{t("settingsLoading")}</motion.div>}>
+          <Suspense fallback={<AppShellSkeleton bodyOnly label={t("settingsLoading")} />}>
             <Routes location={renderedLocation}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />

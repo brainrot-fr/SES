@@ -111,8 +111,12 @@ export default {
   quranNextSurah: "→",
   quranPrevSurahLabel: "Previous Surah",
   quranNextSurahLabel: "Next Surah",
+  quranPrevAyahLabel: "Previous ayah",
+  quranNextAyahLabel: "Next ayah",
+  quranNextSurahCta: "Next surah: {name}",
 
   quranReciter: "Reciter",
+  quranDisplay: "Display",
   quranReaderSettings: "Reading settings",
   quranContinue: "Continue",
   quranShowTranslation: "Show Translation",

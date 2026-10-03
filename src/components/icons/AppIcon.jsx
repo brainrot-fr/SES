@@ -180,6 +180,12 @@ const paths = {
       <path d="m21 21-4.3-4.3" />
     </>
   ),
+  display: (
+    <>
+      <rect x="3" y="4" width="18" height="13" rx="2" />
+      <path d="M8 21h8m-4-4v4" />
+    </>
+  ),
   check: <path d="m5 12 4 4L19 6" />,
   chevronLeft: <path d="m15 18-6-6 6-6" />,
   chevronRight: <path d="m9 18 6-6-6-6" />,

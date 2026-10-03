@@ -5,6 +5,8 @@ import EmptyState from '../../components/ui/EmptyState';
 import Skeleton from '../../components/ui/Skeleton';
 import RowList from '../../components/layout/RowList';
 import PageHeader from '../../components/layout/PageHeader';
+import AppIcon from '../../components/icons/AppIcon';
+import { Input, ScrollArea } from '../../components/shadcn/primitives';
 import './quran.css';
 
 export default function QuranSurahList({
@@ -62,18 +64,21 @@ export default function QuranSurahList({
     return <Skeleton variant="list" count={8} label={t('quranLoading')} className="quran-list__skeleton" />;
   }
 
-  return (
+  const listContent = (
     <div className={`quran-list${compact ? ' quran-list--compact' : ''}`}>
       <PageHeader className="quran-list__header">
         <h1>{t("titleQuran")}</h1>
-        <input
+        <label className="relative min-w-0">
+          <AppIcon name="search" size={18} className="quran-list__search-icon" />
+          <Input
           type="search"
           className="quran-list__search"
           placeholder={t('quranSearchPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label={t("quranSearchLabel")}
-        />
+          />
+        </label>
       </PageHeader>
 
       {continueSurah && surahs[continueSurah - 1] && (
@@ -117,4 +122,8 @@ export default function QuranSurahList({
       )}
     </div>
   );
+
+  return compact
+    ? <ScrollArea className="quran-list__rail-scroll">{listContent}</ScrollArea>
+    : listContent;
 }

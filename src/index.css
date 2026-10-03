@@ -21,6 +21,11 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-small);
+  --color-card: var(--surface-1);
+  --color-muted-foreground: var(--muted);
+  --color-ring: var(--ring);
   --color-bg: var(--bg);
   --color-surface-0: var(--surface-0);
   --color-surface-1: var(--surface-1);

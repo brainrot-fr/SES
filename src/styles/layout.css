@@ -154,23 +154,6 @@
   background: var(--surface-1);
 }
 
-.layout-sheet.ui-modal {
-  inset-inline: 0;
-  inset-block-end: 0;
-}
-
-@media (min-width: 768px) {
-  .layout-sheet.ui-modal {
-    inset-inline-start: 50%;
-    inset-inline-end: auto;
-    inset-block-start: 50%;
-    inset-block-end: auto;
-    width: min(36rem, calc(100vw - 2 * var(--page-gutter)));
-    border-radius: var(--radius-lg);
-    transform: translate(-50%, -50%);
-  }
-}
-
 @media (min-width: 1024px) {
   .layout-split {
     grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);

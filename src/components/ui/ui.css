@@ -303,39 +303,6 @@
   color: var(--danger);
 }
 
-.ui-popover {
-  position: fixed;
-  z-index: 1200;
-  width: min(14rem, calc(100vw - 1rem));
-  padding: var(--space-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
-  box-shadow: var(--shadow-md);
-  transform: translateX(-50%);
-  animation: ui-modal-in var(--duration-fast) var(--ease-standard);
-}
-
-.ui-popover__item {
-  display: flex;
-  width: 100%;
-  min-height: 44px;
-  align-items: center;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-small);
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-}
-
-.ui-popover__item:hover {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
 .ui-auth-dialog[open] {
   display: grid;
   gap: var(--space-3);
@@ -599,11 +566,6 @@
 @keyframes ui-toast-in {
   from { opacity: 0; transform: translateY(-0.35rem); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes ui-modal-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

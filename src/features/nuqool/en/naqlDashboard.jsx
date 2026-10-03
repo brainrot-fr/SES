@@ -17,7 +17,14 @@ import { PrevIcon, NextIcon } from '../../../components/icons/MediaIcons.jsx';
 import Page from '../../../components/layout/Page.jsx';
 import Split from '../../../components/layout/Split.jsx';
 import RowList from '../../../components/layout/RowList.jsx';
-import Sheet from '../../../components/layout/Sheet.jsx';
+import {
+  Button,
+  ScrollArea,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '../../../components/shadcn/primitives.jsx';
 
 /*
  * When you have Urdu naql content ready:
@@ -46,9 +53,6 @@ export default function NaqlDashboard({ openNaqlRequest }) {
   const [numberPickerOpen, setNumberPickerOpen] = useState(false);
   const topRef = useRef(null);
   const touchStartX = useRef(null);
-  const actionMotion = shouldReduceMotion
-    ? {}
-    : { whileHover: { y: -1 }, whileTap: { scale: 0.96 } };
   const readingTransition = shouldReduceMotion
     ? { duration: 0 }
     : { duration: 0.2, ease: 'easeOut' };
@@ -129,62 +133,64 @@ export default function NaqlDashboard({ openNaqlRequest }) {
       </Split>
 
       <nav className="naql-nav" aria-label={t('naqlQuickJump')}>
-        <motion.button
-          type="button"
-          className="naql-nav__btn"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => goTo(currentNaql - 1)}
           disabled={currentNaql === 1}
           aria-label={t('prevNaql')}
-          transition={readingTransition}
-          {...actionMotion}
         >
           <PrevIcon className="naql-nav__icon" title={t('prevNaql')} />
-        </motion.button>
-        <button
-          type="button"
-          className="naql-nav__position"
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-w-0 flex-1 tabular-nums text-lg font-bold"
           onClick={() => setNumberPickerOpen(true)}
           aria-haspopup="dialog"
           aria-label={t('naqlNumberPicker')}
         >
-          <span>{currentNaql}</span><span className="naql-nav__sep">/ {TOTAL}</span>
-        </button>
-        <motion.button
-          type="button"
-          className="naql-nav__btn"
+          <span>{currentNaql}</span><span className="text-sm font-medium text-muted-foreground">/ {TOTAL}</span>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => goTo(currentNaql + 1)}
           disabled={currentNaql === TOTAL}
           aria-label={t('nextNaql')}
-          transition={readingTransition}
-          {...actionMotion}
         >
           <NextIcon className="naql-nav__icon" title={t('nextNaql')} />
-        </motion.button>
+        </Button>
       </nav>
 
       <Sheet
         open={numberPickerOpen}
-        onClose={() => setNumberPickerOpen(false)}
-        labelledBy="naql-picker-title"
-        className="naql-picker"
+        onOpenChange={setNumberPickerOpen}
       >
-        <h2 id="naql-picker-title">{t('naqlNumberPicker')}</h2>
-        <div className="naql-picker__grid">
-          {Array.from({ length: TOTAL }, (_, index) => index + 1).map((number) => (
-            <button
-              key={number}
-              type="button"
-              className={`naql-picker__number${currentNaql === number ? ' naql-picker__number--active' : ''}`}
-              aria-current={currentNaql === number ? 'true' : undefined}
-              onClick={() => {
-                goTo(number);
-                setNumberPickerOpen(false);
-              }}
-            >
-              {number}
-            </button>
-          ))}
-        </div>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>{t('naqlNumberPicker')}</SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="max-h-[min(65dvh,34rem)]">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-1">
+              {Array.from({ length: TOTAL }, (_, index) => index + 1).map((number) => (
+                <Button
+                  key={number}
+                  variant={currentNaql === number ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="tabular-nums"
+                  aria-current={currentNaql === number ? 'true' : undefined}
+                  onClick={() => {
+                    goTo(number);
+                    setNumberPickerOpen(false);
+                  }}
+                >
+                  {number}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </SheetContent>
       </Sheet>
     </Page>
   );

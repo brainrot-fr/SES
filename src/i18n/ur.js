@@ -239,8 +239,12 @@ export default {
   quranNextSurah: "←",
   quranPrevSurahLabel: "پچھلی سورت",
   quranNextSurahLabel: "اگلی سورت",
+  quranPrevAyahLabel: "پچھلی آیت",
+  quranNextAyahLabel: "اگلی آیت",
+  quranNextSurahCta: "اگلی سورت: {name}",
 
   quranReciter: "قاری منتخب کریں",
+  quranDisplay: "ڈسپلے",
   quranShowTranslation: "ترجمہ دکھائیں",
   quranHideTranslation: "ترجمہ چھپائیں",
 

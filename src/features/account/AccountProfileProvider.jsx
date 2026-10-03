@@ -10,6 +10,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useLang } from "../../context/LanguageContext";
 import AccountOnboarding from "./AccountOnboarding";
 import { isAccountProfileComplete } from "./accountProfile";
+import { AppShellSkeleton } from "../../components/layout/Page";
 
 export { isAccountProfileComplete } from "./accountProfile";
 
@@ -265,11 +266,7 @@ export function useAccountProfile() {
 }
 
 function ProfileStatus({ message }) {
-  return (
-    <main className="account-onboarding" aria-live="polite">
-      <p role="status">{message}</p>
-    </main>
-  );
+  return <AppShellSkeleton label={message} />;
 }
 
 function ProfileLoadError({ onRetry, onContinueOffline, canContinueOffline }) {

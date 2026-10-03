@@ -1,155 +1,50 @@
-import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useLang } from "../context/LanguageContext";
 import AppIcon from "./icons/AppIcon";
+import {
+  Button,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetTitle,
+} from "./shadcn/primitives";
 
 export default function Sidebar({
   items,
   isOpen,
   onClose,
-  darkMode,
-  onThemeToggle,
   activePage,
   onNavigate,
 }) {
-  const { t, chooseLang, lang, isRTL } = useLang();
-  const drawerRef = useRef(null);
-  const returnFocusRef = useRef(null);
-  const onCloseRef = useRef(onClose);
-  const drawerPosition = isRTL ? "right-0 left-auto" : "left-0";
-
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      const target = returnFocusRef.current;
-      if (target instanceof HTMLElement && target.isConnected) {
-        window.requestAnimationFrame(() => target.focus());
-      }
-      returnFocusRef.current = null;
-      return undefined;
-    }
-
-    returnFocusRef.current = document.activeElement;
-    const drawer = drawerRef.current;
-    const getFocusableItems = () => drawer?.querySelectorAll(
-      'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
-    ) ?? [];
-
-    getFocusableItems()[0]?.focus();
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onCloseRef.current();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-      const focusableItems = getFocusableItems();
-      if (focusableItems.length === 0) {
-        event.preventDefault();
-        drawer?.focus();
-        return;
-      }
-
-      const firstItem = focusableItems[0];
-      const lastItem = focusableItems[focusableItems.length - 1];
-      if (event.shiftKey && document.activeElement === firstItem) {
-        event.preventDefault();
-        lastItem.focus();
-      } else if (!event.shiftKey && document.activeElement === lastItem) {
-        event.preventDefault();
-        firstItem.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  const { t, isRTL } = useLang();
 
   return (
-    <>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.button
-            type="button"
-            className="fixed inset-0 z-[900] cursor-pointer border-0 bg-black/45 p-0 backdrop-blur-[2px]"
-            onClick={onClose}
-            aria-label={t("closeMenu")}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          />
-        )}
-      </AnimatePresence>
-      <motion.aside
-        ref={drawerRef}
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
         id="app-navigation-drawer"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("menu")}
-        aria-hidden={!isOpen}
-        inert={!isOpen}
-        tabIndex={-1}
-        className={`fixed top-0 ${drawerPosition} z-[1000] flex h-dvh w-[280px] max-w-[85vw] flex-col border-hairline bg-surface-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-body shadow-lg ${isRTL ? "border-l" : "border-r"}`}
-        initial={false}
-        animate={{ x: isOpen ? 0 : isRTL ? "100%" : "-100%" }}
-        transition={{ type: "spring", stiffness: 390, damping: 36 }}
+        side={isRTL ? "right" : "left"}
+        className="z-[1000] border-border bg-card pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-hairline px-4 py-3 font-semibold text-heading">
-          <span>{t("menu")}</span>
-          <button
-            type="button"
-            className="grid h-11 w-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-body transition-colors hover:bg-surface-3"
-            onClick={onClose}
-            aria-label={t("closeMenu")}
-          >
-            <AppIcon name="close" />
-          </button>
+        <div className="flex items-center justify-between">
+          <SheetTitle>{t("menu")}</SheetTitle>
+          <SheetClose aria-label={t("closeMenu")}>
+            <AppIcon name="close" size={18} />
+          </SheetClose>
         </div>
-
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label={t("mainNavigation")}>
+        <nav className="flex flex-col gap-1" aria-label={t("mainNavigation")}>
           {items.map((item) => (
-            <button
-              type="button"
+            <Button
               key={item.id}
-              className={`flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-start text-sm transition-colors ${
-                activePage === item.id
-                  ? "border-primary/15 bg-primary-soft font-semibold text-primary"
-                  : "text-body hover:bg-surface-3"
-              }`}
+              variant="ghost"
+              className="w-full justify-start gap-3 rounded-sm px-4 text-start"
               onClick={() => onNavigate(item.id)}
               aria-current={activePage === item.id ? "page" : undefined}
             >
-              <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center">{item.icon}</span>
+              <AppIcon name={item.iconName} size={20} />
               <span>{item.label}</span>
-            </button>
+            </Button>
           ))}
         </nav>
-
-        <div className="flex-shrink-0 border-t border-hairline p-4">
-          <button
-            type="button"
-            className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-body shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
-            onClick={onThemeToggle}
-          >
-            <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
-            {darkMode ? t("toLightMode") : t("toDarkMode")}
-          </button>
-          <button
-            type="button"
-            className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-surface-3 px-4 py-3 text-start text-sm text-body shadow-sm transition-all duration-150 hover:-translate-y-px hover:shadow-md"
-            onClick={() => chooseLang(lang === "ur" ? "en" : "ur")}
-          >
-            <AppIcon name="globe" size={19} />
-            {lang === "ur" ? t("switchToEnglish") : t("switchToUrdu")}
-          </button>
-        </div>
-      </motion.aside>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,22 +1,18 @@
-import { motion } from "framer-motion";
 import AppIcon from "../icons/AppIcon";
-import "./ui.css";
+import { Button } from "../shadcn/button";
 
-export default function IconButton({ as: Component = "button", icon, label, size = 22, className = "", type, ...props }) {
-  const ButtonComponent = Component === "button" ? motion.button : Component;
+export default function IconButton({ as: Component, asChild, icon, label, size = 22, className = "", type, ...props }) {
+  const iconElement = <AppIcon name={icon} size={size} />;
+
+  if (asChild && !Component && props.children) {
+    return <Button {...props} variant="ghost" size="icon" className={className} aria-label={label} asChild />;
+  }
+
+  if (!Component) return <Button {...props} type={type ?? "button"} variant="ghost" size="icon" className={className} aria-label={label}>{props.children ?? iconElement}</Button>;
+
   return (
-    <ButtonComponent
-      {...props}
-      {...(Component === "button" ? {
-        type: type ?? "button",
-        whileHover: { scale: 1.04 },
-        whileTap: { scale: 0.94 },
-        transition: { duration: 0.14 },
-      } : {})}
-      className={`ui-icon-button ui-icon-button--${icon}${className ? ` ${className}` : ""}`}
-      aria-label={label}
-    >
-      <AppIcon name={icon} size={size} />
-    </ButtonComponent>
+    <Button variant="ghost" size="icon" className={className} aria-label={label} asChild>
+      <Component {...props}>{iconElement}</Component>
+    </Button>
   );
 }

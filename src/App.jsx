@@ -12,11 +12,12 @@ import "./App.css";
 import AppIcon from "./components/icons/AppIcon";
 import Sidebar from "./components/sidebar";
 import IconButton from "./components/ui/IconButton";
+import { Toaster } from "./components/shadcn/sonner";
 import Onboarding from "./components/Onboarding";
 import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
-import { getCssDurationSeconds } from "./components/ui/Button";
+import { getCssDurationSeconds } from "./lib/utils";
 
 const loadNaqlDashboard = () => import("./features/nuqool/en/naqlDashboard");
 const loadTimeline = () => import("./features/timeline/timeline");
@@ -275,7 +276,7 @@ export default function App() {
 
   if (!lang) return <Onboarding />;
   if (!ready) {
-    return <div className="min-h-screen flex items-center justify-center bg-bg text-sm text-muted">{t("settingsLoading")}</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-bg text-sm text-muted-foreground">{t("settingsLoading")}</div>;
   }
   if (!user || isAnonymous) return <AuthGate />;
 
@@ -389,6 +390,7 @@ export default function App() {
         }}
         label={t("primaryNavigation")}
       />
+      <Toaster position="top-center" />
     </div>
   );
 }

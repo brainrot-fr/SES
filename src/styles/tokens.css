@@ -1,6 +1,19 @@
 :root {
   /* Canonical responsive breakpoints: 480px, 768px, 1024px, and 1280px. */
   --bg: #F7F4E9;
+  --background: var(--bg);
+  --foreground: var(--text-large);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-large);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--text-large);
+  --primary-foreground: var(--on-primary);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text-large);
+  --muted-foreground: var(--muted);
+  --destructive: var(--danger);
+  --input: var(--hairline);
+  --radius: var(--radius-md);
   --font-body: 'Manrope', 'Readex Pro', sans-serif;
   --font-display: 'Manrope', 'Readex Pro', sans-serif;
   --font-page-title: 'Manrope', 'Readex Pro', sans-serif;

@@ -318,7 +318,7 @@
   line-height: var(--leading-relaxed);
 }
 
-.settings-dashboard__danger-row > .ui-button {
+.settings-dashboard__danger-row > [data-slot="button"] {
   flex: 0 0 auto;
 }
 
@@ -339,7 +339,7 @@
     flex-direction: column;
   }
 
-  .settings-dashboard__danger-row > .ui-button {
+  .settings-dashboard__danger-row > [data-slot="button"] {
     width: 100%;
   }
 }

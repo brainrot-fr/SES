@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { getCssDurationSeconds } from "./Button";
+import { getCssDurationSeconds } from "@/lib/utils";
 import "./ui.css";
 
 export default function Modal({

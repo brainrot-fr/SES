@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { useLang } from '../context/LanguageContext';
-import Button from './ui/Button';
+import { Button } from './shadcn/button';
 import EntryBrand from './layout/EntryBrand';
 import './Onboarding.css';
 
@@ -53,9 +53,8 @@ export default function Onboarding() {
         </div>
         <Button
           type="button"
-          fullWidth
           size="lg"
-          className="ob-continue"
+          className="w-full ob-continue"
           lang={selected}
           dir={selected === 'ur' ? 'rtl' : 'ltr'}
           onClick={() => chooseLang(selected)}

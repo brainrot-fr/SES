@@ -67,7 +67,7 @@
 }
 
 .ob-option--active,
-.ui-button.ob-option--active:hover:not(:disabled) {
+.ob-option--active:hover:not(:disabled) {
   background: transparent;
   color: var(--primary);
   font-weight: 700;
@@ -91,7 +91,7 @@
   direction: rtl;
 }
 
-.ob-continue.ui-button--full {
+.ob-continue.w-full {
   position: fixed;
   z-index: 90;
   inset-inline: var(--page-gutter);
@@ -119,12 +119,12 @@
     padding-block: var(--space-8) calc(6rem + env(safe-area-inset-bottom, 0px));
   }
 
-  .ob-continue.ui-button--full {
+  .ob-continue.w-full {
     inset-inline-start: calc(50% + var(--page-gutter));
     inset-inline-end: var(--page-gutter);
   }
 
-  [dir="rtl"] .ob-continue.ui-button--full {
+  [dir="rtl"] .ob-continue.w-full {
     inset-inline-start: var(--page-gutter);
     inset-inline-end: calc(50% + var(--page-gutter));
   }

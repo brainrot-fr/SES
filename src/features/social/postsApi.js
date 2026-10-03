@@ -235,22 +235,29 @@ export async function createComment({ postId, body, user, replyToId = null }) {
 }
 
 export async function updateSocialProfile({ user, displayName, avatarUrl }) {
-  const { data, error } = await supabase.auth.updateUser({
+  const normalizedDisplayName = displayName.trim();
+  const normalizedAvatarUrl = avatarUrl || null;
+  const { error } = await supabase.auth.updateUser({
     data: {
       ...user.user_metadata,
-      display_name: displayName.trim(),
-      avatar_url: avatarUrl || null,
+      display_name: normalizedDisplayName,
+      avatar_url: normalizedAvatarUrl,
     },
   });
   if (error) throw error;
   const { error: profileError } = await supabase.from("social_profiles").upsert({
     user_id: user.id,
-    display_name: displayName.trim(),
-    avatar_url: avatarUrl || null,
+    display_name: normalizedDisplayName,
+    avatar_url: normalizedAvatarUrl,
     updated_at: new Date().toISOString(),
   });
   if (profileError) throw profileError;
-  return data.user;
+  const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+  if (refreshError) throw refreshError;
+  if (!refreshed.session?.user) {
+    throw new Error("Unable to refresh the session after updating the social profile.");
+  }
+  return refreshed.session.user;
 }
 
 export async function fetchReelComments(postId) {

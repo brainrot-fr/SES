@@ -5,7 +5,7 @@
 
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import "./App.css";
@@ -17,26 +17,58 @@ import AuthGate from "./features/auth/AuthGate";
 import { useLang } from "./context/LanguageContext";
 import { useAuth } from "./context/AuthContext";
 import { initNaqlNotificationLifecycle } from "./notifications/naqlNotifications";
-import homeNavIcon from "./assets/icons/home.svg";
-import quranNavIcon from "./assets/icons/quran.svg";
-import nuqoolNavIcon from "./assets/icons/nuqool.svg";
-import reelsNavIcon from "./assets/icons/reels.svg";
-import socialNavIcon from "./assets/icons/social.svg";
-import murshidNavIcon from "./assets/icons/murshid.svg";
-import timelineNavIcon from "./assets/icons/timeline.svg";
-import settingsNavIcon from "./assets/icons/settings.svg";
 
-const NaqlDashboard = lazy(() => import("./features/nuqool/en/naqlDashboard"));
-const Timeline = lazy(() => import("./features/timeline/timeline"));
-const Quran = lazy(() => import("./features/quran/Quran"));
-const Murshid = lazy(() => import("./features/murshid/Murshid"));
-const SettingsDashboard = lazy(() => import("./features/settings/SettingsDashboard"));
-const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
-const SocialFeed = lazy(() => import("./features/social/SocialFeed"));
-const ReelUpload = lazy(() => import("./features/social/ReelUpload"));
-const PostCreate = lazy(() => import("./features/social/PostCreate"));
+const loadNaqlDashboard = () => import("./features/nuqool/en/naqlDashboard");
+const loadTimeline = () => import("./features/timeline/timeline");
+const loadQuran = () => import("./features/quran/Quran");
+const loadMurshid = () => import("./features/murshid/Murshid");
+const loadSettingsDashboard = () => import("./features/settings/SettingsDashboard");
+const loadDashboard = () => import("./features/dashboard/Dashboard");
+const loadSocialFeed = () => import("./features/social/SocialFeed");
+const loadReelUpload = () => import("./features/social/ReelUpload");
+const loadPostCreate = () => import("./features/social/PostCreate");
+
+const NaqlDashboard = lazy(loadNaqlDashboard);
+const Timeline = lazy(loadTimeline);
+const Quran = lazy(loadQuran);
+const Murshid = lazy(loadMurshid);
+const SettingsDashboard = lazy(loadSettingsDashboard);
+const Dashboard = lazy(loadDashboard);
+const SocialFeed = lazy(loadSocialFeed);
+const ReelUpload = lazy(loadReelUpload);
+const PostCreate = lazy(loadPostCreate);
+
+const routePreloaders = {
+  dashboard: loadDashboard,
+  nuqool: loadNaqlDashboard,
+  quran: loadQuran,
+  timeline: loadTimeline,
+  murshid: loadMurshid,
+  settings: loadSettingsDashboard,
+  social: loadSocialFeed,
+  reels: loadSocialFeed,
+};
+
+function preloadRoute(routeId) {
+  const preload = routePreloaders[routeId];
+  return preload ? preload().catch(() => undefined) : Promise.resolve();
+}
+
+function preloadPath(pathname) {
+  if (pathname.startsWith("/social/create")) return loadPostCreate().catch(() => undefined);
+  if (pathname.startsWith("/reels/create")) return loadReelUpload().catch(() => undefined);
+  return preloadRoute(pathname.split("/")[1] || "dashboard");
+}
+
+function getCssDurationSeconds(tokenName) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+  const duration = Number.parseFloat(value);
+  if (!Number.isFinite(duration)) return 0;
+  return value.endsWith("ms") ? duration / 1000 : duration;
+}
 
 function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
+  const prefersReducedMotion = useReducedMotion();
   const renderItem = (it) => {
     const active = activePage === it.id;
     return (
@@ -45,14 +77,16 @@ function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
       key={it.id}
       className={`bottom-nav__item${active ? " bottom-nav__item--active" : ""}`}
       onClick={() => onNavigate(it.id)}
+      onMouseEnter={() => preloadRoute(it.id)}
+      onFocus={() => preloadRoute(it.id)}
       aria-current={active ? "page" : undefined}
       aria-label={it.label}
-      whileTap={{ scale: 0.94 }}
-      transition={{ duration: 0.14 }}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
+      transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-fast") }}
     >
-      <span className="bottom-nav__icon"><AppIcon name={it.iconName} size={22} filled={active} /></span>
-      <span className="bottom-nav__label">{it.label}</span>
-    </motion.button>
+        <span className="bottom-nav__icon"><AppIcon name={it.iconName} size={22} filled={active} /></span>
+        <span className="bottom-nav__label">{it.label}</span>
+      </motion.button>
     );
   };
 
@@ -64,80 +98,38 @@ function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
 }
 
 function DesktopNav({ items, activePage, onNavigate, label }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <motion.nav
-      className={`desktop-nav${expanded ? " desktop-nav--expanded" : ""}`}
-      aria-label={label}
-      initial={false}
-      animate={{ width: expanded ? 236 : 64 }}
-      transition={{ type: "spring", stiffness: 360, damping: 34 }}
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      onFocusCapture={() => setExpanded(true)}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setExpanded(false);
-      }}
-    >
-      <motion.button
+    <nav className="desktop-nav" aria-label={label}>
+      <button
         type="button"
         className="desktop-nav__brand"
         aria-label={items.find((item) => item.id === "dashboard")?.label}
         onClick={() => onNavigate("dashboard")}
-        whileTap={{ scale: 0.95 }}
+        onMouseEnter={() => preloadRoute("dashboard")}
+        onFocus={() => preloadRoute("dashboard")}
       >
-        <img src="/app-mark.png" alt="" className="desktop-nav__brand-mark" />
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.span
-              className="desktop-nav__brand-name"
-              initial={{ opacity: 0, x: -6 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -6 }}
-              transition={{ duration: 0.14 }}
-            >
-              SES
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.button>
+        <AppIcon name="home" size={28} className="desktop-nav__brand-mark" />
+        <span className="desktop-nav__brand-name">SES</span>
+      </button>
       <div className="desktop-nav__items">
         {items.map((item) => (
-          <motion.button
+          <button
             type="button"
             key={item.id}
             className={`desktop-nav__item${activePage === item.id ? " desktop-nav__item--active" : ""}`}
             onClick={() => onNavigate(item.id)}
+            onMouseEnter={() => preloadRoute(item.id)}
+            onFocus={() => preloadRoute(item.id)}
             aria-label={item.label}
             aria-current={activePage === item.id ? "page" : undefined}
-            title={!expanded ? item.label : undefined}
-            whileHover={{ scale: 1.025 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.14 }}
+            title={item.label}
           >
-            <span
-              aria-hidden="true"
-              className="desktop-nav__icon"
-              style={{ "--nav-icon": `url("${item.navIcon}")` }}
-            />
-            <AnimatePresence initial={false}>
-              {expanded && (
-                <motion.span
-                  className="desktop-nav__label"
-                  initial={{ opacity: 0, x: -6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -6 }}
-                  transition={{ duration: 0.14 }}
-                >
-                  {item.label}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+            <span className="desktop-nav__icon"><AppIcon name={item.iconName} size={24} filled={activePage === item.id} /></span>
+            <span className="desktop-nav__label">{item.label}</span>
+          </button>
         ))}
       </div>
-    </motion.nav>
+    </nav>
   );
 }
 
@@ -174,10 +166,15 @@ export default function App() {
   const { user, isAnonymous, ready } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const prefersReducedMotion = useReducedMotion();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("ses-theme-v2") === "dark");
   const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  const headerSentinelRef = useRef(null);
+  const previousDarkModeRef = useRef(darkMode);
+  const [readyLocation, setReadyLocation] = useState(location);
 
   // top-level "section" for nav highlighting, derived from the URL
   const currentPage = location.pathname.split("/")[1] || "dashboard";
@@ -217,9 +214,39 @@ export default function App() {
   }, [navigate, location.pathname]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = darkMode ? "dark" : "";
+    const root = document.documentElement;
+    root.dataset.theme = darkMode ? "dark" : "";
     localStorage.setItem("ses-theme-v2", darkMode ? "dark" : "light");
+    const themeChanged = previousDarkModeRef.current !== darkMode;
+    previousDarkModeRef.current = darkMode;
+    if (themeChanged) {
+      root.classList.add("theme-transition");
+      const transitionMs = getCssDurationSeconds("--duration-slow") * 1000;
+      const timeoutId = window.setTimeout(() => root.classList.remove("theme-transition"), transitionMs);
+      return () => window.clearTimeout(timeoutId);
+    }
   }, [darkMode]);
+
+  useEffect(() => {
+    const sentinel = headerSentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === "undefined") return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      setHeaderScrolled(!entry.isIntersecting);
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let isCurrentLocation = true;
+    preloadPath(location.pathname).then(() => {
+      if (isCurrentLocation) setReadyLocation(location);
+    });
+    return () => {
+      isCurrentLocation = false;
+    };
+  }, [location]);
+  const renderedLocation = readyLocation.key === location.key ? location : readyLocation;
 
   useEffect(() => {
     const cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
@@ -241,14 +268,14 @@ export default function App() {
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
-    { id: "dashboard", label: t("navDashboard"), iconName: "home", navIcon: homeNavIcon },
-    { id: "quran", label: t("navQuran"), iconName: "quran", navIcon: quranNavIcon },
-    { id: "nuqool", label: t("navNuqool"), iconName: "nuqool", navIcon: nuqoolNavIcon },
-    { id: "reels", label: t("navReels"), iconName: "reels", navIcon: reelsNavIcon },
-    { id: "social", label: t("navSocial"), iconName: "social", navIcon: socialNavIcon },
-    { id: "murshid", label: t("navMurshid"), iconName: "murshid", navIcon: murshidNavIcon },
-    { id: "timeline", label: t("navTimeline"), iconName: "timeline", navIcon: timelineNavIcon },
-    { id: "settings", label: t("titleSettings"), iconName: "settings", navIcon: settingsNavIcon },
+    { id: "dashboard", label: t("navDashboard"), iconName: "home" },
+    { id: "quran", label: t("navQuran"), iconName: "quran" },
+    { id: "nuqool", label: t("navNuqool"), iconName: "nuqool" },
+    { id: "reels", label: t("navReels"), iconName: "reels" },
+    { id: "social", label: t("navSocial"), iconName: "social" },
+    { id: "murshid", label: t("navMurshid"), iconName: "murshid" },
+    { id: "timeline", label: t("navTimeline"), iconName: "timeline" },
+    { id: "settings", label: t("titleSettings"), iconName: "settings" },
   ];
 
   const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "reels", "social"].includes(it.id));
@@ -257,7 +284,8 @@ export default function App() {
   return (
     <div className="app-root">
       <a className="app-skip-link" href="#main-content">{t("skipToContent")}</a>
-      <header className="app-header" inert={sidebarOpen}>
+      <div ref={headerSentinelRef} className="app-header-sentinel" aria-hidden="true" />
+      <header className={`app-header${headerScrolled ? " app-header--scrolled" : ""}`} inert={sidebarOpen}>
         {canGoBack ? (
           <IconButton className="app-header__btn" icon="back" size={18} onClick={() => navigate("/quran")} label={t("goBack")} />
         ) : (
@@ -292,58 +320,61 @@ export default function App() {
         onThemeToggle={() => setDarkMode((d) => !d)}
         activePage={currentPage === "reels" ? "social" : currentPage}
         onNavigate={(id) => {
-          navigate(`/${id}`);
-          setSidebarOpen(false);
+          void preloadRoute(id).then(() => {
+            navigate(`/${id}`);
+            setSidebarOpen(false);
+          });
         }}
       />
 
       <main id="main-content" className="app-main" inert={sidebarOpen}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={location.pathname}
-            className="route-transition"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <Suspense fallback={<motion.div className="app-loading" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{t("settingsLoading")}</motion.div>}>
-              <Routes location={location}>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-                <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-                <Route path="/quran" element={<QuranRoute />} />
-                <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
-                <Route path="/quran/:surahNumber" element={<QuranRoute />} />
-                <Route path="/timeline" element={<Timeline />} />
-                <Route path="/murshid" element={<Murshid />} />
-                <Route path="/social" element={<SocialFeed />} />
-                <Route path="/social/create" element={<PostCreate />} />
-                <Route path="/reels" element={<SocialFeed mode="reels" />} />
-                <Route path="/reels/create" element={<ReelUpload />} />
-                <Route
-                  path="/settings"
-                  element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
-                />
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </Suspense>
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={location.pathname}
+          className="route-transition"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: prefersReducedMotion ? 0 : getCssDurationSeconds("--duration-base"), ease: "easeOut" }}
+        >
+          <Suspense fallback={<motion.div className="app-loading" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{t("settingsLoading")}</motion.div>}>
+            <Routes location={renderedLocation}>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+              <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+              <Route path="/quran" element={<QuranRoute />} />
+              <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
+              <Route path="/quran/:surahNumber" element={<QuranRoute />} />
+              <Route path="/timeline" element={<Timeline />} />
+              <Route path="/murshid" element={<Murshid />} />
+              <Route path="/social" element={<SocialFeed />} />
+              <Route path="/social/create" element={<PostCreate />} />
+              <Route path="/reels" element={<SocialFeed mode="reels" />} />
+              <Route path="/reels/create" element={<ReelUpload />} />
+              <Route
+                path="/settings"
+                element={<SettingsDashboard darkMode={darkMode} onThemeToggle={() => setDarkMode((d) => !d)} />}
+              />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Suspense>
+        </motion.div>
       </main>
 
       <BottomNav
         items={primaryNavItems}
         activePage={currentPage}
-        onNavigate={(id) => navigate(`/${id}`)}
+        onNavigate={(id) => {
+          void preloadRoute(id).then(() => navigate(`/${id}`));
+        }}
         label={t("primaryNavigation")}
         inert={sidebarOpen}
       />
       <DesktopNav
         items={navItems}
         activePage={currentPage}
-        onNavigate={(id) => navigate(`/${id}`)}
+        onNavigate={(id) => {
+          void preloadRoute(id).then(() => navigate(`/${id}`));
+        }}
         label={t("primaryNavigation")}
       />
     </div>

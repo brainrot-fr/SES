@@ -3,5 +3,10 @@
   "appName": "ses",
   "webDir": "dist",
   "server": { "androidScheme": "https" },
-  "plugins": {}
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_quran_notification",
+      "iconColor": "#17665F"
+    }
+  }
 }

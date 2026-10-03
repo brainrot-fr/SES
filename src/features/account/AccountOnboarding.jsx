@@ -134,7 +134,7 @@ export default function AccountOnboarding() {
         aria-valuemax="3"
         aria-valuenow={stepNumber}
       >
-        <span style={{ width: `${(stepNumber / 3) * 100}%` }} />
+        <span style={{ "--progress": stepNumber / 3 }} />
       </div>
       <EntryBrand />
       <section

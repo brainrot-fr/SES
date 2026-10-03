@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
+import { getDisplayName } from "../auth/authSession";
 import PostCard from "./PostCard";
-import ReelCard from "./ReelCard";
+import ReelCard, { getReelPosterUrl, REEL_MUTE_KEY } from "./ReelCard";
 import AppIcon from "../../components/icons/AppIcon";
 import {
   deletePost,
@@ -45,6 +46,14 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
   const [status, setStatus] = useState("");
+  const [activeReelIndex, setActiveReelIndex] = useState(0);
+  const [reelMuted, setReelMuted] = useState(() => {
+    try {
+      return localStorage.getItem(REEL_MUTE_KEY) !== "false";
+    } catch {
+      return true;
+    }
+  });
 
   const loadPage = useCallback(async (pageNumber, append) => {
     if (loadingRef.current || (append && !hasMoreRef.current)) return;
@@ -75,10 +84,13 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     }
   }, [isReels, prioritizedPostId, prioritizedReelId, t, user?.id]);
 
+  const nextPosterUrl = isReels ? getReelPosterUrl(posts[activeReelIndex + 1]) : "";
+
   useEffect(() => {
     loadingRef.current = false;
     hasMoreRef.current = true;
     setPosts([]);
+    if (isReels) setActiveReelIndex(0);
     setPage(0);
     setHasMore(true);
     loadPage(0, false);
@@ -87,6 +99,25 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
       loadingRef.current = false;
     };
   }, [loadPage]);
+
+  useEffect(() => {
+    if (!nextPosterUrl) return undefined;
+    const poster = new Image();
+    poster.src = nextPosterUrl;
+    return () => {
+      poster.onload = null;
+      poster.onerror = null;
+    };
+  }, [nextPosterUrl]);
+
+  useEffect(() => {
+    if (!isReels) return;
+    try {
+      localStorage.setItem(REEL_MUTE_KEY, String(reelMuted));
+    } catch {
+      // Keep the in-memory preference when storage is unavailable.
+    }
+  }, [isReels, reelMuted]);
 
   useEffect(() => {
     if (pendingNextRef.current == null) return;
@@ -154,6 +185,10 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
     }
   }, [hasMore, loadPage, page, posts.length]);
 
+  const handleActiveReel = useCallback((index) => {
+    setActiveReelIndex(index);
+  }, []);
+
   const handleReelEnd = useCallback((index) => {
     if (index + 1 < posts.length) {
       feedRef.current?.querySelector(`[data-reel-index="${index + 1}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -194,7 +229,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
           className="social-feed__compose-link"
           leading={user?.user_metadata?.avatar_url
             ? <img className="social-feed__compose-avatar" src={user.user_metadata.avatar_url} alt="" />
-            : <span className="social-feed__compose-avatar social-feed__compose-avatar--initial" aria-hidden="true">{(user?.user_metadata?.username || user?.email || "?").slice(0, 1).toUpperCase()}</span>}
+            : <span className="social-feed__compose-avatar social-feed__compose-avatar--initial" aria-hidden="true">{(getDisplayName(user) || "?").slice(0, 1).toUpperCase()}</span>}
           content={<span>{t("socialSharePrompt")}</span>}
           trailing={<AppIcon name="plus" size={20} />}
         />
@@ -253,6 +288,9 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             key={post.id}
             post={post}
             index={index}
+            isActive={index === activeReelIndex}
+            muted={reelMuted}
+            onMutedChange={setReelMuted}
             user={user}
             isOwn={post.author_id === user?.id}
             onDelete={handleDelete}
@@ -263,6 +301,7 @@ export default function SocialFeed({ mode = "posts", onShareStatus }) {
             onCommentCreated={handleCommentCreated}
             onNearEnd={handleNearEnd}
             onEnded={handleReelEnd}
+            onActive={handleActiveReel}
             onShareStatus={handleShareStatus}
           />
         ))}

@@ -3,6 +3,8 @@
   --bg: #F7F4E9;
   --font-body: 'Manrope', 'Readex Pro', sans-serif;
   --font-display: 'Manrope', 'Readex Pro', sans-serif;
+  --font-page-title: 'Manrope', 'Readex Pro', sans-serif;
+  --font-hero: 'Cormorant Garamond', 'Manrope', serif;
   --font-arabic: 'QPCHafs', serif;
   --font-nastaliq: 'Indopak', serif;
   --text-large: #182B2C;
@@ -13,9 +15,9 @@
   --ayah-glow: #E5EBDC;
 
   --surface-0: #F7F4E9;
-  --surface-1: #FFFCF3;
-  --surface-2: #F1EEDC;
-  --surface-3: #E8E4D1;
+  --surface-1: color-mix(in srgb, #FFFCF3 25%, var(--on-primary) 75%);
+  --surface-2: color-mix(in srgb, #F1EEDC 70%, #E8E4D1 30%);
+  --surface-3: color-mix(in srgb, #E8E4D1 98%, var(--text-large) 2%);
 
   --primary: #17665F;
   --primary-2: #248579;
@@ -24,11 +26,36 @@
   --accent-soft: #F6EBD9;
   --on-primary: #FFFFFF;
 
-  --hairline: rgba(54, 61, 45, 0.12);
+  --gradient-band: radial-gradient(
+    ellipse 120% 100% at 50% 0%,
+    color-mix(in srgb, var(--ayah-glow) 58%, transparent),
+    transparent 70%
+  );
+  --band-star-mask:
+    radial-gradient(circle at 8px 8px, var(--primary) 0.7px, transparent 1px),
+    radial-gradient(circle at 26px 22px, var(--primary) 0.7px, transparent 1px);
+  --gradient-ambient:
+    radial-gradient(ellipse 48% 42% at 22% 20%, color-mix(in srgb, var(--ayah-glow) 42%, transparent), transparent 72%),
+    radial-gradient(ellipse 38% 34% at 78% 18%, color-mix(in srgb, var(--primary-soft) 36%, transparent), transparent 74%);
+  --gradient-reader: radial-gradient(
+    ellipse 120% 90% at 50% 0%,
+    color-mix(in srgb, var(--primary-soft) 60%, var(--surface-1)),
+    transparent 62%
+  );
+
+  --hairline: rgba(54, 61, 45, 0.16);
   --ring: rgba(23, 102, 95, 0.30);
-  --shadow-sm: 0 1px 3px rgba(52, 48, 31, 0.05), 0 1px 2px rgba(52, 48, 31, 0.03);
-  --shadow-md: 0 6px 18px rgba(52, 48, 31, 0.08), 0 2px 5px rgba(52, 48, 31, 0.04);
-  --shadow-lg: 0 18px 48px rgba(52, 48, 31, 0.14), 0 4px 12px rgba(52, 48, 31, 0.06);
+  --shadow-sm:
+    0 1px 3px rgba(52, 48, 31, 0.05),
+    0 1px 2px rgba(52, 48, 31, 0.03);
+  --shadow-md:
+    0 6px 18px rgba(52, 48, 31, 0.08),
+    0 2px 5px rgba(52, 48, 31, 0.04),
+    inset 0 1px 0 color-mix(in srgb, var(--text-large) 8%, transparent);
+  --shadow-lg:
+    0 18px 48px rgba(52, 48, 31, 0.14),
+    0 4px 12px rgba(52, 48, 31, 0.06),
+    inset 0 1px 0 color-mix(in srgb, var(--text-large) 8%, transparent);
   --shadow-focus: 0 0 0 3px var(--ring);
 
   --radius-sm: 10px;
@@ -73,6 +100,7 @@
   --duration-fast: 120ms;
   --duration-base: 180ms;
   --duration-slow: 260ms;
+  --duration-nav-collapse-delay: 90ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --sidebar-width: 84px;
   --content-width: 1200px;
@@ -91,7 +119,7 @@ html[data-theme="dark"] {
   --surface-0: #111B1A;
   --surface-1: #192725;
   --surface-2: #213330;
-  --surface-3: #2B403C;
+  --surface-3: color-mix(in srgb, #2B403C 90%, var(--bg));
 
   --primary: #79C5AE;
   --primary-2: #95D9C3;
@@ -100,11 +128,22 @@ html[data-theme="dark"] {
   --accent-soft: #403624;
   --on-primary: #112723;
 
-  --hairline: rgba(228, 245, 236, 0.10);
+  --surface-1: color-mix(in srgb, #192725 60%, #213330 40%);
+  --surface-2: color-mix(in srgb, #213330 65.2%, #2B403C 34.8%);
+  --surface-3: #2B403C;
+
+  --hairline: rgba(228, 245, 236, 0.14);
   --ring: rgba(121, 197, 174, 0.36);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.24);
-  --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.28);
-  --shadow-lg: 0 20px 52px rgba(0, 0, 0, 0.42);
+  --shadow-sm:
+    0 1px 3px rgba(0, 0, 0, 0.24);
+  --shadow-md:
+    0 8px 22px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 color-mix(in srgb, var(--text-large) 8%, transparent);
+  --shadow-lg:
+    0 20px 52px rgba(0, 0, 0, 0.42),
+    0 6px 16px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 color-mix(in srgb, var(--text-large) 8%, transparent);
 
   --danger: #FF7B72;
   --on-danger: #2B0806;
@@ -117,4 +156,12 @@ html[data-theme="dark"] {
   --panel-2: var(--surface-2);
   --border: var(--hairline);
   --shadow: rgba(0, 0, 0, 0.35);
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-Medium.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
 }

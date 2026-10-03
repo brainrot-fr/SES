@@ -13,6 +13,7 @@ export default function ReelUpload() {
   const { t } = useLang();
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const progressBarRef = useRef(null);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [caption, setCaption] = useState("");
@@ -24,6 +25,10 @@ export default function ReelUpload() {
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
   }, [preview]);
+
+  useEffect(() => {
+    progressBarRef.current?.style.setProperty("--upload-progress", String(progress));
+  }, [progress]);
 
   const chooseVideo = (event) => {
     const selected = event.target.files?.[0];
@@ -143,8 +148,8 @@ export default function ReelUpload() {
         </div>
         <input ref={inputRef} className="reel-upload__file-input" type="file" accept="video/*" onChange={chooseVideo} disabled={busy} aria-label={t("reelsChooseVideo")} />
         {busy && (
-          <div className="social-composer__progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label={t("socialUploadProgress")}>
-            <div className="social-composer__progress-bar" style={{ width: `${Math.round(progress * 100)}%` }} />
+          <div className="reel-upload__progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label={t("socialUploadProgress")}>
+            <div ref={progressBarRef} className="reel-upload__progress-bar" />
           </div>
         )}
         {error && <p className="social-error" role="alert">{error}</p>}

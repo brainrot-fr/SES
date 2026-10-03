@@ -23,8 +23,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
   padding-block: var(--space-3);
-  background: color-mix(in srgb, var(--bg) 94%, transparent);
-  backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
 }
 
 .quran-list__header h1 {
@@ -274,6 +273,8 @@
   position: relative;
   min-width: 0;
   padding-block: var(--space-4);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 12rem;
 }
 
 .quran-ayah + .quran-ayah {
@@ -309,6 +310,8 @@
   color: var(--text-large);
   cursor: pointer;
   font-family: var(--font-arabic);
+  font-feature-settings: "kern", "liga", "calt", "mark", "mkmk";
+  font-kerning: normal;
   font-size: calc(1.5rem * var(--quran-text-zoom, 1));
   line-height: 2.1;
   text-align: end;
@@ -382,6 +385,8 @@
   color: var(--text-large);
   direction: rtl;
   font-family: var(--font-arabic);
+  font-feature-settings: "kern", "liga", "calt", "mark", "mkmk";
+  font-kerning: normal;
   font-size: calc(1.7rem * var(--quran-text-zoom, 1));
   line-height: 1.9;
   text-align: justify;
@@ -397,11 +402,42 @@
   box-decoration-break: clone;
 }
 
-.quran-reading__marker {
+.ayah-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  margin-inline: 0.2em;
+  color: var(--primary);
+  vertical-align: -0.3em;
+}
+
+.ayah-mark > svg,
+.ayah-mark__num {
+  grid-area: 1 / 1;
+}
+
+.ayah-mark > svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ayah-mark__num {
+  color: currentColor;
+  font-family: "Readex Pro", var(--font-body);
+  font-size: 0.42em;
+  line-height: 1;
+}
+
+.ayah-mark[data-len="3"] .ayah-mark__num {
+  font-size: 0.34em;
+}
+
+.ayah-mark--small {
+  width: 1.05em;
+  height: 1.05em;
   margin-inline: 0.15em;
-  color: var(--muted);
-  font-family: 'CormorantGaramond-Medium', serif;
-  font-size: 1rem;
+  vertical-align: -0.2em;
 }
 
 .quran-nav {
@@ -415,7 +451,6 @@
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--surface-1) 96%, transparent);
   box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(18px) saturate(1.2);
   translate: -50% 0;
 }
 

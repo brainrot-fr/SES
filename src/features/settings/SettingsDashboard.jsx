@@ -11,10 +11,12 @@ import { useAuth } from "../../context/AuthContext";
 import AppIcon from "../../components/icons/AppIcon";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
+import TextField from "../../components/ui/TextField";
 import Group from "../../components/layout/Group";
 import Row from "../../components/layout/Row";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
 import { updateSocialProfile } from "../social/postsApi";
+import { getDisplayName } from "../auth/authSession";
 import "./settingsdashboard.css";
 
 export default function SettingsDashboard({ darkMode, onThemeToggle }) {
@@ -22,12 +24,14 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
   const { user, isAnonymous, ready, signOut, deleteAccount } = useAuth();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [accountBusy, setAccountBusy] = useState(false);
   const [accountError, setAccountError] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [savedDisplayName, setSavedDisplayName] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -36,7 +40,9 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
 
   useEffect(() => {
     const metadata = user?.user_metadata || {};
-    setDisplayName(metadata.display_name || metadata.full_name || metadata.name || metadata.username || "");
+    const name = getDisplayName(user);
+    setDisplayName(name);
+    setSavedDisplayName(name.trim());
     setAvatarUrl(metadata.avatar_url || "");
   }, [user?.id, user?.user_metadata]);
 
@@ -49,6 +55,17 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     setAvatarPreview(preview);
     return () => URL.revokeObjectURL(preview);
   }, [avatarFile]);
+
+  const profileDirty = Boolean(user) && (
+    displayName.trim() !== savedDisplayName
+    || Boolean(avatarFile)
+    || (removeAvatar && Boolean(avatarUrl))
+  );
+  const normalizedDeleteConfirmation = deleteConfirmation.trim();
+  const accountEmail = (user?.email || "").trim().toLowerCase();
+  const canConfirmDelete = accountEmail
+    ? normalizedDeleteConfirmation.toLowerCase() === accountEmail
+    : normalizedDeleteConfirmation.toUpperCase() === "DELETE";
 
   const handleSignOut = async () => {
     setAccountBusy(true);
@@ -63,6 +80,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
   };
 
   const handleDeleteAccount = async () => {
+    if (!canConfirmDelete || accountBusy) return;
     setAccountBusy(true);
     setAccountError("");
     try {
@@ -79,6 +97,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     const file = event.target.files?.[0];
     if (!file) return;
     setProfileError("");
+    setProfileSuccess("");
     try {
       validateMediaFile(file);
       if (!file.type.startsWith("image/")) throw new MediaValidationError("unsupportedType");
@@ -93,6 +112,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
 
   const handleProfileSave = async (event) => {
     event.preventDefault();
+    if (!profileDirty || profileBusy) return;
     const name = displayName.trim();
     if (name.length < 2 || name.length > 40) {
       setProfileError(t("settingsNameValidation"));
@@ -106,6 +126,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
       const nextAvatarUrl = removeAvatar ? null : uploadedAvatar?.url || avatarUrl || null;
       await updateSocialProfile({ user, displayName: name, avatarUrl: nextAvatarUrl });
       setAvatarUrl(nextAvatarUrl || "");
+      setSavedDisplayName(name);
       setAvatarFile(null);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
       setRemoveAvatar(false);
@@ -121,42 +142,34 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     <div className="settings-dashboard">
       {user && (
         <form className="settings-profile" onSubmit={handleProfileSave}>
-          <div className="settings-profile__avatar-row">
-            {(avatarPreview || (!removeAvatar && avatarUrl)) ? (
-              <img src={avatarPreview || avatarUrl} alt="" className="settings-profile__avatar" />
-            ) : (
-              <span className="settings-profile__avatar settings-profile__avatar--empty" aria-hidden="true">
-                {displayName.slice(0, 1).toUpperCase()}
-              </span>
-            )}
-            <div className="settings-profile__avatar-actions">
-              <input
-                ref={avatarInputRef}
-                className="settings-profile__file"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                disabled={profileBusy}
-                aria-label={t("settingsAvatar")}
-              />
-              <button type="button" className="settings-profile__link" disabled={profileBusy} onClick={() => avatarInputRef.current?.click()}>
-                {t("settingsChangePhoto")}
-              </button>
-              {(avatarUrl || avatarFile) && (
-                <button
-                  type="button"
-                  className="settings-profile__link"
-                  disabled={profileBusy}
-                  onClick={() => {
-                    setAvatarFile(null);
-                    if (avatarInputRef.current) avatarInputRef.current.value = "";
-                    setRemoveAvatar(true);
-                  }}
-                >
-                  {t("settingsRemoveAvatar")}
-                </button>
+          <div className="settings-profile__avatar-wrap">
+            <button
+              type="button"
+              className="settings-profile__avatar-button"
+              disabled={profileBusy}
+              onClick={() => avatarInputRef.current?.click()}
+              aria-label={t("settingsChangePhoto")}
+            >
+              {(avatarPreview || (!removeAvatar && avatarUrl)) ? (
+                <img src={avatarPreview || avatarUrl} alt="" className="settings-profile__avatar" />
+              ) : (
+                <span className="settings-profile__avatar settings-profile__avatar--empty" aria-hidden="true">
+                  {displayName.trim().slice(0, 1).toUpperCase()}
+                </span>
               )}
-            </div>
+              <span className="settings-profile__camera" aria-hidden="true">
+                <AppIcon name="camera" size={20} />
+              </span>
+            </button>
+            <input
+              ref={avatarInputRef}
+              className="settings-profile__file"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              disabled={profileBusy}
+              aria-label={t("settingsAvatar")}
+            />
           </div>
           <label className="settings-profile__name-label" htmlFor="settings-display-name">{t("settingsDisplayName")}</label>
           <input
@@ -164,16 +177,42 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
             className="settings-profile__name"
             type="text"
             value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
+            onChange={(event) => {
+              setDisplayName(event.target.value);
+              setProfileError("");
+              setProfileSuccess("");
+            }}
             placeholder={t("settingsDisplayNamePlaceholder")}
             maxLength={40}
             autoComplete="name"
             disabled={profileBusy}
             required
           />
-          {profileError && <p className="settings-dashboard__error" role="alert">{profileError}</p>}
-          {profileSuccess && <p className="settings-profile__success" role="status">{profileSuccess}</p>}
-          <Button type="submit" busy={profileBusy} variant="ghost">{t("settingsSaveProfile")}</Button>
+          {(profileError || profileSuccess) && (
+            <div className="settings-profile__feedback">
+              {profileError && <p className="settings-dashboard__error" role="alert">{profileError}</p>}
+              {profileSuccess && <p className="settings-profile__success" role="status">{profileSuccess}</p>}
+            </div>
+          )}
+          <div className="settings-profile__actions">
+            <Button type="submit" busy={profileBusy} disabled={!profileDirty} variant="primary">{t("settingsSaveProfile")}</Button>
+            {(avatarUrl || avatarFile) && !removeAvatar && (
+              <Button
+                type="button"
+                disabled={profileBusy}
+                variant="ghost"
+                onClick={() => {
+                  setAvatarFile(null);
+                  if (avatarInputRef.current) avatarInputRef.current.value = "";
+                  setRemoveAvatar(Boolean(avatarUrl));
+                  setProfileError("");
+                  setProfileSuccess("");
+                }}
+              >
+                {t("settingsRemoveAvatar")}
+              </Button>
+            )}
+          </div>
         </form>
       )}
 
@@ -232,39 +271,76 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
           />
         </Group>
       </section>
-      <button
-        type="button"
-        disabled={accountBusy}
-        className="settings-dashboard__delete"
-        onClick={() => { setAccountError(""); setDeleteDialogOpen(true); }}
-      >
-        {t("settingsDeleteAccount")}
-      </button>
+      <section className="settings-dashboard__danger">
+        <h2 className="settings-dashboard__danger-heading">{t("settingsDangerZone")}</h2>
+        <div className="settings-dashboard__danger-row">
+          <div className="settings-dashboard__danger-copy">
+            <h3>{t("settingsDangerTitle")}</h3>
+            <p>{t("settingsDangerDescription")}</p>
+          </div>
+          <Button
+            type="button"
+            disabled={accountBusy}
+            variant="danger-outline"
+            onClick={() => {
+              setAccountError("");
+              setDeleteConfirmation("");
+              setDeleteDialogOpen(true);
+            }}
+          >
+            {t("settingsDeleteAccount")}
+          </Button>
+        </div>
+      </section>
       {accountError && <p className="settings-dashboard__error" role="alert">{accountError}</p>}
 
       <Modal
         open={deleteDialogOpen}
-        onClose={() => !accountBusy && setDeleteDialogOpen(false)}
+        onClose={() => {
+          if (!accountBusy) {
+            setDeleteDialogOpen(false);
+            setDeleteConfirmation("");
+          }
+        }}
         labelledBy="settings-delete-title"
-        describedBy="settings-delete-warning"
+        describedBy="settings-delete-warning settings-delete-confirmation-hint"
         disableClose={accountBusy}
         className="ui-auth-dialog"
       >
         <h2 className="ui-dialog-title" id="settings-delete-title">{t("settingsDeleteConfirmTitle")}</h2>
         <p className="ui-dialog-copy" id="settings-delete-warning">{t("settingsDeleteWarning")}</p>
+        <TextField
+          id="settings-delete-confirmation"
+          className="settings-delete__field"
+          label={t("settingsDeleteConfirmLabel")}
+          hint={accountEmail
+            ? t("settingsDeleteConfirmHintEmail")
+            : t("settingsDeleteConfirmHintWord")}
+          type="text"
+          autoComplete="off"
+          value={deleteConfirmation}
+          onChange={(event) => setDeleteConfirmation(event.target.value)}
+          placeholder={accountEmail
+            ? t("settingsDeleteEmailPlaceholder")
+            : t("settingsDeleteWordPlaceholder")}
+          disabled={accountBusy}
+        />
         <div className="ui-dialog-actions">
           <Button
             type="button"
             disabled={accountBusy}
             variant="secondary"
-            onClick={() => setDeleteDialogOpen(false)}
+            onClick={() => {
+              setDeleteDialogOpen(false);
+              setDeleteConfirmation("");
+            }}
           >
             {t("settingsDeleteCancel")}
           </Button>
           <Button
             type="button"
-            disabled={accountBusy}
-            variant="danger"
+            disabled={accountBusy || !canConfirmDelete}
+            variant="danger-outline"
             busy={accountBusy}
             onClick={handleDeleteAccount}
           >

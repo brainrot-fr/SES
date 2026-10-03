@@ -1,10 +1,10 @@
 /**
  * Quran Data Access
  * ------------------
- * Ayah text is bundled locally (src/data/quran.json, generated once via
+ * Ayah text is bundled locally (src/data/quran.json, refreshed via
  * scripts/fetch-quran-text.mjs) — no network fetch, no cache, works fully
- * offline. To refresh it later (e.g. a correction upstream), just re-run
- * that script.
+ * offline. The refresh script updates text only, preserving the bundled
+ * surah metadata and data shape.
  *
  * Audio is streamed live from the CDN; the full multi-reciter set is too
  * large to bundle. A small optional duration index is generated separately

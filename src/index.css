@@ -72,16 +72,15 @@
   font-family: 'QPCHafs';
   src: url('./assets/fonts/QPC\ Hafs\ \(Official\ Uthmani\ script\ font\)\ -\ TTF.ttf') format('truetype');
   font-display: swap;
-}
-@font-face {
-  font-family: 'CormorantGaramond-Medium';
-  src: url('./assets/fonts/CormorantGaramond-Medium.ttf') format('truetype');
-  font-display: swap;
+  unicode-range: U+0020, U+0028-U+0029, U+0030-U+0039, U+005B, U+005D, U+00A0,
+    U+0600-U+0621, U+0623-U+06FF, U+200C-U+200F, U+25CC,
+    U+FC00-U+FD1D, U+FD50-U+FD7D;
 }
 @font-face {
   font-family: 'Indopak';
   src: url('./assets/fonts/Indopak\ Nastaleeq\ -\ TTF.ttf') format('truetype');
   font-display: swap;
+  unicode-range: U+0020, U+0600-U+06ED, U+FD3C-U+FD3F;
 }
 *,
 *::before,
@@ -116,9 +115,7 @@ html[data-theme="dark"] {
 }
 
 .interactive-surface {
-  transition: background-color var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-base) var(--ease-standard),
-    transform var(--duration-base) var(--ease-standard);
+  transition: transform var(--duration-base) var(--ease-standard);
 }
 
 .interactive-surface:hover {

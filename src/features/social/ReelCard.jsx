@@ -5,9 +5,42 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
 
+export const REEL_MUTE_KEY = "ses-reels-muted-v1";
+const DOUBLE_TAP_WINDOW_MS = 280;
+
+export function getReelPosterUrl(post, width = 540, blurred = false) {
+  const url = post?.media_url;
+  if (url?.includes("/video/upload/")) {
+    const blurTransform = blurred ? ",e_blur:1000" : "";
+    return url
+      .replace(
+        "/video/upload/",
+        `/video/upload/so_0,f_jpg,q_auto,w_${width}${blurTransform}/`,
+      )
+      .replace(/\.[a-z0-9]+$/i, ".jpg");
+  }
+  return width === 540 && !blurred
+    ? post?.poster_url || post?.thumbnail_url || ""
+    : "";
+}
+
+function splitCaption(body) {
+  const hashtags = body.match(/#[\p{L}\p{N}_-]+/gu) || [];
+  const caption = body
+    .replace(/#[\p{L}\p{N}_-]+/gu, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return { caption, hashtags };
+}
+
 export default function ReelCard({
   post,
   index,
+  isActive = false,
+  muted = true,
+  onMutedChange = () => {},
   user,
   isOwn,
   onDelete,
@@ -18,11 +51,15 @@ export default function ReelCard({
   onCommentCreated,
   onNearEnd,
   onEnded,
+  onActive = () => {},
   onShareStatus,
 }) {
   const { lang, t } = useLang();
   const videoRef = useRef(null);
   const cardRef = useRef(null);
+  const progressRef = useRef(null);
+  const tapTimeoutRef = useRef(null);
+  const lastTapRef = useRef(0);
   const [mediaError, setMediaError] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -36,7 +73,10 @@ export default function ReelCard({
   const [shareCount, setShareCount] = useState(post.share_count || 0);
   const viewRecorded = useRef(false);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [likeBurst, setLikeBurst] = useState(0);
+  const posterUrl = getReelPosterUrl(post);
+  const ambientUrl = getReelPosterUrl(post, 32, true);
+  const { caption, hashtags } = splitCaption(post.body || "");
   const authorName = post.author_display_name || t("socialUnknownAuthor");
   const authorAvatar = post.author_avatar_url || (post.author_id === user?.id ? user.user_metadata?.avatar_url : null);
   const date = new Intl.DateTimeFormat(lang === "ur" ? "ur" : "en", {
@@ -57,12 +97,39 @@ export default function ReelCard({
   }, [commentsOpen]);
 
   useEffect(() => {
+    if (videoRef.current) videoRef.current.muted = muted;
+  }, [muted]);
+
+  useEffect(() => () => {
+    if (tapTimeoutRef.current) window.clearTimeout(tapTimeoutRef.current);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const progress = progressRef.current;
+    if (!video || !progress) return undefined;
+    const updateProgress = () => {
+      const value = video.duration ? Math.min(1, video.currentTime / video.duration) : 0;
+      progress.style.setProperty("--reel-progress", String(value));
+    };
+    video.addEventListener("timeupdate", updateProgress);
+    video.addEventListener("loadedmetadata", updateProgress);
+    video.addEventListener("ended", updateProgress);
+    return () => {
+      video.removeEventListener("timeupdate", updateProgress);
+      video.removeEventListener("loadedmetadata", updateProgress);
+      video.removeEventListener("ended", updateProgress);
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
     const card = cardRef.current;
     if (!video || !card || typeof IntersectionObserver === "undefined") return undefined;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && entry.intersectionRatio >= 0.78) {
+          onActive(index);
           if (index >= 0) onNearEnd(index);
           if (!viewRecorded.current) {
             viewRecorded.current = true;
@@ -80,7 +147,7 @@ export default function ReelCard({
     );
     observer.observe(card);
     return () => observer.disconnect();
-  }, [index, onNearEnd, onView, post.id]);
+  }, [index, onActive, onNearEnd, onView, post.id]);
 
   const closeComments = useCallback(() => setCommentsOpen(false), []);
 
@@ -140,6 +207,24 @@ export default function ReelCard({
     }
   };
 
+  const handleVideoTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current <= DOUBLE_TAP_WINDOW_MS) {
+      lastTapRef.current = 0;
+      if (tapTimeoutRef.current) window.clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
+      setLikeBurst((current) => current + 1);
+      if (!liked && !likeBusy) handleLike();
+      return;
+    }
+
+    lastTapRef.current = now;
+    tapTimeoutRef.current = window.setTimeout(() => {
+      tapTimeoutRef.current = null;
+      togglePlayback();
+    }, DOUBLE_TAP_WINDOW_MS);
+  };
+
   const updateCommentCount = (postId, body, delta = 1) => {
     const change = body === null ? -1 : delta;
     setCommentCount((count) => Math.max(0, count + change));
@@ -162,18 +247,21 @@ export default function ReelCard({
   };
 
   return (
-    <article ref={cardRef} className="social-reel" data-reel-index={index}>
+    <article ref={cardRef} className="social-reel" data-reel-index={index} data-active={isActive || undefined}>
+      {isActive && ambientUrl && <img className="social-reel__ambient" src={ambientUrl} alt="" aria-hidden="true" />}
       <div className="social-reel__frame">
         {!mediaError ? (
           <video
             ref={videoRef}
             className="social-reel__video"
             src={post.media_url}
+            poster={isActive ? posterUrl || undefined : undefined}
             playsInline
             muted={muted}
             loop={false}
-            preload="none"
+            preload={isActive ? "metadata" : "none"}
             aria-label={`${t("socialVideo")} — ${authorName}`}
+            onClick={handleVideoTap}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onEnded={() => onEnded(index)}
@@ -185,12 +273,20 @@ export default function ReelCard({
         <button
           type="button"
           className={`social-reel__play-toggle${playing ? " social-reel__play-toggle--playing" : ""}`}
-          onClick={togglePlayback}
+          onClick={handleVideoTap}
           aria-label={playing ? t("reelsPause") : t("reelsPlay")}
         >
           <AppIcon name={playing ? "pause" : "play"} size={34} filled />
         </button>
         <div className="social-reel__shade" />
+        <div ref={progressRef} className="social-reel__progress" aria-hidden="true">
+          <span className="social-reel__progress-bar" />
+        </div>
+        {likeBurst > 0 && (
+          <span key={likeBurst} className="social-reel__like-burst" aria-hidden="true">
+            <AppIcon name="heart" size={76} filled />
+          </span>
+        )}
         <div className="social-reel__caption">
           <div className="social-reel__author">
             {authorAvatar
@@ -202,42 +298,45 @@ export default function ReelCard({
             </span>
             {!isOwn && <button type="button" className="social-reel__follow" onClick={toggleFollow} disabled={followBusy} aria-pressed={following}>{following ? t("socialUnfollow") : t("socialFollow")}</button>}
           </div>
-          {post.body && <p className="social-reel__body">{post.body}</p>}
-          <span className="social-reel__community-note"><AppIcon name="sparkle" size={15} /> {t("reelsCommunityNote")}</span>
+          {caption && <p className="social-reel__body">{caption}</p>}
+          {hashtags.length > 0 && (
+            <div className="social-reel__tags">
+              {hashtags.map((tag, tagIndex) => (
+                <span className="social-reel__hashtag" key={`${tag}-${tagIndex}`}>{tag}</span>
+              ))}
+            </div>
+          )}
         </div>
-        <aside className="social-reel__actions" aria-label={t("reelsActions")}>
-          <button type="button" className={`social-reel__action${liked ? " social-reel__action--liked" : ""}`} onClick={handleLike} disabled={likeBusy} aria-label={`${liked ? t("reelsUnlike") : t("reelsLike")} · ${likeCount}`} aria-pressed={liked}>
-            <span className="social-reel__action-icon"><AppIcon name="heart" size={25} filled={liked} /></span>
-            <span>
-              {!liked && `${t("reelsLike")} · `}
-              {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
-            </span>
-          </button>
-          <button type="button" className="social-reel__action" onClick={() => setCommentsOpen(true)} aria-label={`${t("reelsComments")} · ${commentCount}`}>
-            <span className="social-reel__action-icon"><AppIcon name="comment" size={24} /></span>
-            <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}</span>
-          </button>
-          <button type="button" className="social-reel__action" onClick={handleShare} aria-label={t("reelsShare")}>
-            <span className="social-reel__action-icon"><AppIcon name="share" size={24} /></span>
-            <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}</span>
-          </button>
-          <span className="social-reel__views" aria-label={`${t("socialViews")} ${viewCount}`}>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)} {t("socialViewsShort")}</span>
-          <button type="button" className="social-reel__action" onClick={() => {
-            setMuted((current) => {
-              if (videoRef.current) videoRef.current.muted = !current;
-              return !current;
-            });
-          }} aria-label={muted ? t("reelsUnmute") : t("reelsMute")} aria-pressed={!muted}>
-            <span className="social-reel__action-icon"><AppIcon name={muted ? "volumeOff" : "volume"} size={23} /></span>
-            <span>{muted ? t("reelsSoundOff") : t("reelsSoundOn")}</span>
-          </button>
-        </aside>
         {isOwn && (
           <div className="social-reel__manage">
             <button type="button" onClick={() => setDeleteDialogOpen(true)} aria-label={t("socialDeletePost")}><AppIcon name="more" /></button>
           </div>
         )}
       </div>
+      <aside className="social-reel__actions" aria-label={t("reelsActions")}>
+        <button type="button" className={`social-reel__action${liked ? " social-reel__action--liked" : ""}`} onClick={handleLike} disabled={likeBusy} aria-label={`${liked ? t("reelsUnlike") : t("reelsLike")} · ${likeCount}`} aria-pressed={liked}>
+          <span className="social-reel__action-icon"><AppIcon name="heart" size={25} filled={liked} /></span>
+          <span>
+            {!liked && `${t("reelsLike")} · `}
+            {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
+          </span>
+        </button>
+        <button type="button" className="social-reel__action" onClick={() => setCommentsOpen(true)} aria-label={`${t("reelsComments")} · ${commentCount}`}>
+          <span className="social-reel__action-icon"><AppIcon name="comment" size={24} /></span>
+          <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}</span>
+        </button>
+        <button type="button" className="social-reel__action" onClick={handleShare} aria-label={t("reelsShare")}>
+          <span className="social-reel__action-icon"><AppIcon name="share" size={24} /></span>
+          <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}</span>
+        </button>
+        <span className="social-reel__views" aria-label={`${t("socialViews")} ${viewCount}`}>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)} {t("socialViewsShort")}</span>
+        <button type="button" className="social-reel__action" onClick={() => {
+          onMutedChange((current) => !current);
+        }} aria-label={muted ? t("reelsUnmute") : t("reelsMute")} aria-pressed={!muted}>
+          <span className="social-reel__action-icon"><AppIcon name={muted ? "volumeOff" : "volume"} size={23} /></span>
+          <span>{muted ? t("reelsSoundOff") : t("reelsSoundOn")}</span>
+        </button>
+      </aside>
       <Modal
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

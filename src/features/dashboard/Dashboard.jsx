@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import quranData from "../../data/quran.json";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
+import { getDisplayName } from "../auth/authSession";
 import { useAccountProfile } from "../account/AccountProfileProvider";
 import { getIslamicDate } from "./islamicDateService";
 import AppIcon from "../../components/icons/AppIcon";
@@ -61,11 +62,7 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, [countryCode, lang, dateRetry]);
-  const username =
-    user?.user_metadata?.username ||
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email?.split("@")[0];
+  const username = getDisplayName(user);
   const welcome = username
     ? t("dashboardWelcomeNamed").replace("{username}", username)
     : t("dashboardWelcome");

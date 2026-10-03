@@ -64,7 +64,7 @@ async function startForeground(title, body) {
     id: FG_NOTIFICATION_ID,
     title,
     body,
-    smallIcon: "ic_stat_icon_config_sample", // Capacitor's default bundled icon — swap for your own later
+    smallIcon: "ic_quran_notification",
     notificationChannelId: FG_CHANNEL_ID,
     silent: true,
   });
@@ -84,7 +84,7 @@ async function updateForeground(title, body) {
         id: FG_NOTIFICATION_ID,
         title,
         body,
-        smallIcon: "ic_stat_icon_config_sample",
+        smallIcon: "ic_quran_notification",
       });
     } catch (err) {
       foregroundServiceStarted = false;

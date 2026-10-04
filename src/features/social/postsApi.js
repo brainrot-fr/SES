@@ -85,7 +85,15 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   const prioritizedPost = results[1]?.data;
   const uniquePosts = prependPrioritizedPost(data, prioritizedPost);
   await assertPostGenderVisibility(uniquePosts);
-  return { posts: await addEngagement(uniquePosts), hasMore };
+  return {
+    posts: await addEngagement(uniquePosts),
+    hasMore,
+    prioritizedUnavailable: Boolean(
+      page === 0
+      && prioritizedPostId
+      && !uniquePosts.some((post) => post.id === prioritizedPostId)
+    ),
+  };
 }
 
 export async function fetchReels(page = 0, userId, preferences = {}, prioritizedReelId) {
@@ -138,7 +146,15 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
     ...ranked.filter((post) => post.id === prioritizedPost.id),
     ...ranked.filter((post) => post.id !== prioritizedPost.id),
   ];
-  return { posts: ordered, hasMore };
+  return {
+    posts: ordered,
+    hasMore,
+    prioritizedUnavailable: Boolean(
+      page === 0
+      && prioritizedReelId
+      && !uniquePosts.some((post) => post.id === prioritizedReelId)
+    ),
+  };
 }
 
 export async function createPost({ body, media, user }) {

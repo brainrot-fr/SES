@@ -219,6 +219,7 @@ export default {
   socialFeedFailed: "Could not load posts.",
   socialOfflineCached: "You’re offline — showing cached content.",
   socialVisibilityFetchError: "We couldn’t verify that all posts follow your account’s visibility rules. Please retry.",
+  socialPostUnavailableVisibility: "This post is unavailable or hidden by account visibility rules.",
   errorOffline: "You are offline. Check your connection and try again.",
   errorGeneric: "Something went wrong. Please try again.",
   socialVisibilityNotice: "Posts and reels must be within Shariah. Content outside these limits may be removed and could lead to an account suspension or ban.",

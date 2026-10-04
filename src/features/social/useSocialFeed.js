@@ -18,6 +18,7 @@ export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, pri
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [visibilityNotice, setVisibilityNotice] = useState(false);
   const [showingCachedContent, setShowingCachedContent] = useState(false);
   const [activeReelIndex, setActiveReelIndex] = useState(0);
   const [reelMuted, setReelMuted] = useState(() => {
@@ -35,6 +36,7 @@ export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, pri
     setLoading(true);
     setError("");
     setLoadError("");
+    setVisibilityNotice(false);
     try {
       const pageResult = isReels
         ? await fetchReels(pageNumber, user?.id, readReelPreferences(user?.id), prioritizedReelId)
@@ -42,6 +44,7 @@ export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, pri
       if (requestId !== requestIdRef.current) return;
       const { posts: nextPosts, hasMore: nextHasMore } = pageResult;
       setPosts((current) => append ? [...current, ...nextPosts] : nextPosts);
+      setVisibilityNotice(pageResult.prioritizedUnavailable === true);
       if (!append && pageNumber === 0) {
         writeSocialFeedCache(user?.id, mode, viewerGender, nextPosts);
         setShowingCachedContent(false);
@@ -216,6 +219,7 @@ export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, pri
     loading,
     error,
     loadError,
+    visibilityNotice,
     showingCachedContent,
     activeReelIndex,
     reelMuted,

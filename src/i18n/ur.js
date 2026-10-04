@@ -210,6 +210,8 @@ export default {
   notificationScheduleFailed: "ٹیسٹ نوٹیفکیشن شیڈیول نہیں ہو سکا۔",
   notificationSettingsTitle: "اطلاعات",
   notificationsMayBeDelayed: "تمام اجازتیں اور سسٹم کی ترتیبات فعال ہونے تک اطلاعات میں تاخیر ہو سکتی ہے۔",
+  notificationExactAlarmDisabled: "درست وقت کے الارم بند ہیں؛ شیڈیول شدہ اطلاعات مقررہ وقت پر نہ پہنچ سکیں گی۔",
+  notificationBatteryMayDelay: "بیٹری کی اصلاح فعال ہے اور اطلاعات میں تاخیر کر سکتی ہے۔",
   notificationsReady: "اطلاعات تیار ہیں۔",
   notificationStatusError: "اطلاعات کی ترتیبات چیک نہیں ہو سکیں۔ دوبارہ کوشش کریں۔",
   notificationSettingsOpenError: "اطلاعات کی ترتیب نہیں کھل سکی۔",

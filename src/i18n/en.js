@@ -74,6 +74,8 @@ export default {
   notificationScheduleFailed: "Unable to schedule test notification.",
   notificationSettingsTitle: "Notifications",
   notificationsMayBeDelayed: "Notifications may be delayed until all permissions and system settings are enabled.",
+  notificationExactAlarmDisabled: "Exact alarms are disabled; scheduled notifications may not arrive at their intended time.",
+  notificationBatteryMayDelay: "Battery optimization is active and may delay notifications.",
   notificationsReady: "Notifications are ready.",
   notificationStatusError: "Notification settings could not be checked. Try again.",
   notificationSettingsOpenError: "Could not open the notification setting.",

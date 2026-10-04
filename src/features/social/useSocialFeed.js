@@ -68,7 +68,9 @@ export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, pri
           setShowingCachedContent(true);
           setLoadError("");
         } else {
-          setLoadError(friendlyError(loadError, t, "socialFeedFailed"));
+          setLoadError(loadError?.code === "SOCIAL_VISIBILITY_CHECK_FAILED"
+            ? t("socialVisibilityFetchError")
+            : friendlyError(loadError, t, "socialFeedFailed"));
         }
       }
     } finally {

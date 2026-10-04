@@ -73,6 +73,12 @@ export function NotificationSettingsSection({ t }) {
       {readiness && hasIncompletePermissions && (
         <p className="settings-dashboard__muted" role="status">{t("notificationsMayBeDelayed")}</p>
       )}
+      {readiness?.exactAlarmGranted === false && (
+        <p className="settings-dashboard__muted" role="status">{t("notificationExactAlarmDisabled")}</p>
+      )}
+      {readiness?.batteryOptimizationExempt === false && (
+        <p className="settings-dashboard__muted" role="status">{t("notificationBatteryMayDelay")}</p>
+      )}
       {readiness && !hasIncompletePermissions && (
         <p className="settings-dashboard__muted" role="status">{t("notificationsReady")}</p>
       )}

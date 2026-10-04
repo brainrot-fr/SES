@@ -39,7 +39,12 @@ async function assertPostGenderVisibility(posts) {
   const { data, error } = await supabase.rpc("assert_social_post_visibility", {
     p_author_ids: authorIds,
   });
-  if (error || data !== true) {
+  if (error) {
+    const checkError = new Error("Could not verify social post visibility.");
+    checkError.code = "SOCIAL_VISIBILITY_CHECK_FAILED";
+    throw checkError;
+  }
+  if (data !== true) {
     const visibilityError = new Error("Could not verify social post visibility.");
     visibilityError.code = "SOCIAL_VISIBILITY_VIOLATION";
     throw visibilityError;

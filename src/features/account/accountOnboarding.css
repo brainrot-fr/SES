@@ -11,40 +11,12 @@
 .account-onboarding > .entry-brand {
   min-height: 11rem;
   padding-block: var(--space-4);
-  background:
-    radial-gradient(ellipse 72% 55% at 100% 0%, color-mix(in srgb, var(--primary-soft) 70%, transparent), transparent 72%),
-    radial-gradient(ellipse 62% 50% at 0% 100%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%);
 }
 
 .account-onboarding__form {
   width: min(100%, 38rem);
   margin-inline: auto;
   padding: var(--space-5) var(--page-gutter) calc(6rem + env(safe-area-inset-bottom, 0px));
-}
-
-.account-onboarding__progress {
-  position: fixed;
-  z-index: 100;
-  inset-inline: 0;
-  inset-block-start: env(safe-area-inset-top, 0px);
-  height: 3px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-
-.account-onboarding__progress span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--primary);
-  transform: scaleX(var(--progress, 0));
-  transform-origin: left center;
-  transition: transform var(--duration-base) var(--ease-standard);
-}
-
-[dir="rtl"] .account-onboarding__progress span {
-  transform-origin: right center;
 }
 
 .account-onboarding__step {
@@ -103,14 +75,6 @@
   color: var(--text-large);
 }
 
-.account-onboarding__choice input,
-.account-onboarding__confirmation input {
-  width: 1.2rem;
-  height: 1.2rem;
-  flex: 0 0 auto;
-  accent-color: var(--primary);
-}
-
 .account-onboarding__helper {
   display: block;
   margin: 0.6rem 0 0;
@@ -135,21 +99,7 @@
   margin-block-start: 0.12rem;
 }
 
-.account-onboarding__select {
-  width: 100%;
-  min-height: 48px;
-  padding: 0.65rem 0;
-  border: 0;
-  border-block-end: 1px solid var(--hairline);
-  border-radius: 0;
-  background: transparent;
-  color: var(--text-small);
-  font: inherit;
-}
-
-.account-onboarding__choice:focus-within,
 .account-onboarding__confirmation:focus-within,
-.account-onboarding__select:focus-visible,
 .account-onboarding__button:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 3px;
@@ -160,7 +110,7 @@
   position: fixed;
   z-index: 90;
   inset-inline: var(--page-gutter);
-  inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
+  inset-block-end: var(--dock-offset);
   display: flex;
   gap: 0.75rem;
   width: auto;
@@ -236,6 +186,7 @@
   .account-onboarding__step > .account-onboarding__button {
     inset-inline-start: calc(50% + var(--page-gutter));
     inset-inline-end: var(--page-gutter);
+    inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
   }
 
   [dir="rtl"] .account-onboarding__actions,

@@ -9,9 +9,6 @@
 .ob-root > .entry-brand {
   min-height: 16rem;
   padding-block: max(var(--space-6), env(safe-area-inset-top, 0px)) var(--space-5);
-  background:
-    radial-gradient(ellipse 70% 55% at 100% 0%, color-mix(in srgb, var(--primary-soft) 70%, transparent), transparent 72%),
-    radial-gradient(ellipse 62% 50% at 0% 100%, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%);
 }
 
 .ob-content {
@@ -95,7 +92,7 @@
   position: fixed;
   z-index: 90;
   inset-inline: var(--page-gutter);
-  inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
+  inset-block-end: var(--dock-offset);
   width: auto;
   max-width: 34rem;
   min-height: 48px;
@@ -122,6 +119,7 @@
   .ob-continue.w-full {
     inset-inline-start: calc(50% + var(--page-gutter));
     inset-inline-end: var(--page-gutter);
+    inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
   }
 
   [dir="rtl"] .ob-continue.w-full {

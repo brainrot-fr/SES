@@ -10,6 +10,7 @@ import { silsilaETarbiyat, silsilaEFaqiri } from './murshidData';
 import { useLang } from '../../context/LanguageContext';
 import Page from '../../components/layout/Page';
 import Split from '../../components/layout/Split';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/shadcn/tabs';
 import './murshid.css';
 
 function SilsilaList({ title, entries, kind }) {
@@ -47,17 +48,20 @@ export default function Murshid() {
         )}
       >
         <div className="murshid-lineages">
-          <fieldset className="murshid-switch">
-            <legend className="sr-only">{t('titleMurshid')}</legend>
-            <input id="murshid-tarbiyat" type="radio" name="murshid-lineage" defaultChecked />
-            <label htmlFor="murshid-tarbiyat">{t('murshidTarbiyat')}</label>
-            <input id="murshid-faqiri" type="radio" name="murshid-lineage" />
-            <label htmlFor="murshid-faqiri">{t('murshidFaqiri')}</label>
-          </fieldset>
-          <div className="murshid-lineages__columns">
-            <SilsilaList kind="tarbiyat" title={t('murshidTarbiyat')} entries={silsilaETarbiyat} />
-            <SilsilaList kind="faqiri" title={t('murshidFaqiri')} entries={silsilaEFaqiri} />
-          </div>
+          <Tabs defaultValue="tarbiyat" className="w-full">
+            <TabsList className="w-full grid-cols-2 lg:hidden">
+              <TabsTrigger value="tarbiyat">{t('murshidTarbiyat')}</TabsTrigger>
+              <TabsTrigger value="faqiri">{t('murshidFaqiri')}</TabsTrigger>
+            </TabsList>
+            <div className="murshid-lineages__columns">
+              <TabsContent value="tarbiyat" forceMount className="data-[state=inactive]:hidden lg:data-[state=inactive]:block">
+                <SilsilaList kind="tarbiyat" title={t('murshidTarbiyat')} entries={silsilaETarbiyat} />
+              </TabsContent>
+              <TabsContent value="faqiri" forceMount className="data-[state=inactive]:hidden lg:data-[state=inactive]:block">
+                <SilsilaList kind="faqiri" title={t('murshidFaqiri')} entries={silsilaEFaqiri} />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
       </Split>
     </Page>

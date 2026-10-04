@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "../../components/shadcn/select";
 import { Slider } from "../../components/shadcn/slider";
-import { Switch } from "../../components/shadcn/switch";
+import { ToggleGroup, ToggleGroupItem } from "../../components/shadcn/toggle-group";
 import {
   Sheet,
   SheetContent,
@@ -39,11 +39,10 @@ const NO_SEPARATE_BISMILLAH = [1, 9];
 const STORAGE_KEY = "ses-current-surah";
 const VIEW_MODE_KEY = "ses-quran-view-mode";
 const TRANSLATION_KEY = "ses-show-translation";
-const QURAN_ZOOM_KEY = "ses-quran-text-zoom";
-const MIN_QURAN_ZOOM = 0.8;
-const MAX_QURAN_ZOOM = 1.8;
-const QURAN_ZOOM_STEP = 0.1;
+const FONT_SCALE_KEY = "ses-quran-font-scale";
 const AYAH_BATCH_SIZE = 40;
+const MIN_FONT_SCALE = 0.8;
+const MAX_FONT_SCALE = 1.6;
 
 const ARABIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
 const toArabicNumber = (n) =>
@@ -79,6 +78,24 @@ function AyahEndMark({ number, small = false }) {
   );
 }
 
+function SurahSkipIcon({ direction }) {
+  const rotation = direction === "backward" ? "rotate(180 12 12)" : undefined;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="currentColor"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g transform={rotation}>
+        <path d="M2 3v18l9-9L2 3Zm9 0v18l9-9-9-9Zm10 0h2v18h-2V3Z" />
+      </g>
+    </svg>
+  );
+}
+
 export default function QuranReader({ initialSurah, initialAyah }) {
   const { t } = useLang();
 
@@ -90,7 +107,6 @@ export default function QuranReader({ initialSurah, initialAyah }) {
   const [error, setError] = useState(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
   const [seekFraction, setSeekFraction] = useState(0);
 
@@ -100,10 +116,10 @@ export default function QuranReader({ initialSurah, initialAyah }) {
   const [showTranslation, setShowTranslation] = useState(
     () => localStorage.getItem(TRANSLATION_KEY) !== "false",
   );
-  const [quranZoom, setQuranZoom] = useState(() => {
-    const savedZoom = Number(localStorage.getItem(QURAN_ZOOM_KEY));
-    return Number.isFinite(savedZoom) && savedZoom >= MIN_QURAN_ZOOM && savedZoom <= MAX_QURAN_ZOOM
-      ? savedZoom
+  const [fontScale, setFontScale] = useState(() => {
+    const storedScale = Number.parseFloat(localStorage.getItem(FONT_SCALE_KEY));
+    return Number.isFinite(storedScale)
+      ? Math.min(MAX_FONT_SCALE, Math.max(MIN_FONT_SCALE, storedScale))
       : 1;
   });
 
@@ -114,9 +130,8 @@ export default function QuranReader({ initialSurah, initialAyah }) {
     localStorage.setItem(TRANSLATION_KEY, String(showTranslation));
   }, [showTranslation]);
   useEffect(() => {
-    localStorage.setItem(QURAN_ZOOM_KEY, String(quranZoom));
-  }, [quranZoom]);
-
+    localStorage.setItem(FONT_SCALE_KEY, String(fontScale));
+  }, [fontScale]);
   const topRef = useRef(null);
   const sentinelRef = useRef(null);
   const ayahRefs = useRef({});
@@ -295,80 +310,68 @@ export default function QuranReader({ initialSurah, initialAyah }) {
         </div>
       )}
       {surah && (
-        <section className="quran-body" style={{ "--quran-text-zoom": quranZoom }}>
+        <section className="quran-body" style={{ "--quran-font-scale": fontScale }}>
           <Band as="header" glow className="quran-surah-header">
             <h1 className="quran-surah-header__ar" lang="ar" dir="rtl">{surah.name}</h1>
             <p className="quran-surah-header__en">
               {surah.englishName} · {surah.englishNameTranslation}
             </p>
+            <div className="quran-reading-controls">
+              <div className="quran-reading-controls__mode">
+                <Tabs value={viewMode} onValueChange={setViewMode} aria-label={t("quranViewMode")}>
+                  <TabsList>
+                    <TabsTrigger value="verse">{t("quranVerseByVerse")}</TabsTrigger>
+                    <TabsTrigger value="reading">{t("quranReadingMode")}</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className="quran-reading-controls__font-size" role="group" aria-label={t("quranTextSize")}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("quranDecreaseTextSize")}
+                    disabled={fontScale <= MIN_FONT_SCALE}
+                    onClick={() => setFontScale((scale) => Math.max(MIN_FONT_SCALE, Math.round((scale - 0.1) * 10) / 10))}
+                  >
+                    <span aria-hidden="true" className="text-xs font-semibold">A−</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("quranIncreaseTextSize")}
+                    disabled={fontScale >= MAX_FONT_SCALE}
+                    onClick={() => setFontScale((scale) => Math.min(MAX_FONT_SCALE, Math.round((scale + 0.1) * 10) / 10))}
+                  >
+                    <span aria-hidden="true" className="text-base font-semibold">A+</span>
+                  </Button>
+                </div>
+              </div>
+              {viewMode === "verse" && (
+                <ToggleGroup
+                  type="single"
+                  value={showTranslation ? "shown" : "hidden"}
+                  onValueChange={(value) => {
+                    if (value) setShowTranslation(value === "shown");
+                  }}
+                  aria-label={t("quranTranslation")}
+                  className="gap-1"
+                >
+                  <ToggleGroupItem value="shown" variant="outline" className="min-h-11 px-3">
+                    {t("quranShowTranslation")}
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="hidden" variant="outline" className="min-h-11 px-3">
+                    {t("quranHideTranslation")}
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
+            </div>
             {!NO_SEPARATE_BISMILLAH.includes(currentSurah) && (
               <p className="quran-bismillah" lang="ar" dir="rtl">
                 بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ
               </p>
             )}
           </Band>
-
-          <div className="flex items-center justify-between gap-2 bg-background py-2">
-            <Tabs value={viewMode} onValueChange={setViewMode} aria-label={t("quranViewMode")}>
-              <TabsList>
-                <TabsTrigger value="verse">{t("quranVerseByVerse")}</TabsTrigger>
-                <TabsTrigger value="reading">{t("quranReadingMode")}</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setSettingsOpen((open) => !open)}
-              aria-expanded={settingsOpen}
-              aria-controls="quran-display-controls"
-            >
-              <AppIcon name="display" />
-              {t("quranDisplay")}
-            </Button>
-          </div>
-
-          {settingsOpen && (
-            <section
-              id="quran-display-controls"
-              aria-label={t("quranReaderSettings")}
-              className="grid gap-4 py-3"
-            >
-              <div className="grid gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <label htmlFor="quran-text-size" className="text-sm font-medium">{t("quranTextSize")}</label>
-                  <output className="text-sm tabular-nums text-muted-foreground">{Math.round(quranZoom * 100)}%</output>
-                </div>
-                <Slider
-                  id="quran-text-size"
-                  min={MIN_QURAN_ZOOM}
-                  max={MAX_QURAN_ZOOM}
-                  step={QURAN_ZOOM_STEP}
-                  value={[quranZoom]}
-                  onValueChange={([value]) => setQuranZoom(Number(value.toFixed(1)))}
-                  aria-label={t("quranTextSize")}
-                />
-                <p
-                  lang="ar"
-                  dir="rtl"
-                  className="m-0 text-center font-[var(--font-arabic)] text-[calc(1.5rem*var(--quran-text-zoom))] leading-[2.1] text-foreground"
-                  style={{ "--quran-text-zoom": quranZoom }}
-                >
-                  {surah.ayahs[0].text}
-                </p>
-              </div>
-              <div className="flex min-h-12 items-center justify-between gap-3 border-t border-border pt-3">
-                <span id="quran-translation-label">
-                  {t(showTranslation ? "quranHideTranslation" : "quranShowTranslation")}
-                </span>
-                <Switch
-                  checked={showTranslation}
-                  onCheckedChange={setShowTranslation}
-                  aria-labelledby="quran-translation-label"
-                />
-              </div>
-            </section>
-          )}
 
           {viewMode === "reading" ? (
             <p className="quran-reading" lang="ar" dir="rtl">
@@ -534,6 +537,16 @@ export default function QuranReader({ initialSurah, initialAyah }) {
             type="button"
             variant="ghost"
             size="icon"
+            onClick={() => goTo(currentSurah - 1)}
+            disabled={!surah || currentSurah <= 1}
+            aria-label={t("quranPrevSurahLabel")}
+          >
+            <SurahSkipIcon direction="backward" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={prevAyah}
             disabled={!surah || !activeAyahNumber || activeAyahNumber <= 1}
             aria-label={t("quranPrevAyah")}
@@ -567,11 +580,21 @@ export default function QuranReader({ initialSurah, initialAyah }) {
           >
             <AppIcon name="skipForward" className="rtl:rotate-180" />
           </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => goTo(currentSurah + 1)}
+            disabled={!surah || currentSurah >= TOTAL_SURAHS}
+            aria-label={t("quranNextSurahLabel")}
+          >
+            <SurahSkipIcon direction="forward" />
+          </Button>
           <Progress value={surahProgress * 100} aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 rounded-none bg-transparent" />
       </nav>
 
       <Sheet open={playerOpen} onOpenChange={setPlayerOpen}>
-        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="gap-5 rounded-t-[var(--radius-md)] border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="mx-auto w-full max-w-xl gap-5 rounded-t-[var(--radius-md)] border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           <SheetTitle>{surah?.englishName ?? t("titleQuran")}</SheetTitle>
           <div className="flex justify-between gap-3 text-sm text-muted-foreground">
             <span>{t("quranAyahLabel")} {activeAyahNumber || 1} / {totalAyahs}</span>
@@ -640,7 +663,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
       </Sheet>
 
       <Sheet open={!!ayahMenu} onOpenChange={(open) => { if (!open) closeAyahMenu(); }}>
-        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="gap-2 rounded-t-[var(--radius-md)] border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <SheetContent side="bottom" closeLabel={t("closeSheet")} className="mx-auto w-full max-w-xl gap-2 rounded-t-[var(--radius-md)] border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <SheetTitle>{t("quranAyahActions")}</SheetTitle>
           <Button
             type="button"

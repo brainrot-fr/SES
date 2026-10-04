@@ -7,6 +7,14 @@ import {
 import { useAccountProfile } from "./AccountProfileProvider";
 import { useLang } from "../../context/LanguageContext";
 import EntryBrand from "../../components/layout/EntryBrand";
+import { Button } from "../../components/shadcn/button";
+import { Checkbox } from "../../components/shadcn/checkbox";
+import { Label } from "../../components/shadcn/label";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/shadcn/popover";
+import { Progress } from "../../components/shadcn/progress";
+import { RadioGroup, RadioGroupItem } from "../../components/shadcn/radio-group";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/shadcn/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import "./accountOnboarding.css";
 
@@ -70,6 +78,7 @@ export default function AccountOnboarding() {
   const [countryCode, setCountryCode] = useState(
     profile?.country_code || "",
   );
+  const [countryOpen, setCountryOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const headingRef = useRef(null);
@@ -121,16 +130,7 @@ export default function AccountOnboarding() {
 
   return (
     <main className="account-onboarding">
-      <div
-        className="account-onboarding__progress"
-        role="progressbar"
-        aria-label={t("accountProfileProgress").replace("{step}", String(stepNumber))}
-        aria-valuemin="1"
-        aria-valuemax="3"
-        aria-valuenow={stepNumber}
-      >
-        <span style={{ "--progress": stepNumber / 3 }} />
-      </div>
+      <Progress className="fixed inset-x-0 top-0 z-[100] h-1 rounded-none" value={stepNumber / 3 * 100} aria-label={t("accountProfileProgress").replace("{step}", String(stepNumber))} />
       <EntryBrand />
       <section
         className="account-onboarding__form"
@@ -156,45 +156,26 @@ export default function AccountOnboarding() {
                   {t("accountGenderCopy")}
                 </p>
                 <fieldset className="account-onboarding__fieldset">
-                  <legend className="account-onboarding__label">
-                    {t("accountGenderLabel")}
-                  </legend>
-                  <div className="account-onboarding__choices">
+                  <legend className="account-onboarding__label">{t("accountGenderLabel")}</legend>
+                  <RadioGroup value={gender} onValueChange={setGender} disabled={busy} className="account-onboarding__choices">
                     {[
                       { value: "girl", label: t("accountGirl") },
                       { value: "boy", label: t("accountBoy") },
                     ].map((choice) => (
-                      <label
-                        className={`account-onboarding__choice${gender === choice.value ? " account-onboarding__choice--selected" : ""}`}
-                        key={choice.value}
-                      >
-                        <input
-                          type="radio"
-                          name="onboarding-gender"
-                          value={choice.value}
-                          checked={gender === choice.value}
-                          onChange={() => setGender(choice.value)}
-                          disabled={busy}
-                        />
+                      <Label className={`account-onboarding__choice${gender === choice.value ? " account-onboarding__choice--selected" : ""}`} htmlFor={`account-gender-${choice.value}`} key={choice.value}>
+                        <RadioGroupItem id={`account-gender-${choice.value}`} value={choice.value} />
                         <span>{choice.label}</span>
-                      </label>
+                      </Label>
                     ))}
-                  </div>
+                  </RadioGroup>
                   <span className="account-onboarding__helper">
                     {t("accountGenderHelper")}
                   </span>
                 </fieldset>
                 {error && <p className="account-onboarding__error" role="alert">{error}</p>}
-                <button
-                  className="account-onboarding__button"
-                  type="button"
-                  disabled={!gender || busy}
-                  onClick={() =>
-                    runStep(() => saveGender(gender), "confirmation")
-                  }
-                >
+                <Button className="account-onboarding__button" type="button" disabled={!gender || busy} onClick={() => runStep(() => saveGender(gender), "confirmation")}>
                   {busy ? t("accountSaving") : t("accountContinue")}
-                </button>
+                </Button>
               </div>
             ) : step === "confirmation" ? (
               <div className="account-onboarding__step">
@@ -209,40 +190,21 @@ export default function AccountOnboarding() {
                 <p className="account-onboarding__copy">
                   {t("accountConfirmationCopy")}
                 </p>
-                <label className="account-onboarding__confirmation">
-                  <input
-                    type="checkbox"
-                    checked={confirmed}
-                    onChange={(event) => setConfirmed(event.target.checked)}
-                    disabled={busy}
-                  />
-                  <span>
-                    {t("accountFollowerStatement")}
-                  </span>
-                </label>
+                <div className="account-onboarding__confirmation flex min-h-11 items-start gap-3">
+                  <Checkbox id="account-follower-confirmation" checked={confirmed} onCheckedChange={(checked) => setConfirmed(checked === true)} disabled={busy} />
+                  <Label htmlFor="account-follower-confirmation" className="font-normal">{t("accountFollowerStatement")}</Label>
+                </div>
                 <p className="account-onboarding__helper">
                   {t("accountConfirmationRequired")}
                 </p>
                 {error && <p className="account-onboarding__error" role="alert">{error}</p>}
                 <div className="account-onboarding__actions">
-                  <button
-                    className="account-onboarding__button account-onboarding__button--secondary"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setStep("gender")}
-                  >
+                  <Button className="account-onboarding__button account-onboarding__button--secondary" type="button" variant="outline" disabled={busy} onClick={() => setStep("gender")}>
                     {t("accountBack")}
-                  </button>
-                  <button
-                    className="account-onboarding__button"
-                    type="button"
-                    disabled={!confirmed || busy}
-                    onClick={() =>
-                      runStep(confirmFollower, "country")
-                    }
-                  >
+                  </Button>
+                  <Button className="account-onboarding__button" type="button" disabled={!confirmed || busy} onClick={() => runStep(confirmFollower, "country")}>
                     {busy ? t("accountSaving") : t("accountConfirmContinue")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -258,27 +220,34 @@ export default function AccountOnboarding() {
                 <p className="account-onboarding__copy">
                   {t("accountCountryCopy")}
                 </p>
-                <label
-                  className="account-onboarding__label"
-                  htmlFor="account-country"
-                >
-                  {t("accountCountryLabel")}
-                </label>
-                <select
-                  className="account-onboarding__select"
-                  id="account-country"
-                  value={countryCode}
-                  onChange={(event) => setCountryCode(event.target.value)}
-                  disabled={busy}
-                  aria-describedby="account-country-help"
-                >
-                  <option value="">{t("accountCountryPlaceholder")}</option>
-                  {countryOptions.map(({ code, name }) => (
-                    <option value={code} key={code}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
+                <Label className="account-onboarding__label" id="account-country-label">{t("accountCountryLabel")}</Label>
+                <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                  <PopoverTrigger asChild>
+                    <Button type="button" variant="outline" className="min-h-12 w-full justify-between" aria-labelledby="account-country-label" aria-describedby="account-country-help" disabled={busy}>
+                      {countryOptions.find(({ code }) => code === countryCode)?.name || t("accountCountryPlaceholder")}
+                      <ChevronsUpDown className="ms-2 size-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[min(250px,calc(100vw-2rem))] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder={t("accountCountrySearch")} />
+                      <CommandList>
+                        <CommandEmpty>{t("accountCountryNoResults")}</CommandEmpty>
+                        <CommandGroup>
+                          {countryOptions.map(({ code, name }) => (
+                            <CommandItem key={code} value={name} onSelect={() => {
+                              setCountryCode(code);
+                              setCountryOpen(false);
+                            }}>
+                              <Check className={countryCode === code ? "opacity-100" : "opacity-0"} />
+                              {name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <p
                   className="account-onboarding__helper"
                   id="account-country-help"
@@ -287,32 +256,17 @@ export default function AccountOnboarding() {
                 </p>
                 {error && <p className="account-onboarding__error" role="alert">{error}</p>}
                 <div className="account-onboarding__actions">
-                  <button
-                    className="account-onboarding__button account-onboarding__button--secondary"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setStep("confirmation")}
-                  >
+                  <Button className="account-onboarding__button account-onboarding__button--secondary" type="button" variant="outline" disabled={busy} onClick={() => setStep("confirmation")}>
                     {t("accountBack")}
-                  </button>
+                  </Button>
                   {countryCode ? (
-                    <button
-                      className="account-onboarding__button"
-                      type="button"
-                      disabled={busy}
-                      onClick={() => finish(countryCode)}
-                    >
+                    <Button className="account-onboarding__button" type="button" disabled={busy} onClick={() => finish(countryCode)}>
                       {busy ? t("accountSaving") : t("accountSaveFinish")}
-                    </button>
+                    </Button>
                   ) : (
-                    <button
-                      className="account-onboarding__button"
-                      type="button"
-                      disabled={busy}
-                      onClick={() => finish(null)}
-                    >
+                    <Button className="account-onboarding__button" type="button" disabled={busy} onClick={() => finish(null)}>
                       {busy ? t("accountSaving") : t("accountSkipCountry")}
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

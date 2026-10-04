@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
 import { friendlyError } from "../../lib/supabaseClient.js";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
+import { Textarea } from "../../components/shadcn/textarea";
 
 export default function PostComposer({ onCreate }) {
   const { user } = useAuth();
@@ -32,25 +34,26 @@ export default function PostComposer({ onCreate }) {
   const initial = (user?.user_metadata?.display_name || user?.email || "?").slice(0, 1).toUpperCase();
 
   return (
-    <form id="social-post-compose-form" className="social-composer" onSubmit={submit}>
-      <div className="social-composer__entry">
-        {avatar
-          ? <img className="social-composer__avatar" src={avatar} alt="" />
-          : <span className="social-composer__avatar social-composer__avatar--initial" aria-hidden="true">{initial}</span>}
-      <textarea
-        id="social-post-body"
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
-        placeholder={t("socialPostPlaceholder")}
-        rows={5}
-        maxLength={2000}
-        disabled={busy}
-        required
-      />
+    <form id="social-post-compose-form" className="grid gap-3 p-4" onSubmit={submit}>
+      <div className="flex items-start gap-3">
+        <Avatar>
+          <AvatarImage src={avatar || undefined} alt="" />
+          <AvatarFallback>{initial}</AvatarFallback>
+        </Avatar>
+        <Textarea
+          id="social-post-body"
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder={t("socialPostPlaceholder")}
+          rows={5}
+          maxLength={2000}
+          disabled={busy}
+          required
+        />
       </div>
-      <div className="social-composer__meta">
-        <p className="social-composer__notice">{t("socialVisibilityNotice")}</p>
-        <span className="social-composer__count" aria-live="polite">{body.length}/2000</span>
+      <p className="m-0 text-xs text-muted-foreground">{t("socialVisibilityNotice")}</p>
+      <div className="flex min-h-11 items-center justify-end text-sm text-muted-foreground">
+        <span aria-live="polite">{body.length}/2000</span>
       </div>
       {error && <p className="social-error" role="alert">{error}</p>}
     </form>

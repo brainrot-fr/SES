@@ -11,7 +11,7 @@ import { App as CapApp } from "@capacitor/app";
 import "./App.css";
 import AppIcon from "./components/icons/AppIcon";
 import Sidebar from "./components/sidebar";
-import IconButton from "./components/ui/IconButton";
+import IconButton from "./components/layout/IconButton";
 import { AppShellSkeleton } from "./components/layout/Page";
 import { Toaster } from "./components/shadcn/sonner";
 import Onboarding from "./components/Onboarding";

@@ -17,7 +17,7 @@ If any answer is "boxes inside boxes" or "another card", stop and redesign.
 SES is a reading and community app. Reference feel:
 
 - Reading (Nuqool, Quran): Kindle, Apple Books. The text is the interface. Chrome is quiet.
-- Feed: Threads. Rows and hairlines, not cards.
+- Feed: Threads-like content with clear post hierarchy. Approved Feed posts use one shadcn Card per post.
 - Player: Spotify. A docked bar that expands into a sheet.
 - Settings: iOS Settings. Grouped rows.
 - Reels: already correct, do not redesign.
@@ -55,7 +55,7 @@ Depth budget: Canvas > (Band | Row list | Group | Panel) > content. Nothing goes
 
 - Reader: Nuqool, Quran reader. Single reading column (max var(--measure-reading), about 68ch). No box. Docked bottom bar for navigation. Desktop: sticky index rail on the inline-start side.
 - Index: Quran list, any long list of things. Compact sticky header with search, RowList, "Continue" row on top. Desktop: list rail plus detail (master-detail).
-- Feed: Social. Column max var(--measure-feed). Rows with avatar gutter, hairlines, full-bleed on mobile.
+- Feed: Social. Posts stack in a column max var(--measure-feed), with a composer entry and one approved shadcn Card per post (`p-4 rounded-xl border shadow-sm`). Card contents have no borders or backgrounds except media and buttons. Desktop adds a sticky guidelines and Reels rail.
 - Split: Dashboard, Timeline, Murshid, ReelUpload. Two regions on desktop (sticky region + scrolling region). Mobile stacks with bands and dividers, not cards.
 - Settings/Form: grouped lists (Group), sticky action bar for the primary action.
 - Immersive: Reels. Full screen, dark, overlay controls. Approved exception: allow the Reels media and layout refinements in the active brief, including contain-fit video, Cloudinary posters, progress and tag overlays, and a desktop action rail beside the frame. Hide page-canvas ambient gradients while Reels is active; other gradient and container rules still apply.
@@ -159,7 +159,7 @@ Use var(--...) from tokens.css only: colors, spacing, radius, durations, easing.
 
 ## 11. Banned (with examples found in this repo)
 
-- Box per item: .quran-ayah, .tl-card, .murshid-chain__item, .dashboard__card, .quran-list__item, .social-post. The approved shadcn Card remains allowed only in the Feed template.
+- Box per item: .quran-ayah, .tl-card, .murshid-chain__item, .dashboard__card, .quran-list__item. The approved shadcn Card remains allowed only in the Feed template.
 - Box wrapping a page: .naql-body, .quran-body, .reel-upload, .post-create-page__form.
 - Box in a box: settings section > account box > profile form, composer inside form wrapper, cite with border-top inside a boxed reading area.
 - Centered card for auth or onboarding.

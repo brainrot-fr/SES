@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLang } from "../../context/LanguageContext";
-import IconButton from "../../components/ui/IconButton";
+import { Button } from "../../components/shadcn/button";
+import AppIcon from "../../components/icons/AppIcon";
 import PostComposer from "./PostComposer";
 import { createPost } from "./postsApi";
 import "./PostCreate.css";
@@ -24,9 +25,9 @@ export default function PostCreate() {
       transition={{ duration: 0.2 }}
     >
       <header className="post-create-page__header">
-        <IconButton icon="back" label={t("goBack")} onClick={() => navigate("/social")} />
+        <Button type="button" variant="ghost" size="icon" aria-label={t("goBack")} onClick={() => navigate("/social")}><AppIcon name="back" /></Button>
         <h1 id="post-create-title">{t("socialCreatePost")}</h1>
-        <button className="post-create-page__submit" type="submit" form="social-post-compose-form">{t("socialPost")}</button>
+        <Button type="submit" form="social-post-compose-form">{t("socialPost")}</Button>
       </header>
       <PostComposer onCreate={handleCreate} />
     </motion.section>

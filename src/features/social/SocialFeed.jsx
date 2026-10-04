@@ -21,9 +21,10 @@ import ReelEndCard from "./ReelEndCard";
 import { Skeleton } from "../../components/shadcn/skeleton";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "../../components/shadcn/empty";
 import { Button } from "../../components/shadcn/button";
-import IconButton from "../../components/ui/IconButton";
-import RowList from "../../components/layout/RowList";
-import Row from "../../components/layout/Row";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
+import { Card } from "../../components/shadcn/card";
+import Split from "../../components/layout/Split";
+import { ImagePlus, Plus } from "lucide-react";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import "./socialFeed.css";
 
@@ -218,78 +219,94 @@ export default function SocialFeed({ mode = "posts" }) {
   };
 
   return (
-    <section className={`social-feed${isReels ? " social-feed--reels" : ""}`}>
+    <section className={`social-feed${isReels ? " social-feed--reels" : ""} ${isReels ? "" : "mx-auto w-full max-w-[var(--measure-feed)] px-4 py-4 lg:max-w-6xl lg:px-0"}`}>
       {isReels ? (
-        <header className="social-reels__topbar">
-          <div className="social-reels__title">
-            <h1>{t("navReels")}</h1>
-            <span title={t("reelsRankingInfo")}><AppIcon name="sparkle" size={15} /> {t("reelsForYou")}</span>
+        <>
+          <header className="social-reels__topbar">
+            <div className="social-reels__title">
+              <h1>{t("navReels")}</h1>
+              <span title={t("reelsRankingInfo")}><AppIcon name="sparkle" size={15} /> {t("reelsForYou")}</span>
+            </div>
+            <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("reelsCreate")} title={t("reelsCreate")}><Link to="/reels/create"><Plus /></Link></Button>
+          </header>
+          {error && <p className="social-error" role="alert">{error}</p>}
+          {loadError && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
+          {loading && posts.length === 0 && <div className="social-reels__skeleton" role="status" aria-label={t("socialLoading")}><Skeleton className="aspect-[9/16] w-full" /></div>}
+          {!loading && !loadError && posts.length === 0 && <div className="social-reels__end social-reels__end--empty"><ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => loadPage(0, false)} /></div>}
+          <div ref={feedRef} className="social-feed__reels">
+            {posts.map((post, index) => (
+              <ReelCard
+                key={post.id}
+                post={post}
+                index={index}
+                isActive={index === activeReelIndex}
+                muted={reelMuted}
+                onMutedChange={setReelMuted}
+                user={user}
+                isOwn={post.author_id === user?.id}
+                onDelete={handleDelete}
+                onLike={handleLike}
+                onFollow={handleFollow}
+                onView={handleView}
+                onShare={handleShare}
+                onCommentCreated={handleCommentCreated}
+                onNearEnd={handleNearEnd}
+                onEnded={handleReelEnd}
+                onActive={handleActiveReel}
+                onReport={handleReport}
+              />
+            ))}
+            {posts.length > 0 && !hasMore && !loading && <div className="social-reels__end" data-reel-index={posts.length}><ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => feedRef.current?.querySelector('[data-reel-index="0"]')?.scrollIntoView({ behavior: "smooth" })} /></div>}
           </div>
-          <IconButton as={Link} className="social-reels__top-action" icon="plus" to="/reels/create" label={t("reelsCreate")} title={t("reelsCreate")} />
-        </header>
+        </>
       ) : (
-        <Row
-          as={Link}
-          to="/social/create"
-          className="social-feed__compose-link"
-          leading={user?.user_metadata?.avatar_url
-            ? <img className="social-feed__compose-avatar" src={user.user_metadata.avatar_url} alt="" />
-            : <span className="social-feed__compose-avatar social-feed__compose-avatar--initial" aria-hidden="true">{(getDisplayName(user) || "?").slice(0, 1).toUpperCase()}</span>}
-          content={<span>{t("socialSharePrompt")}</span>}
-          trailing={<AppIcon name="plus" size={20} />}
-        />
-      )}
-      {error && <p className="social-error" role="alert">{error}</p>}
-      {loadError && !isReels && (
-        <div className="social-error" role="alert">
-          <span>{loadError}</span>
-          <button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button>
-        </div>
-      )}
-      {loading && posts.length === 0 && (
-        <div
-          className={`grid gap-4 ${isReels ? "social-reels__skeleton" : "social-post__skeleton"}`}
-          role="status"
-          aria-label={t("socialLoading")}
+        <Split
+          className="social-feed__split"
+          rail={(
+            <aside className="hidden space-y-4 lg:sticky lg:top-[calc(var(--header-height)+var(--space-4))] lg:block">
+              <p className="border-t border-border pt-3 text-sm leading-relaxed text-muted-foreground">{t("socialVisibilityNotice")}</p>
+              <Button asChild variant="outline" className="w-full"><Link to="/reels">{t("socialWatchReels")}</Link></Button>
+            </aside>
+          )}
         >
-          {Array.from({ length: isReels ? 1 : 3 }, (_, index) => (
-            isReels ? (
-              <Skeleton key={index} className="aspect-[9/16] w-full" />
-            ) : (
-              <div key={index} className="flex gap-3">
-                <Skeleton className="size-10 shrink-0 rounded-full" />
-                <div className="grid flex-1 gap-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
+        <main className="min-w-0 w-full lg:max-w-[var(--measure-feed)]">
+        <Card className="mb-3 flex-row items-center gap-3 rounded-xl border p-3 shadow-sm">
+          <Avatar>
+            <AvatarImage src={user?.user_metadata?.avatar_url || undefined} alt="" />
+            <AvatarFallback>{(getDisplayName(user) || "?").slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <Button asChild variant="secondary" className="h-11 flex-1 justify-start rounded-full text-muted-foreground">
+            <Link to="/social/create">{t("socialSharePrompt")}<ImagePlus className="ms-auto" /></Link>
+          </Button>
+        </Card>
+        {error && <p className="social-error" role="alert">{error}</p>}
+        {loadError && <div className="social-error" role="alert"><span>{loadError}</span><button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
+        {loading && posts.length === 0 && (
+          <div className="grid gap-3" role="status" aria-label={t("socialLoading")}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <Card key={index} className="gap-3 rounded-xl border p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="size-10 shrink-0 rounded-full" />
+                  <div className="grid flex-1 gap-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div>
                 </div>
-              </div>
-            )
-          ))}
-        </div>
-      )}
-      {!loading && loadError && isReels && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
-      {!loading && !loadError && posts.length === 0 && isReels && (
-        <div className="social-reels__end social-reels__end--empty">
-          <ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => loadPage(0, false)} />
-        </div>
-      )}
-      {!loading && !loadError && posts.length === 0 && !isReels && (
-        <Empty className="py-8">
-          <EmptyHeader>
-            <EmptyMedia><AppIcon name="social" size={25} /></EmptyMedia>
-            <EmptyTitle>{t("socialEmptyTitle")}</EmptyTitle>
-            <EmptyDescription>{t("socialEmptyDescription")}</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <Button type="button" variant="secondary" onClick={() => navigate("/social/create")}>{t("socialWriteFirstPost")}</Button>
-          </EmptyContent>
-        </Empty>
-      )}
-      <div ref={feedRef} className={isReels ? "social-feed__reels" : "social-feed__posts"}>
-        {!isReels && (
-          <RowList className="social-feed__row-list">
-            {posts.map((post) => (
+                <Skeleton className="h-28 w-full" />
+                <div className="flex gap-2"><Skeleton className="h-8 w-14" /><Skeleton className="h-8 w-14" /><Skeleton className="h-8 w-14" /></div>
+              </Card>
+            ))}
+          </div>
+        )}
+        {!loading && !loadError && posts.length === 0 && (
+          <Empty className="py-8">
+            <EmptyHeader>
+              <EmptyMedia><AppIcon name="social" size={25} /></EmptyMedia>
+              <EmptyTitle>{t("socialEmptyTitle")}</EmptyTitle>
+              <EmptyDescription>{t("socialEmptyDescription")}</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent><Button type="button" variant="secondary" onClick={() => navigate("/social/create")}>{t("socialWriteFirstPost")}</Button></EmptyContent>
+          </Empty>
+        )}
+        <div ref={feedRef} className="mt-3 flex flex-col gap-3">
+          {posts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -303,46 +320,11 @@ export default function SocialFeed({ mode = "posts" }) {
               onCommentCreated={handleCommentCreated}
               onReport={handleReport}
             />
-            ))}
-          </RowList>
-        )}
-        {isReels && posts.map((post, index) => (
-          <ReelCard
-            key={post.id}
-            post={post}
-            index={index}
-            isActive={index === activeReelIndex}
-            muted={reelMuted}
-            onMutedChange={setReelMuted}
-            user={user}
-            isOwn={post.author_id === user?.id}
-            onDelete={handleDelete}
-            onLike={handleLike}
-            onFollow={handleFollow}
-            onView={handleView}
-            onShare={handleShare}
-            onCommentCreated={handleCommentCreated}
-            onNearEnd={handleNearEnd}
-            onEnded={handleReelEnd}
-            onActive={handleActiveReel}
-            onReport={handleReport}
-          />
-        ))}
-        {isReels && posts.length > 0 && !hasMore && !loading && (
-          <div className="social-reels__end" data-reel-index={posts.length}>
-            <ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => feedRef.current?.querySelector('[data-reel-index="0"]')?.scrollIntoView({ behavior: "smooth" })} />
-          </div>
-        )}
-      </div>
-      {!isReels && hasMore && posts.length > 0 && (
-        <button
-          type="button"
-          className="social-feed__more"
-          onClick={() => loadPage(page + 1, true)}
-          disabled={loading}
-        >
-          {loading ? t("socialLoading") : t("socialLoadMore")}
-        </button>
+          ))}
+        </div>
+        {hasMore && posts.length > 0 && <Button type="button" variant="secondary" className="mx-auto mt-4 block" onClick={() => loadPage(page + 1, true)} disabled={loading}>{loading ? t("socialLoading") : t("socialLoadMore")}</Button>}
+        </main>
+        </Split>
       )}
     </section>
   );

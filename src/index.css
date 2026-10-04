@@ -186,8 +186,10 @@ textarea {
   font-size: inherit;
 }
 
-button {
-  color: inherit;
+@layer base {
+  button {
+    color: inherit;
+  }
 }
 
 ::selection {

@@ -38,3 +38,12 @@ Deploy the pending migrations under `supabase/migrations/` before releasing the
 account onboarding, gender-separated feeds, and social engagement features.
 They add account profile fields and policies, plus follows, views, shares, and
 reply-capable comments.
+
+## Account deletion media cleanup
+
+Set the `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET` Supabase Edge Function secrets before deploying
+`delete-account`. These server-side credentials let the function remove the
+user's Cloudinary post media and profile avatar before deleting their Supabase
+account and associated rows. Do not expose the API key or secret as `VITE_`
+variables.

@@ -26,46 +26,9 @@
   line-height: 1.2;
 }
 
-.post-create-page__submit {
-  min-width: 64px;
-  min-height: 44px;
-  padding-inline: 0.9rem;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: var(--on-primary);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.post-create-page__submit:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
-.post-create-page .social-composer {
-  padding-block-start: var(--space-5);
-}
-
-.post-create-page .social-composer__meta {
-  position: fixed;
-  z-index: 90;
-  inset-inline: 0;
-  inset-block-end: var(--dock-offset);
-  min-height: 56px;
-  margin: 0;
-  padding: 0.4rem var(--page-gutter);
-  border-block-start: 1px solid var(--hairline);
-  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
-}
-
 @media (min-width: 1024px) {
   .post-create-page__header {
     inset-block-start: var(--header-height);
   }
 
-  .post-create-page .social-composer__meta {
-    inset-block-end: 0;
-  }
 }

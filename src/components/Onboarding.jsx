@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { useLang } from '../context/LanguageContext';
 import { Button } from './shadcn/button';
+import { ToggleGroup, ToggleGroupItem } from './shadcn/toggle-group';
 import EntryBrand from './layout/EntryBrand';
 import './Onboarding.css';
 
@@ -29,28 +30,20 @@ export default function Onboarding() {
           {t(selected === 'ur' ? "obValuePropUr" : "obValuePropEn")}
         </p>
         <p className="ob-prompt">{t("obChoose")}</p>
-        <div className="ob-options">
-          <Button
-            type="button"
-            onClick={() => setSelected('en')}
-            variant="secondary"
-            className={`ob-option${selected === 'en' ? ' ob-option--active' : ''}`}
-            aria-pressed={selected === 'en'}
-          >
-            <span className="ob-option__code" aria-hidden="true">EN</span>
-            <span>{t("obEnglish")}</span>
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setSelected('ur')}
-            variant="secondary"
-            className={`ob-option ob-option--rtl${selected === 'ur' ? ' ob-option--active' : ''}`}
-            dir="rtl"
-            aria-pressed={selected === 'ur'}
-          >
+        <ToggleGroup
+          type="single"
+          value={selected}
+          onValueChange={(value) => value && setSelected(value)}
+          aria-label={t("obChoose")}
+          className="ob-options grid w-full"
+        >
+          <ToggleGroupItem value="en" variant="ghost" className="ob-option justify-start rounded-none border-0 border-b bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-primary">
+            <span className="ob-option__code" aria-hidden="true">EN</span>{t("obEnglish")}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="ur" variant="ghost" className="ob-option ob-option--rtl justify-start rounded-none border-0 border-b bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-primary" dir="rtl">
             {t("obUrdu")}
-          </Button>
-        </div>
+          </ToggleGroupItem>
+        </ToggleGroup>
         <Button
           type="button"
           size="lg"

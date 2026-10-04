@@ -3,7 +3,7 @@
   --measure-reading: 68ch;
   --measure-feed: 40rem;
   --bottom-nav-gap: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
-  --dock-offset: calc(var(--bottom-nav-gap) + var(--bottom-nav-height) + var(--space-2));
+  --dock-offset: calc(var(--bottom-nav-gap) + var(--bottom-nav-height) + var(--space-4));
 }
 
 .layout-page {
@@ -152,23 +152,6 @@
   inset-block-end: var(--dock-offset);
   border-block-start: 1px solid var(--hairline);
   background: var(--surface-1);
-}
-
-.layout-sheet.ui-modal {
-  inset-inline: 0;
-  inset-block-end: 0;
-}
-
-@media (min-width: 768px) {
-  .layout-sheet.ui-modal {
-    inset-inline-start: 50%;
-    inset-inline-end: auto;
-    inset-block-start: 50%;
-    inset-block-end: auto;
-    width: min(36rem, calc(100vw - 2 * var(--page-gutter)));
-    border-radius: var(--radius-lg);
-    transform: translate(-50%, -50%);
-  }
 }
 
 @media (min-width: 1024px) {

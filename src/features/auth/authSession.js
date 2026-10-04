@@ -112,6 +112,11 @@ export async function signUpWithPassword(username, email, password) {
 }
 
 export async function signOut() {
+  const pushToken = localStorage.getItem('ses-push-token');
+  if (pushToken) {
+    try { await supabase.rpc('unregister_device_token', { p_token: pushToken }); } catch { /* best effort */ }
+    localStorage.removeItem('ses-push-token');
+  }
   const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) throw error;
 }
@@ -120,6 +125,7 @@ export async function deleteAccount() {
   const { error } = await supabase.functions.invoke('delete-account');
   if (error) throw error;
 
+  localStorage.removeItem('ses-push-token');
   const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
   if (signOutError) throw signOutError;
 }

@@ -10,13 +10,16 @@
 
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 import { App } from '@capacitor/app';
+import { supabase } from '../lib/supabaseClient';
 import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
 
 const NEXT_NOTIF_ID = 500001; // fixed id — only ever one of these pending
 const TEST_NOTIF_ID = 1;
 const LEGACY_CLEANUP_KEY = 'ses-notif-legacy-cleanup-v2';
 const EXACT_ALARM_PROMPT_KEY = 'ses-exact-alarm-prompted';
+const PUSH_TOKEN_KEY = 'ses-push-token';
 
 const TIMES_OF_DAY = [
   { hour: 5,  minute: 0 },
@@ -107,6 +110,8 @@ export async function scheduleNextNaqlNotification() {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
+    if (localStorage.getItem(PUSH_TOKEN_KEY)) return;
+
     let perm = await LocalNotifications.checkPermissions();
     if (perm.display !== 'granted') {
       perm = await LocalNotifications.requestPermissions();
@@ -195,6 +200,42 @@ export function onNaqlNotificationTapped(onOpenNaql) {
   }).then((h) => { handle = h; });
 
   return () => handle?.remove();
+}
+
+export function initNaqlPush({ lang, onOpenNaql }) {
+  if (!Capacitor.isNativePlatform()) return () => {};
+  let cancelled = false;
+  const handles = [];
+  const keep = (handle) => { if (cancelled) handle.remove(); else handles.push(handle); };
+  (async () => {
+    try {
+      let perm = await PushNotifications.checkPermissions();
+      if (perm.receive === 'prompt' || perm.receive === 'prompt-with-rationale') {
+        perm = await PushNotifications.requestPermissions();
+      }
+      if (perm.receive !== 'granted' || cancelled) return;
+      await PushNotifications.createChannel({ id: 'naql-daily', name: 'Daily Naql', importance: 3, visibility: 1 });
+      keep(await PushNotifications.addListener('registration', async ({ value }) => {
+        const { error } = await supabase.rpc('register_device_token', {
+          p_token: value,
+          p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          p_lang: lang,
+        });
+        if (error) { console.error('[push] could not save token', error); return; }
+        localStorage.setItem(PUSH_TOKEN_KEY, value);
+        LocalNotifications.cancel({ notifications: [{ id: NEXT_NOTIF_ID }] }).catch(() => {});
+      }));
+      keep(await PushNotifications.addListener('registrationError', (e) => console.error('[push] registration failed', e)));
+      keep(await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {
+        const n = Number(notification.data?.naqlNumber);
+        if (Number.isInteger(n)) onOpenNaql(n);
+      }));
+      if (!cancelled) await PushNotifications.register();
+    } catch (err) {
+      console.error('[push] init failed', err);
+    }
+  })();
+  return () => { cancelled = true; handles.forEach((h) => h.remove()); };
 }
 
 export function initNaqlNotificationLifecycle(onOpenNaql) {

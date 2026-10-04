@@ -3,7 +3,7 @@
  * Main application shell for the SES PWA.
  */
 
-import { lazy, Suspense, useState, useEffect, useRef, useMemo } from "react";
+import { lazy, Suspense, useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
@@ -174,6 +174,10 @@ export default function App() {
   const previousDarkModeRef = useRef(darkMode);
   const [readyLocation, setReadyLocation] = useState(location);
   const [baseDuration, setBaseDuration] = useState(0);
+  const openNaql = useCallback((naqlNumber) => {
+    navigate(`/nuqool/${naqlNumber}`);
+    setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
+  }, [navigate]);
 
   useEffect(() => {
     setBaseDuration(getCssDurationSeconds("--duration-base"));
@@ -256,16 +260,23 @@ export default function App() {
     let cleanup;
     import("./notifications/naqlNotifications").then(({ initNaqlNotificationLifecycle }) => {
       if (cancelled) return;
-      cleanup = initNaqlNotificationLifecycle((naqlNumber) => {
-        navigate(`/nuqool/${naqlNumber}`);
-        setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
-      });
+      cleanup = initNaqlNotificationLifecycle(openNaql);
     });
     return () => {
       cancelled = true;
       cleanup?.();
     };
-  }, [navigate]);
+  }, [openNaql]);
+
+  useEffect(() => {
+    if (!user || isAnonymous) return undefined;
+    let cancelled = false;
+    let cleanup;
+    import("./notifications/naqlNotifications").then(({ initNaqlPush }) => {
+      if (!cancelled) cleanup = initNaqlPush({ lang, onOpenNaql: openNaql });
+    });
+    return () => { cancelled = true; cleanup?.(); };
+  }, [user?.id, isAnonymous, lang, openNaql]);
 
   useEffect(() => {
     const title = !lang ? t("appTitle") : pageTitles[currentPage] ?? t("appTitle");

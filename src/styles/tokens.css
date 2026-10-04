@@ -35,6 +35,7 @@
   --primary: #17665F;
   --primary-2: #248579;
   --primary-soft: #E2EEE4;
+  --primary-action-background: var(--primary);
   --accent: #B47A32;
   --accent-soft: #F6EBD9;
   --on-primary: #FFFFFF;
@@ -118,7 +119,7 @@
   --sidebar-width: 84px;
   --content-width: 1200px;
   --header-height: 58px;
-  --bottom-nav-height: 64px;
+  --bottom-nav-height: 88px;
   --player-stack: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
 }
 
@@ -137,6 +138,8 @@ html[data-theme="dark"] {
   --primary: #79C5AE;
   --primary-2: #95D9C3;
   --primary-soft: #203D35;
+  --primary-action-background: var(--primary-soft);
+  --primary-foreground: var(--text-large);
   --accent: #E2B873;
   --accent-soft: #403624;
   --on-primary: #112723;

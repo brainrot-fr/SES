@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
-import { Button } from "../../components/shadcn/button";
-import Modal from "../../components/ui/Modal";
 import SocialCommentsSheet from "./SocialComments";
-import { friendlyError } from "../../lib/supabaseClient.js";
-import { usePostActions } from "./PostCard";
+import { DeleteDialog, ReportDialog, usePostActions } from "./PostCard";
 import { getReelPosterUrl, splitCaption } from "./reelRanking";
+import { Badge } from "../../components/shadcn/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
 
 export { getReelPosterUrl, splitCaption };
 
@@ -40,10 +39,8 @@ export default function ReelCard({
   const tapTimeoutRef = useRef(null);
   const lastTapRef = useRef(0);
   const [mediaError, setMediaError] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportBusy, setReportBusy] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const actions = usePostActions(post, {
     onLike,
@@ -170,19 +167,6 @@ export default function ReelCard({
     }, DOUBLE_TAP_WINDOW_MS);
   };
 
-  const submitReport = async () => {
-    setReportBusy(true);
-    try {
-      await onReport(post.id, reportReason);
-      setReportDialogOpen(false);
-      toast(t("socialReportSuccess"));
-    } catch (reportError) {
-      toast(friendlyError(reportError, t, "socialReportError"));
-    } finally {
-      setReportBusy(false);
-    }
-  };
-
   return (
     <article ref={cardRef} className="social-reel" data-reel-index={index} data-active={isActive || undefined}>
       {isActive && ambientUrl && <img className="social-reel__ambient" src={ambientUrl} alt="" aria-hidden="true" />}
@@ -205,7 +189,7 @@ export default function ReelCard({
             onError={() => setMediaError(true)}
           />
         ) : (
-          <p className="social-post__media-error">{t("socialMediaLoadError")}</p>
+          <p className="text-center text-sm text-muted-foreground">{t("socialMediaLoadError")}</p>
         )}
         <button
           type="button"
@@ -226,9 +210,10 @@ export default function ReelCard({
         )}
         <div className="social-reel__caption">
           <div className="social-reel__author">
-            {authorAvatar
-              ? <img className="social-post__avatar social-post__avatar--image" src={authorAvatar} alt="" />
-              : <span className="social-post__avatar" aria-hidden="true">{authorName.slice(0, 1).toUpperCase()}</span>}
+            <Avatar size="lg" className="border border-white/70 bg-primary text-foreground">
+              <AvatarImage src={authorAvatar || undefined} alt="" />
+              <AvatarFallback>{authorName.slice(0, 1).toUpperCase()}</AvatarFallback>
+            </Avatar>
             <span className="social-reel__author-copy">
               <span className="social-reel__author-name">{authorName}</span>
               <time dateTime={post.created_at}>{date}</time>
@@ -239,7 +224,7 @@ export default function ReelCard({
           {hashtags.length > 0 && (
             <div className="social-reel__tags">
               {hashtags.map((tag, tagIndex) => (
-                <span className="social-reel__hashtag" key={`${tag}-${tagIndex}`}>{tag}</span>
+                <Badge variant="secondary" className="social-reel__hashtag" key={`${tag}-${tagIndex}`}>{tag}</Badge>
               ))}
             </div>
           )}
@@ -275,42 +260,8 @@ export default function ReelCard({
           <span>{muted ? t("reelsSoundOff") : t("reelsSoundOn")}</span>
         </button>
       </aside>
-      <Modal
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        labelledBy={`reel-delete-title-${post.id}`}
-        className="ui-auth-dialog"
-      >
-        <h2 className="ui-dialog-title" id={`reel-delete-title-${post.id}`}>{t("socialDeleteConfirm")}</h2>
-        <div className="ui-dialog-actions">
-          <Button type="button" variant="secondary" onClick={() => setDeleteDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" variant="destructive" onClick={() => {
-            setDeleteDialogOpen(false);
-            onDelete(post.id);
-          }}>{t("socialDeleteYes")}</Button>
-        </div>
-      </Modal>
-      <Modal
-        open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
-        labelledBy={`reel-report-title-${post.id}`}
-        className="ui-auth-dialog"
-      >
-        <h2 className="ui-dialog-title" id={`reel-report-title-${post.id}`}>{t("socialReportTitle")}</h2>
-        <fieldset className="social-report__reasons">
-          <legend>{t("socialReportReason")}</legend>
-          {[["spam", "socialReportSpam"], ["harassment", "socialReportHarassment"], ["inappropriate", "socialReportInappropriate"]].map(([reason, label]) => (
-            <label key={reason}>
-              <input type="radio" name={`reel-report-${post.id}`} value={reason} checked={reportReason === reason} onChange={() => setReportReason(reason)} />
-              {t(label)}
-            </label>
-          ))}
-        </fieldset>
-        <div className="ui-dialog-actions">
-          <Button type="button" variant="secondary" onClick={() => setReportDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" busy={reportBusy} disabled={!reportReason} onClick={submitReport}>{t("socialReportSubmit")}</Button>
-        </div>
-      </Modal>
+      <DeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => onDelete(post.id)} />
+      <ReportDialog id={post.id} open={reportDialogOpen} onOpenChange={setReportDialogOpen} onReport={(reason) => onReport(post.id, reason)} />
       {commentsOpen && (
         <SocialCommentsSheet
           post={post}

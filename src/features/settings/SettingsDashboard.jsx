@@ -10,12 +10,17 @@ import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
 import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";
-import Modal from "../../components/ui/Modal";
 import { Field } from "../../components/shadcn/field";
 import { Input } from "../../components/shadcn/input";
 import { Label } from "../../components/shadcn/label";
-import Group from "../../components/layout/Group";
-import Row from "../../components/layout/Row";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
+import { Toggle } from "../../components/shadcn/toggle";
+import { ToggleGroup, ToggleGroupItem } from "../../components/shadcn/toggle-group";
+import { Item, ItemContent, ItemGroup, ItemSeparator } from "../../components/shadcn/item";
+import {
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../../components/shadcn/alert-dialog";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import { updateSocialProfile } from "../social/postsApi";
@@ -145,25 +150,20 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     <div className="settings-dashboard">
       {user && (
         <form className="settings-profile" onSubmit={handleProfileSave}>
-          <div className="settings-profile__avatar-wrap">
+          <div className="settings-profile__avatar-wrap relative mx-auto size-24">
             <button
               type="button"
-              className="settings-profile__avatar-button"
+              className="settings-profile__avatar-button size-24 rounded-full"
               disabled={profileBusy}
               onClick={() => avatarInputRef.current?.click()}
               aria-label={t("settingsChangePhoto")}
             >
-              {(avatarPreview || (!removeAvatar && avatarUrl)) ? (
-                <img src={avatarPreview || avatarUrl} alt="" className="settings-profile__avatar" />
-              ) : (
-                <span className="settings-profile__avatar settings-profile__avatar--empty" aria-hidden="true">
-                  {displayName.trim().slice(0, 1).toUpperCase()}
-                </span>
-              )}
-              <span className="settings-profile__camera" aria-hidden="true">
-                <AppIcon name="camera" size={20} />
-              </span>
+              <Avatar className="size-24">
+                <AvatarImage src={avatarPreview || (!removeAvatar ? avatarUrl : "") || undefined} alt="" />
+                <AvatarFallback>{displayName.trim().slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
             </button>
+            <Button type="button" variant="secondary" size="icon" className="absolute bottom-0 end-0 rounded-full" onClick={() => avatarInputRef.current?.click()} disabled={profileBusy} aria-label={t("settingsChangePhoto")}><AppIcon name="camera" size={20} /></Button>
             <input
               ref={avatarInputRef}
               className="settings-profile__file"
@@ -174,10 +174,9 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
               aria-label={t("settingsAvatar")}
             />
           </div>
-          <label className="settings-profile__name-label" htmlFor="settings-display-name">{t("settingsDisplayName")}</label>
-          <input
+          <Label className="settings-profile__name-label" htmlFor="settings-display-name">{t("settingsDisplayName")}</Label>
+          <Input
             id="settings-display-name"
-            className="settings-profile__name"
             type="text"
             value={displayName}
             onChange={(event) => {
@@ -221,58 +220,50 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
 
       <section className="settings-dashboard__section">
         <h2 className="settings-dashboard__heading">{t("settingsAccount")}</h2>
-        <Group className="settings-dashboard__group">
+        <ItemGroup className="settings-dashboard__group">
           {!ready ? (
-            <Row content={<span className="settings-dashboard__muted">{t("settingsLoading")}</span>} />
+            <Item role="listitem" className="settings-dashboard__row"><ItemContent><span className="settings-dashboard__muted">{t("settingsLoading")}</span></ItemContent></Item>
           ) : (
             <>
-              <Row content={isAnonymous
+              <Item role="listitem" className="settings-dashboard__row"><ItemContent>{isAnonymous
                 ? <span className="settings-dashboard__muted">{t("settingsAnonymousDesc")}</span>
-                : <span className="settings-dashboard__email">{user?.email}</span>} />
-              <Row
-                as="button"
-                type="button"
-                className="settings-dashboard__row-action"
-                content={t("settingsLogout")}
-                trailing={accountBusy ? <span>{t("settingsLoading")}</span> : null}
-                onClick={handleSignOut}
-                disabled={accountBusy}
-              />
+                : <span className="settings-dashboard__email">{user?.email}</span>}</ItemContent></Item>
+              <ItemSeparator />
+              <Item asChild role="listitem" className="settings-dashboard__row settings-dashboard__row-action">
+                <button type="button" onClick={handleSignOut} disabled={accountBusy}>
+                  <ItemContent>{t("settingsLogout")}</ItemContent>
+                  {accountBusy && <span>{t("settingsLoading")}</span>}
+                </button>
+              </Item>
             </>
           )}
-        </Group>
+        </ItemGroup>
       </section>
 
       <section className="settings-dashboard__section">
         <h2 className="settings-dashboard__heading">{t("settingsPreferences")}</h2>
-        <Group className="settings-dashboard__group">
-          <Row
-            as="label"
-            className="settings-dashboard__preference"
-            content={(
-              <span className="settings-dashboard__preference-label">
-                <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
-                {darkMode ? t("toLightMode") : t("toDarkMode")}
-              </span>
-            )}
-            trailing={(
-              <span className="settings-dashboard__switch">
-                <input type="checkbox" checked={darkMode} onChange={onThemeToggle} aria-label={darkMode ? t("toLightMode") : t("toDarkMode")} />
-                <span aria-hidden="true" />
-              </span>
-            )}
-          />
-          <Row
-            className="settings-dashboard__preference"
-            content={<span className="settings-dashboard__preference-label"><AppIcon name="globe" size={19} />{t("changeLang")}</span>}
-            trailing={(
-              <div className="settings-dashboard__language" role="group" aria-label={t("changeLang")}>
-                <button type="button" aria-label={t("settingsLanguageEnglish")} aria-pressed={lang === "en"} onClick={() => chooseLang("en")}>EN</button>
-                <button type="button" aria-label={t("settingsLanguageUrdu")} aria-pressed={lang === "ur"} onClick={() => chooseLang("ur")}>اردو</button>
-              </div>
-            )}
-          />
-        </Group>
+        <ItemGroup className="settings-dashboard__group">
+          <Item role="listitem" className="settings-dashboard__preference">
+            <ItemContent className="settings-dashboard__preference-label">{darkMode ? t("toLightMode") : t("toDarkMode")}</ItemContent>
+            <Toggle
+              type="button"
+              pressed={darkMode}
+              onPressedChange={onThemeToggle}
+              aria-label={darkMode ? t("toLightMode") : t("toDarkMode")}
+              className="h-11 w-11 shrink-0 p-0"
+            >
+              <AppIcon name={darkMode ? "sun" : "moon"} size={19} />
+            </Toggle>
+          </Item>
+          <ItemSeparator />
+          <Item role="listitem" className="settings-dashboard__preference">
+            <ItemContent className="settings-dashboard__preference-label"><span className="inline-flex items-center gap-3"><AppIcon name="globe" size={19} />{t("changeLang")}</span></ItemContent>
+            <ToggleGroup type="single" value={lang} onValueChange={(value) => value && chooseLang(value)} aria-label={t("changeLang")} className="settings-dashboard__language">
+              <ToggleGroupItem value="en" variant="outline" size="sm" className="min-h-11 min-w-11" aria-label={t("settingsLanguageEnglish")}>EN</ToggleGroupItem>
+              <ToggleGroupItem value="ur" variant="outline" size="sm" className="min-h-11 min-w-11" aria-label={t("settingsLanguageUrdu")}>اردو</ToggleGroupItem>
+            </ToggleGroup>
+          </Item>
+        </ItemGroup>
       </section>
       <section className="settings-dashboard__danger">
         <h2 className="settings-dashboard__danger-heading">{t("settingsDangerZone")}</h2>
@@ -297,21 +288,21 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
       </section>
       {accountError && <p className="settings-dashboard__error" role="alert">{accountError}</p>}
 
-      <Modal
-        open={deleteDialogOpen}
-        onClose={() => {
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+        if (open) setDeleteDialogOpen(true);
+        else {
           if (!accountBusy) {
             setDeleteDialogOpen(false);
             setDeleteConfirmation("");
           }
-        }}
-        labelledBy="settings-delete-title"
-        describedBy="settings-delete-warning settings-delete-confirmation-hint"
-        disableClose={accountBusy}
-        className="ui-auth-dialog"
+        }
+      }}
       >
-        <h2 className="ui-dialog-title" id="settings-delete-title">{t("settingsDeleteConfirmTitle")}</h2>
-        <p className="ui-dialog-copy" id="settings-delete-warning">{t("settingsDeleteWarning")}</p>
+        <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("settingsDeleteConfirmTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("settingsDeleteWarning")}</AlertDialogDescription>
+        </AlertDialogHeader>
         <Field className="settings-delete__field">
           <Label htmlFor="settings-delete-confirmation" className="text-foreground">{t("settingsDeleteConfirmLabel")}</Label>
           <Input
@@ -332,18 +323,10 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
               : t("settingsDeleteConfirmHintWord")}
           </p>
         </Field>
-        <div className="ui-dialog-actions">
-          <Button
-            type="button"
-            disabled={accountBusy}
-            variant="secondary"
-            onClick={() => {
-              setDeleteDialogOpen(false);
-              setDeleteConfirmation("");
-            }}
-          >
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={accountBusy} onClick={() => setDeleteConfirmation("")}>
             {t("settingsDeleteCancel")}
-          </Button>
+          </AlertDialogCancel>
           <Button
             type="button"
             disabled={accountBusy || !canConfirmDelete}
@@ -353,8 +336,9 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
           >
             {t("settingsDeleteConfirm")}
           </Button>
-        </div>
-      </Modal>
+        </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

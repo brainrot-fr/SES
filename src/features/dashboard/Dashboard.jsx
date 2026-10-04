@@ -12,6 +12,7 @@ import Split from "../../components/layout/Split";
 import RowList from "../../components/layout/RowList";
 import Row from "../../components/layout/Row";
 import { Skeleton } from "../../components/shadcn/skeleton";
+import { Progress } from "../../components/shadcn/progress";
 import "./dashboard.css";
 
 function getStoredProgress(key, total) {
@@ -166,9 +167,7 @@ export default function Dashboard() {
                 content={(
                   <span className="dashboard__row-copy">
                     <span className="dashboard__row-name">{currentSurahName}</span>
-                    <span className="dashboard__progress" aria-hidden="true">
-                      <span style={{ width: `${(currentSurah / 114) * 100}%` }} />
-                    </span>
+                    <Progress className="h-0.5" value={(currentSurah / 114) * 100} aria-hidden="true" />
                   </span>
                 )}
               />
@@ -181,9 +180,7 @@ export default function Dashboard() {
                 content={(
                   <span className="dashboard__row-copy">
                     <span className="dashboard__row-name">{t("titleNuqool")}</span>
-                    <span className="dashboard__progress" aria-hidden="true">
-                      <span style={{ width: `${(currentNaql / 55) * 100}%` }} />
-                    </span>
+                    <Progress className="h-0.5" value={(currentNaql / 55) * 100} aria-hidden="true" />
                   </span>
                 )}
               />

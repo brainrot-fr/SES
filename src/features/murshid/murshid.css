@@ -28,48 +28,6 @@
   min-width: 0;
 }
 
-.murshid-switch {
-  display: flex;
-  min-width: 0;
-  margin: 0 0 var(--space-4);
-  padding: 3px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-}
-
-.murshid-switch input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
-
-.murshid-switch label {
-  display: grid;
-  min-height: 44px;
-  flex: 1;
-  place-items: center;
-  padding-inline: 0.75rem;
-  border-radius: var(--radius-pill);
-  color: var(--muted);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
-}
-
-.murshid-switch input:checked + label {
-  background: var(--surface-1);
-  color: var(--text-large);
-}
-
-.murshid-switch input:focus-visible + label {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
-}
-
 .murshid-lineages__columns {
   display: grid;
   gap: var(--space-6);
@@ -149,22 +107,7 @@
   line-height: 1.55;
 }
 
-@media (max-width: 1023px) {
-  .murshid-section {
-    display: none;
-  }
-
-  .murshid-lineages:has(#murshid-tarbiyat:checked) [data-silsila="tarbiyat"],
-  .murshid-lineages:has(#murshid-faqiri:checked) [data-silsila="faqiri"] {
-    display: block;
-  }
-}
-
 @media (min-width: 1024px) {
-  .murshid-switch {
-    display: none;
-  }
-
   .murshid-lineages__columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-5);

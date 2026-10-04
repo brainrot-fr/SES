@@ -5,6 +5,9 @@ import { Button } from '../../components/shadcn/button';
 import { Field } from '../../components/shadcn/field';
 import { Input } from '../../components/shadcn/input';
 import { Label } from '../../components/shadcn/label';
+import { Alert, AlertDescription } from '../../components/shadcn/alert';
+import { Separator } from '../../components/shadcn/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/shadcn/tabs';
 import AppIcon from '../../components/icons/AppIcon';
 import EntryBrand from '../../components/layout/EntryBrand';
 import { friendlyError } from '../../lib/supabaseClient.js';
@@ -61,42 +64,26 @@ export default function AuthGate() {
   };
 
   return (
-    <main className="auth-gate">
+    <main className="grid min-h-dvh bg-background md:grid-cols-2">
       <EntryBrand />
-      <section className="auth-gate__form-panel" aria-labelledby="auth-gate-title">
-        <h1 className="auth-gate__title" id="auth-gate-title">{t('authRequiredTitle')}</h1>
-        <p className="auth-gate__description">{t('authRequiredDescription')}</p>
-
-        <div className="auth-gate__tabs" role="tablist" aria-label={t('authModeLabel')}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'signup'}
-            onClick={() => selectMode('signup')}
-            className={`auth-gate__tab${mode === 'signup' ? ' auth-gate__tab--active' : ''}`}
-          >
-            {t('authCreateAccount')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'signin'}
-            onClick={() => selectMode('signin')}
-            className={`auth-gate__tab${mode === 'signin' ? ' auth-gate__tab--active' : ''}`}
-          >
-            {t('signInTitle')}
-          </button>
-        </div>
-
+      <section className="mx-auto grid w-full max-w-md content-center gap-4 px-4 py-8 md:px-8" aria-labelledby="auth-gate-title">
+        <h1 className="text-xl font-semibold text-foreground" id="auth-gate-title">{t('authRequiredTitle')}</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t('authRequiredDescription')}</p>
+        <Tabs value={mode} onValueChange={(value) => selectMode(value)} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="signup">{t('authCreateAccount')}</TabsTrigger>
+            <TabsTrigger value="signin">{t('signInTitle')}</TabsTrigger>
+          </TabsList>
+          <TabsContent value={mode} className="pt-1">
         {confirmationSent ? (
-          <div className="auth-gate__confirmation" role="status">
-            <p className="auth-gate__confirmation-title">{t('authConfirmationTitle')}</p>
-            <p className="auth-gate__confirmation-copy">
+          <div className="grid gap-2 py-3" role="status">
+            <p className="font-semibold">{t('authConfirmationTitle')}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {t('authConfirmationDescription')} <strong>{email}</strong>
             </p>
           </div>
         ) : (
-          <form className="auth-gate__form" onSubmit={handleSubmit}>
+          <form className="grid gap-3 pt-3" onSubmit={handleSubmit}>
             {mode === 'signup' && (
               <Field>
                 <Label htmlFor="auth-username" className="text-foreground">{t('authUsernameLabel')}</Label>
@@ -139,11 +126,11 @@ export default function AuthGate() {
                 dir="ltr"
               />
             </Field>
-            {error && <p className="auth-gate__error" role="alert">{error}</p>}
+            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
             <Button
               type="submit"
               busy={busy}
-              className="w-full auth-gate__submit"
+              className="mt-2 w-full"
             >
               {busy
                 ? t(mode === 'signup' ? 'authCreatingAccount' : 'signInSubmitting')
@@ -151,13 +138,15 @@ export default function AuthGate() {
             </Button>
           </form>
         )}
-
+          </TabsContent>
+        </Tabs>
+        <div className="flex items-center gap-3" aria-hidden="true"><Separator className="flex-1" /><span className="text-xs text-muted-foreground">{t('authOr')}</span><Separator className="flex-1" /></div>
         <Button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={busy}
-          variant="secondary"
-          className="w-full auth-gate__google"
+          variant="outline"
+          className="w-full"
         >
           <AppIcon name="google" size={18} />
           {t('googleSignIn')}
@@ -167,11 +156,11 @@ export default function AuthGate() {
           type="button"
           onClick={() => selectMode(mode === 'signup' ? 'signin' : 'signup')}
           variant="ghost"
-          className="w-full auth-gate__mode-link"
+          className="w-full"
         >
           {t(mode === 'signup' ? 'authHaveAccount' : 'authNeedAccount')}
         </Button>
-        <p className="auth-gate__notice" lang={lang}>
+        <p className="text-start text-xs text-muted-foreground" lang={lang}>
           {t('authDataNotice')}
         </p>
       </section>

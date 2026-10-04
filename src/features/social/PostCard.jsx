@@ -1,11 +1,99 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "../../context/LanguageContext";
-import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";
-import Modal from "../../components/ui/Modal";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
+import { Badge } from "../../components/shadcn/badge";
+import { Card } from "../../components/shadcn/card";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../../components/shadcn/alert-dialog";
+import {
+  Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "../../components/shadcn/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/shadcn/dropdown-menu";
+import { Label } from "../../components/shadcn/label";
+import { RadioGroup, RadioGroupItem } from "../../components/shadcn/radio-group";
+import { splitCaption } from "./reelRanking";
 import SocialCommentsSheet from "./SocialComments";
 import { friendlyError } from "../../lib/supabaseClient.js";
+import { Ellipsis, Eye, Heart, MessageCircle, Share2, X } from "lucide-react";
+
+export function DeleteDialog({ open, onOpenChange, onConfirm, title }) {
+  const { t } = useLang();
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title || t("socialDeleteConfirm")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("socialDeleteWarning")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("socialDeleteNo")}</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={onConfirm}>{t("socialDeleteYes")}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export function ReportDialog({ id, open, onOpenChange, onReport }) {
+  const { t } = useLang();
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const reasons = [["spam", "socialReportSpam"], ["harassment", "socialReportHarassment"], ["inappropriate", "socialReportInappropriate"]];
+
+  useEffect(() => {
+    if (!open) {
+      setReason("");
+      setError("");
+    }
+  }, [open]);
+
+  const submit = async () => {
+    if (!reason || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onReport(reason);
+      onOpenChange(false);
+      toast(t("socialReportSuccess"));
+    } catch (reportError) {
+      setError(friendlyError(reportError, t, "socialReportError"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false}>
+        <DialogClose asChild>
+          <Button type="button" variant="ghost" size="icon" className="absolute end-2 top-2" aria-label={t("socialDeleteNo")}><X /></Button>
+        </DialogClose>
+        <DialogHeader>
+          <DialogTitle>{t("socialReportTitle")}</DialogTitle>
+          <DialogDescription>{t("socialReportReason")}</DialogDescription>
+        </DialogHeader>
+        <RadioGroup value={reason} onValueChange={setReason} className="gap-1">
+          {reasons.map(([value, label]) => (
+            <Label key={value} htmlFor={`report-reason-${id}-${value}`} className="flex min-h-11 items-center gap-3 font-normal">
+              <RadioGroupItem id={`report-reason-${id}-${value}`} value={value} />
+              {t(label)}
+            </Label>
+          ))}
+        </RadioGroup>
+        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("socialDeleteNo")}</Button>
+          <Button type="button" disabled={!reason || busy} onClick={submit}>{t("socialReportSubmit")}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function usePostActions(post, {
   onLike,
@@ -128,10 +216,8 @@ export default function PostCard({
   const cardRef = useRef(null);
   const viewRecorded = useRef(false);
   const [mediaError, setMediaError] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportBusy, setReportBusy] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const actions = usePostActions(post, {
     onLike,
@@ -184,114 +270,69 @@ export default function PostCard({
     });
   };
 
-  const submitReport = async () => {
-    setReportBusy(true);
-    try {
-      await onReport(post.id, reportReason);
-      setReportDialogOpen(false);
-      toast(t("socialReportSuccess"));
-    } catch (error) {
-      toast(friendlyError(error, t, "socialReportError"));
-    } finally {
-      setReportBusy(false);
-    }
-  };
+  const { caption, hashtags } = splitCaption(post.body || "");
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <article ref={cardRef} className="social-post">
-      <header className="social-post__header">
-        {authorAvatar ? (
-          <img className="social-post__avatar social-post__avatar--image" src={authorAvatar} alt="" loading="lazy" />
-        ) : (
-          <span className="social-post__avatar" aria-hidden="true">{authorName.slice(0, 1).toUpperCase()}</span>
-        )}
-        <span className="social-post__identity">
-          <span className="social-post__author">{authorName}</span>
+    <Card ref={cardRef} className="gap-3 rounded-xl border p-4 shadow-sm [content-visibility:auto]">
+      <header className="flex min-w-0 items-center gap-3">
+        <Avatar size="lg">
+          <AvatarImage src={authorAvatar || undefined} alt="" />
+          <AvatarFallback>{authorName.slice(0, 1).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate font-semibold">{authorName}</span>
+          <time className="text-xs text-muted-foreground" dateTime={post.created_at} title={absoluteDate}>{date}</time>
+        </div>
         {!isOwn && (
-          <button type="button" className="social-post__action" disabled={followBusy} onClick={actions.toggleFollow} aria-pressed={following}>
+          <Button type="button" size="sm" variant="outline" disabled={followBusy} onClick={actions.toggleFollow} aria-pressed={following}>
             {following ? t("socialUnfollow") : t("socialFollow")}
-          </button>
+          </Button>
         )}
-        </span>
-        <time className="social-post__date" dateTime={post.created_at} title={absoluteDate}>{date}</time>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="ghost" size="icon" aria-label={t("socialPostActions")}><Ellipsis /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {isOwn
+              ? <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteDialogOpen(true)}>{t("socialDeletePost")}</DropdownMenuItem>
+              : <DropdownMenuItem onSelect={() => setReportDialogOpen(true)}>{t("socialReport")}</DropdownMenuItem>}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
-      {post.body && <p className="social-post__body">{post.body}</p>}
-      {post.media_url && !mediaError && (
-        post.media_type === "video" ? (
-          <video
-            className="social-post__media"
-            src={post.media_url}
-            controls
-            playsInline
-            preload="none"
-            aria-label={t("socialVideo")}
-            onError={() => setMediaError(true)}
-          />
-        ) : (
-          <img
-            className="social-post__media"
-            src={post.media_url}
-            alt={t("socialImage")}
-            loading="lazy"
-            onError={() => setMediaError(true)}
-          />
-        )
+      {caption && (
+        <div>
+          <p className={`whitespace-pre-wrap text-[15px] leading-7 ${expanded ? "" : "line-clamp-6"}`}>{caption}</p>
+          {post.body.length > 280 && <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setExpanded((value) => !value)}>{t(expanded ? "socialReadLess" : "socialReadMore")}</Button>}
+        </div>
       )}
-      {post.media_url && mediaError && <p className="social-post__media-error">{t("socialMediaLoadError")}</p>}
-      <div className="social-post__actions">
-          <button type="button" className={`social-post__action${liked ? " social-post__action--liked" : ""}`} onClick={actions.toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`}>
-        <AppIcon name="heart" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
-        </button>
-        <button type="button" className="social-post__action" onClick={() => setCommentsOpen(true)}>
-        <AppIcon name="comment" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
-        </button>
-          <button type="button" className="social-post__action" onClick={share}>
-        <AppIcon name="share" size={17} /> {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
-        </button>
-        <span className="social-post__views" aria-label={`${t("socialViews")} ${viewCount}`}>
-          {new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)} {t("socialViewsShort")}
+      {hashtags.length > 0 && <div className="flex flex-wrap gap-2">{hashtags.map((tag, index) => <Badge key={`${tag}-${index}`} variant="secondary">{tag}</Badge>)}</div>}
+      {post.media_url && !mediaError && (
+        <div className="w-full overflow-hidden rounded-lg bg-muted">
+          {post.media_type === "video" ? (
+            <video className="max-h-[min(68vh,660px)] w-full object-contain" src={post.media_url} controls playsInline preload="none" aria-label={t("socialVideo")} onError={() => setMediaError(true)} />
+          ) : (
+            <img className="max-h-[min(68vh,660px)] w-full object-contain" src={post.media_url} alt={t("socialImage")} loading="lazy" onError={() => setMediaError(true)} />
+          )}
+        </div>
+      )}
+      {post.media_url && mediaError && <p className="text-sm text-muted-foreground">{t("socialMediaLoadError")}</p>}
+      <div className="flex flex-wrap items-center gap-1">
+        <Button type="button" variant="ghost" size="sm" onClick={actions.toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`} className={liked ? "text-destructive" : ""}>
+          <Heart className={liked ? "fill-current" : ""} />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={() => setCommentsOpen(true)} aria-label={`${t("socialComments")} · ${commentCount}`}>
+          <MessageCircle />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={share} aria-label={t("socialShare")}>
+          <Share2 />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
+        </Button>
+        <span className="ms-auto inline-flex items-center gap-1 text-xs text-muted-foreground" aria-label={`${t("socialViews")} ${viewCount}`}>
+          <Eye size={15} />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)}
         </span>
-        {isOwn && (
-          <button type="button" className="social-post__action" onClick={() => setDeleteDialogOpen(true)}>{t("socialDeletePost")}</button>
-        )}
-        {!isOwn && <button type="button" className="social-post__action" onClick={() => setReportDialogOpen(true)}>{t("socialReport")}</button>}
       </div>
-      <Modal
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        labelledBy={`social-delete-title-${post.id}`}
-        className="ui-auth-dialog"
-      >
-        <h2 className="ui-dialog-title" id={`social-delete-title-${post.id}`}>{t("socialDeleteConfirm")}</h2>
-        <div className="ui-dialog-actions">
-          <Button type="button" variant="secondary" onClick={() => setDeleteDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" variant="destructive" onClick={() => {
-            setDeleteDialogOpen(false);
-            onDelete(post.id);
-          }}>{t("socialDeleteYes")}</Button>
-        </div>
-      </Modal>
-      <Modal
-        open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
-        labelledBy={`social-report-title-${post.id}`}
-        className="ui-auth-dialog"
-      >
-        <h2 className="ui-dialog-title" id={`social-report-title-${post.id}`}>{t("socialReportTitle")}</h2>
-        <fieldset className="social-report__reasons">
-          <legend>{t("socialReportReason")}</legend>
-          {[["spam", "socialReportSpam"], ["harassment", "socialReportHarassment"], ["inappropriate", "socialReportInappropriate"]].map(([reason, label]) => (
-            <label key={reason}>
-              <input type="radio" name={`social-report-${post.id}`} value={reason} checked={reportReason === reason} onChange={() => setReportReason(reason)} />
-              {t(label)}
-            </label>
-          ))}
-        </fieldset>
-        <div className="ui-dialog-actions">
-          <Button type="button" variant="secondary" onClick={() => setReportDialogOpen(false)}>{t("socialDeleteNo")}</Button>
-          <Button type="button" busy={reportBusy} disabled={!reportReason} onClick={submitReport}>{t("socialReportSubmit")}</Button>
-        </div>
-      </Modal>
+      <DeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => onDelete(post.id)} />
+      <ReportDialog id={post.id} open={reportDialogOpen} onOpenChange={setReportDialogOpen} onReport={(reason) => onReport(post.id, reason)} />
       {commentsOpen && (
         <SocialCommentsSheet
           post={post}
@@ -300,6 +341,6 @@ export default function PostCard({
           onCommentCreated={actions.updateCommentCount}
         />
       )}
-    </article>
+    </Card>
   );
 }

@@ -195,6 +195,27 @@
   font-size: var(--text-sm);
 }
 
+.quran-reading-controls {
+  display: grid;
+  width: 100%;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.quran-reading-controls__mode {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.quran-reading-controls__font-size {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
 .quran-bismillah {
   margin: var(--space-2) 0 0;
   color: var(--primary);
@@ -250,7 +271,7 @@
   font-family: var(--font-arabic);
   font-feature-settings: "kern", "liga", "calt", "mark", "mkmk";
   font-kerning: normal;
-  font-size: calc(1.5rem * var(--quran-text-zoom, 1));
+  font-size: calc(1.5rem * var(--quran-font-scale, 1));
   line-height: 2.1;
   text-align: end;
 }
@@ -319,7 +340,7 @@
   font-family: var(--font-arabic);
   font-feature-settings: "kern", "liga", "calt", "mark", "mkmk";
   font-kerning: normal;
-  font-size: calc(1.7rem * var(--quran-text-zoom, 1));
+  font-size: calc(1.7rem * var(--quran-font-scale, 1));
   line-height: 1.9;
   text-align: justify;
 }

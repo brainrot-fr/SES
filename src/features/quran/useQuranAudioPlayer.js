@@ -20,6 +20,7 @@ import {
   nextAudioBitrate,
   fetchSurahAudioDuration,
 } from "./quranApi";
+import { shouldPlayOpeningBismillah } from "./quranPlayback";
 
 const FG_NOTIFICATION_ID = 5501;
 const FG_CHANNEL_ID = "quran-playback-v2";
@@ -144,6 +145,7 @@ export function useQuranAudioPlayer(surah) {
   const isPlayingRef = useRef(isPlaying);
   const autoAdvanceRef = useRef(autoAdvance);
   const reciterIdRef = useRef(reciterId);
+  const pendingBismillahAyahRef = useRef(null);
 
   const pendingReciterRestartRef = useRef(false);
   const isStoppingRef = useRef(false);
@@ -206,6 +208,7 @@ export function useQuranAudioPlayer(surah) {
   const play = useCallback(
     (ayah, chain = false) => {
       pendingReciterRestartRef.current = false;
+      pendingBismillahAyahRef.current = null;
       isStoppingRef.current = false;
       const audio = audioRef.current;
       // Always read the latest reciter from the ref so a mid-flight
@@ -223,6 +226,18 @@ export function useQuranAudioPlayer(surah) {
   useEffect(() => {
     playRef.current = play;
   }, [play]);
+
+  const playWithOpeningBismillah = useCallback((ayah) => {
+    pendingBismillahAyahRef.current = ayah;
+    isStoppingRef.current = false;
+    const audio = audioRef.current;
+    audio.src = buildAudioUrl(1, reciterIdRef.current);
+    audio.play().catch(() => {});
+    setActiveAyahNumber(ayah.numberInSurah);
+    setIsPlaying(true);
+    setAutoAdvance(true);
+    updateNowPlaying(ayah, true);
+  }, [updateNowPlaying]);
 
   /*
    * Some reciters 404 at the default bitrate on the CDN. If the currently
@@ -243,13 +258,14 @@ export function useQuranAudioPlayer(surah) {
         );
         return;
       }
-      const ayah = findAyah(activeAyahNumberRef.current);
+      const ayah = pendingBismillahAyahRef.current ?? findAyah(activeAyahNumberRef.current);
       if (!ayah) return;
       console.warn(
         `[quranAudio] ${reciterIdRef.current} failed at ${currentBitrate}kbps, trying ${fallback}kbps`,
       );
       setReciterBitrate(reciterIdRef.current, fallback);
-      audio.src = buildAudioUrl(ayah.number, reciterIdRef.current, fallback);
+      const audioAyahNumber = pendingBismillahAyahRef.current ? 1 : ayah.number;
+      audio.src = buildAudioUrl(audioAyahNumber, reciterIdRef.current, fallback);
       if (isPlayingRef.current) audio.play().catch(() => {});
     };
     audio.addEventListener("error", handleError);
@@ -300,6 +316,7 @@ export function useQuranAudioPlayer(surah) {
   const stop = useCallback(() => {
     if (isStoppingRef.current) return;
     isStoppingRef.current = true;
+    pendingBismillahAyahRef.current = null;
 
     const audio = audioRef.current;
     audio.pause();
@@ -339,8 +356,15 @@ export function useQuranAudioPlayer(surah) {
   /* Start playback from the first ayah of the current surah and keep auto-advancing. */
   const playSurahFromStart = useCallback(() => {
     const first = surahRef.current?.ayahs.find((ayah) => ayah.numberInSurah === 1);
-    if (first) play(first, true);
-  }, [play]);
+    const currentSurah = surahRef.current;
+    if (!first || !currentSurah) return;
+    if (!shouldPlayOpeningBismillah(currentSurah.number, first.numberInSurah)) {
+      play(first, true);
+      return;
+    }
+
+    playWithOpeningBismillah(first);
+  }, [play, playWithOpeningBismillah]);
 
   useEffect(() => {
     playSurahFromStartRef.current = playSurahFromStart;
@@ -378,6 +402,12 @@ export function useQuranAudioPlayer(surah) {
     const audio = audioRef.current;
     const handleEnded = () => {
       if (isStoppingRef.current) return;
+      const pendingBismillahAyah = pendingBismillahAyahRef.current;
+      if (pendingBismillahAyah) {
+        pendingBismillahAyahRef.current = null;
+        playRef.current(pendingBismillahAyah, true);
+        return;
+      }
       if (!autoAdvanceRef.current) {
         stopRef.current();
         return;
@@ -524,6 +554,7 @@ export function useQuranAudioPlayer(surah) {
       }
 
       const wasPlaying = isPlayingRef.current;
+      pendingBismillahAyahRef.current = null;
       pendingReciterRestartRef.current = false;
 
       const onLoaded = () => {
@@ -576,7 +607,17 @@ export function useQuranAudioPlayer(surah) {
 
   /* Popup actions — expose both play modes to UI. */
   const playAyahOnly = useCallback((ayah) => play(ayah, false), [play]);
-  const playAyahFromHere = useCallback((ayah) => play(ayah, true), [play]);
+  const playAyahFromHere = useCallback((ayah) => {
+    const currentSurah = surahRef.current;
+    if (
+      currentSurah &&
+      shouldPlayOpeningBismillah(currentSurah.number, ayah.numberInSurah)
+    ) {
+      playWithOpeningBismillah(ayah);
+      return;
+    }
+    play(ayah, true);
+  }, [play, playWithOpeningBismillah]);
 
   /* return object — expose it to the UI */
   return {

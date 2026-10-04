@@ -1,7 +1,16 @@
 import AppIcon from "../icons/AppIcon";
 import { Button } from "../shadcn/button";
 
-export default function IconButton({ as: Component, asChild, icon, label, size = 22, className = "", type, ...props }) {
+export default function IconButton({
+  as: Component,
+  asChild,
+  icon,
+  label,
+  size = 22,
+  className = "",
+  type,
+  ...props
+}) {
   const iconElement = <AppIcon name={icon} size={size} />;
 
   if (asChild && !Component && props.children) {

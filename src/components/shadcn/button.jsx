@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-[var(--primary-action-background)] text-primary-foreground hover:brightness-95 disabled:brightness-95 disabled:opacity-100",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
         "destructive-outline": "border border-destructive/45 bg-transparent text-destructive hover:bg-destructive/10",
@@ -60,7 +60,7 @@ function Button({
       aria-busy={busy || undefined}
     >
       {busy && <Spinner aria-hidden="true" />}
-      {props.children}
+      {asChild ? <Slot.Slottable>{props.children}</Slot.Slottable> : props.children}
     </Comp>
   )
 }

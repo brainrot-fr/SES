@@ -2,33 +2,37 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";
-import Modal from "../../components/ui/Modal";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
+import { Input } from "../../components/shadcn/input";
+import { ScrollArea } from "../../components/shadcn/scroll-area";
+import {
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../../components/shadcn/alert-dialog";
+import { Sheet, SheetContent, SheetTitle } from "../../components/shadcn/sheet";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import { createComment, deletePostComment, fetchComments } from "./postsApi";
 
 function CommentBranch({ comment, children, depth, userId, onReply, onDelete, t }) {
   return (
     <article className="social-comment" style={{ "--comment-depth": Math.min(depth, 4) }}>
-      {comment.author_avatar_url ? (
-        <img className="social-comment__avatar" src={comment.author_avatar_url} alt="" loading="lazy" />
-      ) : (
-        <span className="social-comment__avatar social-comment__avatar--initial" aria-hidden="true">
-          {comment.author_display_name.slice(0, 1).toUpperCase()}
-        </span>
-      )}
+      <Avatar className="social-comment__avatar">
+        <AvatarImage src={comment.author_avatar_url || undefined} alt="" />
+        <AvatarFallback>{comment.author_display_name.slice(0, 1).toUpperCase()}</AvatarFallback>
+      </Avatar>
       <div className="social-comment__content">
         <strong>{comment.author_display_name}</strong>
         <p>{comment.body}</p>
         <div className="social-comment__actions">
           {depth < 4 && (
-            <button type="button" onClick={() => onReply(comment)}>
+            <Button type="button" variant="ghost" size="sm" className="h-11 px-0" onClick={() => onReply(comment)}>
               {t("socialReply")}
-            </button>
+            </Button>
           )}
           {comment.author_id === userId && (
-            <button type="button" onClick={() => onDelete(comment)}>
+            <Button type="button" variant="ghost" size="sm" className="h-11 px-0 text-destructive" onClick={() => onDelete(comment)}>
               {t("socialDeleteComment")}
-            </button>
+            </Button>
           )}
         </div>
         {children}
@@ -48,11 +52,9 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
   const [deletingComment, setDeletingComment] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
-  const sheetRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
-    const previouslyFocused = document.activeElement;
     fetchComments(post.id)
       .then((result) => {
         if (!cancelled) setComments(result);
@@ -64,32 +66,10 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    inputRef.current?.focus();
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-        return;
-      }
-      if (event.key !== "Tab") return;
-      const focusable = sheetRef.current?.querySelectorAll("button:not(:disabled), input:not(:disabled)");
-      if (!focusable?.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
     return () => {
       cancelled = true;
-      window.removeEventListener("keydown", handleKeyDown);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
     };
-  }, [post.id, onClose, t]);
+  }, [post.id, t]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -163,33 +143,32 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
   );
 
   return (
-    <div className="social-comments-backdrop">
-      <button type="button" className="social-comments-dismiss" aria-label={t("socialCloseComments")} onClick={close} />
-      <section ref={sheetRef} className="social-comments" role="dialog" aria-modal="true" aria-labelledby={`social-comments-title-${post.id}`}>
-        <header className="social-comments__header">
+    <Sheet open onOpenChange={(open) => !open && close()}>
+      <SheetContent side="bottom" className="mx-auto h-[82dvh] max-w-xl gap-0 p-0" showCloseButton={false} aria-labelledby={`social-comments-title-${post.id}`}>
+        <header className="flex min-h-16 items-center justify-between border-b px-4 py-3">
           <div>
-            <h2 id={`social-comments-title-${post.id}`}>{t("socialComments")}</h2>
-            <span>{new Intl.NumberFormat(lang === "ur" ? "ur" : "en").format(comments.length)}</span>
+            <SheetTitle id={`social-comments-title-${post.id}`}>{t("socialComments")}</SheetTitle>
+            <span className="text-xs text-muted-foreground">{new Intl.NumberFormat(lang === "ur" ? "ur" : "en").format(comments.length)}</span>
           </div>
-          <button type="button" className="social-comments__close" onClick={close} aria-label={t("socialCloseComments")}>
+          <Button type="button" variant="ghost" size="icon" onClick={close} aria-label={t("socialCloseComments")}>
             <AppIcon name="close" />
-          </button>
+          </Button>
         </header>
-        <div className="social-comments__list" aria-live="polite">
+        <ScrollArea className="min-h-0 flex-1 px-4" aria-live="polite">
           {loading && <p className="social-comments__empty">{t("socialLoading")}</p>}
           {!loading && !comments.length && <p className="social-comments__empty">{t("socialFirstComment")}</p>}
           {[...(childComments.get(null) || [])].map((comment) => renderComment(comment))}
-        </div>
-        {error && <p className="social-comments__error" role="alert">{error}</p>}
-        <form className="social-comments__form" onSubmit={submit}>
+        </ScrollArea>
+        {error && <p className="px-4 py-2 text-sm text-destructive" role="alert">{error}</p>}
+        <form className="grid grid-cols-[1fr_auto] gap-2 border-t p-4" onSubmit={submit}>
           {replyTo && (
-            <div className="social-comments__replying">
+            <div className="col-span-full flex items-center justify-between text-sm text-muted-foreground">
               <span>{t("socialReplyingTo")} {replyTo.author_display_name}</span>
-              <button type="button" onClick={() => setReplyTo(null)}>{t("socialCancelReply")}</button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setReplyTo(null)}>{t("socialCancelReply")}</Button>
             </div>
           )}
           <label className="sr-only" htmlFor={`social-comment-${post.id}`}>{t("socialCommentLabel")}</label>
-          <input
+          <Input
             ref={inputRef}
             id={`social-comment-${post.id}`}
             value={body}
@@ -198,28 +177,23 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
             maxLength={1000}
             disabled={busy}
           />
-          <button type="submit" disabled={!body.trim() || busy}>{busy ? t("socialPosting") : t("socialSendComment")}</button>
+          <Button type="submit" disabled={!body.trim() || busy}>{busy ? t("socialPosting") : t("socialSendComment")}</Button>
         </form>
-      </section>
-      <Modal
-        open={!!commentToDelete}
-        onClose={() => !deletingComment && setCommentToDelete(null)}
-        labelledBy={`social-comment-delete-title-${post.id}`}
-        disableClose={deletingComment}
-        className="ui-auth-dialog"
-      >
-        <h2 className="ui-dialog-title" id={`social-comment-delete-title-${post.id}`}>
-          {t("socialDeleteCommentConfirm")}
-        </h2>
-        <div className="ui-dialog-actions">
-          <Button type="button" variant="secondary" disabled={deletingComment} onClick={() => setCommentToDelete(null)}>
-            {t("socialDeleteNo")}
-          </Button>
-          <Button type="button" variant="destructive" busy={deletingComment} onClick={removeComment}>
-            {t("socialDeleteYes")}
-          </Button>
-        </div>
-      </Modal>
-    </div>
+      </SheetContent>
+      <AlertDialog open={!!commentToDelete} onOpenChange={(open) => {
+        if (!open && !deletingComment) setCommentToDelete(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("socialDeleteCommentConfirm")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("socialDeleteWarning")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingComment}>{t("socialDeleteNo")}</AlertDialogCancel>
+            <Button type="button" variant="destructive" busy={deletingComment} onClick={removeComment}>{t("socialDeleteYes")}</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Sheet>
   );
 }

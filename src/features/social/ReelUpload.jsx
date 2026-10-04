@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LanguageContext";
 import AppIcon from "../../components/icons/AppIcon";
+import { Button } from "../../components/shadcn/button";
+import { Progress } from "../../components/shadcn/progress";
+import { Textarea } from "../../components/shadcn/textarea";
+import { ToggleGroup, ToggleGroupItem } from "../../components/shadcn/toggle-group";
 import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
 import { friendlyError } from "../../lib/supabaseClient.js";
 import { createPost } from "./postsApi";
@@ -14,7 +18,6 @@ export default function ReelUpload() {
   const { t } = useLang();
   const navigate = useNavigate();
   const inputRef = useRef(null);
-  const progressBarRef = useRef(null);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [caption, setCaption] = useState("");
@@ -26,10 +29,6 @@ export default function ReelUpload() {
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
   }, [preview]);
-
-  useEffect(() => {
-    progressBarRef.current?.style.setProperty("--upload-progress", String(progress));
-  }, [progress]);
 
   const chooseVideo = (event) => {
     const selected = event.target.files?.[0];
@@ -86,7 +85,7 @@ export default function ReelUpload() {
   return (
     <main className="reel-upload-page">
       <header className="reel-upload-page__header">
-        <Link to="/reels" className="social-reels__top-action" aria-label={t("goBack")}><AppIcon name="back" /></Link>
+        <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("goBack")}><Link to="/reels"><AppIcon name="back" /></Link></Button>
         <h1>{t("reelsCreate")}</h1>
         <span className="reel-upload-page__spacer" />
       </header>
@@ -110,54 +109,50 @@ export default function ReelUpload() {
           </div>
           <div className="reel-upload__fields">
             <label className="reel-upload__caption-label" htmlFor="reel-caption">{t("reelsCaptionLabel")}</label>
-            <textarea
+            <Textarea
               id="reel-caption"
               value={caption}
               onChange={(event) => setCaption(event.target.value)}
               placeholder={t("reelsCaptionPlaceholder")}
+              className="min-h-24 w-full resize-y"
               maxLength={2000}
               rows={3}
               disabled={busy}
             />
-            <fieldset className="reel-upload__topics" disabled={busy}>
+            <fieldset className="reel-upload__topics">
               <legend>{t("reelsTopicsLabel")}</legend>
               <p aria-live="polite">
                 {selectedTags.length >= 3 ? t("reelsTopicsLimit") : t("reelsTopicsHint")}
               </p>
-              <div className="reel-upload__topic-list">
-                {REEL_TAGS.map(({ topic, slug, label }) => {
-                  const selected = selectedTags.includes(slug);
-                  return (
-                    <button
-                      key={topic}
-                      type="button"
-                      className={`reel-upload__topic${selected ? " reel-upload__topic--selected" : ""}`}
-                      aria-pressed={selected}
-                      disabled={!selected && selectedTags.length >= 3}
-                      onClick={() => setSelectedTags((current) => selected
-                        ? current.filter((tag) => tag !== slug)
-                        : [...current, slug])}
-                    >
-                      #{t(label)}
-                    </button>
-                  );
-                })}
-              </div>
+              <ToggleGroup
+                type="multiple"
+                value={selectedTags}
+                disabled={busy}
+                onValueChange={(values) => {
+                  if (values.length <= 3) setSelectedTags(values);
+                }}
+                className="flex w-full flex-wrap gap-2"
+                aria-label={t("reelsTopicsLabel")}
+              >
+                {REEL_TAGS.map(({ topic, slug, label }) => (
+                  <ToggleGroupItem key={topic} value={slug} variant="outline" className="min-h-11 rounded-full">
+                    #{t(label)}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </fieldset>
             <p className="reel-upload__guideline"><AppIcon name="sparkle" size={16} />{t("reelsCommunityGuideline")}</p>
           </div>
         </div>
         <input ref={inputRef} className="reel-upload__file-input" type="file" accept="video/*" onChange={chooseVideo} disabled={busy} aria-label={t("reelsChooseVideo")} />
         {busy && (
-          <div className="reel-upload__progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)} aria-label={t("socialUploadProgress")}>
-            <div ref={progressBarRef} className="reel-upload__progress-bar" />
-          </div>
+          <Progress value={progress * 100} aria-label={t("socialUploadProgress")} />
         )}
         {error && <p className="social-error" role="alert">{error}</p>}
         <div className="reel-upload__actions">
-          <button type="submit" className="reel-upload__submit" disabled={!file || busy}>
+          <Button type="submit" disabled={!file || busy}>
             {busy ? t("socialPosting") : t("reelsPublish")}
-          </button>
+          </Button>
         </div>
       </form>
     </main>

@@ -307,6 +307,7 @@ export default {
   signInSubmitting: "سائن ان ہو رہا ہے…",
   authRequiredTitle: "جاری رکھنے کے لیے سائن ان کریں",
   authRequiredDescription: "نقول استعمال کرنے اور مختلف آلات پر اپنا اکاؤنٹ دستیاب رکھنے کے لیے اکاؤنٹ بنائیں یا سائن ان کریں۔",
+  authSocialWriteGate: "پوسٹ کرنے، پسند کرنے، فالو کرنے، تبصرہ کرنے یا اپ لوڈ کرنے کے لیے اکاؤنٹ بنائیں۔",
   authModeLabel: "اکاؤنٹ کا عمل",
   authOr: "یا",
   authCreateAccount: "اکاؤنٹ بنائیں",

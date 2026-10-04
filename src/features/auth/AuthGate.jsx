@@ -12,7 +12,7 @@ import AppIcon from '../../components/icons/AppIcon';
 import EntryBrand from '../../components/layout/EntryBrand';
 import { friendlyError } from '../../lib/supabaseClient.js';
 
-export default function AuthGate() {
+export default function AuthGate({ socialWriteGate = false }) {
   const { t, lang } = useLang();
   const { signIn, signInGoogle, signUp } = useAuth();
   const [mode, setMode] = useState('signup');
@@ -69,6 +69,9 @@ export default function AuthGate() {
       <section className="mx-auto grid w-full max-w-md content-center gap-4 px-4 py-8 md:px-8" aria-labelledby="auth-gate-title">
         <h1 className="text-xl font-semibold text-foreground" id="auth-gate-title">{t('authRequiredTitle')}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">{t('authRequiredDescription')}</p>
+        {socialWriteGate && (
+          <Alert><AlertDescription>{t("authSocialWriteGate")}</AlertDescription></Alert>
+        )}
         <Tabs value={mode} onValueChange={(value) => selectMode(value)} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signup">{t('authCreateAccount')}</TabsTrigger>

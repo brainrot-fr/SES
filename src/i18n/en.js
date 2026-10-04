@@ -312,6 +312,7 @@ export default {
   signInSubmitting: "Signing in…",
   authRequiredTitle: "Sign in to continue",
   authRequiredDescription: "Create an account or sign in to use Nuqool and keep your account available across devices.",
+  authSocialWriteGate: "Create an account to post, like, follow, comment, or upload.",
   authModeLabel: "Account action",
   authOr: "or",
   authCreateAccount: "Create account",

@@ -6,6 +6,7 @@
   --dock-offset: calc(var(--bottom-nav-gap) + var(--bottom-nav-height) + var(--space-4));
 }
 
+/* Visual regression: verify the Reader dock clears the bottom nav on notch and gesture-nav devices. */
 .layout-page {
   width: 100%;
   margin-inline: auto;

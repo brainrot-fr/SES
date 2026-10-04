@@ -120,7 +120,6 @@
   --content-width: 1200px;
   --header-height: 58px;
   --bottom-nav-height: 88px;
-  --player-stack: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
 }
 
 html[data-theme="dark"] {

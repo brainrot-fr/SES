@@ -287,7 +287,7 @@ export default function App() {
   if (!ready) {
     return <AppShellSkeleton label={t("settingsLoading")} />;
   }
-  if (!user || isAnonymous) return <AuthGate />;
+  if (!user || isAnonymous) return <AuthGate socialWriteGate={isAnonymous} />;
 
   const navItems = [
     { id: "dashboard", label: t("navDashboard"), iconName: "home" },

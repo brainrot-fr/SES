@@ -1,10 +1,7 @@
 /**
- * Naql Content Data and Constants
- * Contains all naql text content and reference abbreviations
+ * Nuqool glossary: a naql is a transmitted account; a Khulasa is its summary.
+ * Kept as a local data module until a future CMS supplies the same content shape.
  */
-
-import React from 'react';
-import './nuqool.css';
 
 /*
  *

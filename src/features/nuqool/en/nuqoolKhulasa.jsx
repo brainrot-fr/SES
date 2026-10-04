@@ -6,7 +6,7 @@
  */
 
 /* Constants live in nuqool.jsx — import from there, don't duplicate them here */
-import { KHUDA_T, R_SAWS, MAS, HBM, BM } from './nuqool.jsx';
+import { KHUDA_T, R_SAWS, MAS, HBM, BM } from './nuqoolData.jsx';
 
 export { KHUDA_T, R_SAWS, MAS, HBM, BM };
 

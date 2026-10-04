@@ -1,7 +1,7 @@
 /**
  * Quran Translations (v2 — not wired into the UI yet)
  * -----------------------------------------------------
- * Same pattern as nuqoolObject in features/nuqool/en/nuqool.jsx: just fill in
+ * Same pattern as nuqoolObject in features/nuqool/en/nuqoolData.jsx: just fill in
  * this object, nothing else needs to change. Ayah text always comes from
  * quranApi.js; translation text never does — no API carries the exact
  * wording this app needs, so it's entered here by hand.

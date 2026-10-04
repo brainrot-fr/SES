@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "../../context/LanguageContext";
 import { Button } from "../../components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
-import { Badge } from "../../components/shadcn/badge";
 import { Card } from "../../components/shadcn/card";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -12,13 +10,13 @@ import {
 import {
   Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "../../components/shadcn/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/shadcn/dropdown-menu";
 import { Label } from "../../components/shadcn/label";
 import { RadioGroup, RadioGroupItem } from "../../components/shadcn/radio-group";
 import { splitCaption } from "./reelRanking";
 import SocialCommentsSheet from "./SocialComments";
 import { friendlyError } from "../../lib/supabaseClient.js";
-import { Ellipsis, Eye, Heart, MessageCircle, Share2, X } from "lucide-react";
+import { X } from "lucide-react";
+import { PostActions, PostBody, PostHeader, PostMedia } from "./PostCardParts";
 
 export function DeleteDialog({ open, onOpenChange, onConfirm, title }) {
   const { t } = useLang();
@@ -275,62 +273,42 @@ export default function PostCard({
 
   return (
     <Card ref={cardRef} className="gap-3 rounded-xl border p-4 shadow-sm [content-visibility:auto]">
-      <header className="flex min-w-0 items-center gap-3">
-        <Avatar size="lg">
-          <AvatarImage src={authorAvatar || undefined} alt="" />
-          <AvatarFallback>{authorName.slice(0, 1).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate font-semibold">{authorName}</span>
-          <time className="text-xs text-muted-foreground" dateTime={post.created_at} title={absoluteDate}>{date}</time>
-        </div>
-        {!isOwn && (
-          <Button type="button" size="sm" variant="outline" disabled={followBusy} onClick={actions.toggleFollow} aria-pressed={following}>
-            {following ? t("socialUnfollow") : t("socialFollow")}
-          </Button>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="ghost" size="icon" aria-label={t("socialPostActions")}><Ellipsis /></Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {isOwn
-              ? <DropdownMenuItem className="text-destructive" onSelect={() => setDeleteDialogOpen(true)}>{t("socialDeletePost")}</DropdownMenuItem>
-              : <DropdownMenuItem onSelect={() => setReportDialogOpen(true)}>{t("socialReport")}</DropdownMenuItem>}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-      {caption && (
-        <div>
-          <p className={`whitespace-pre-wrap text-[15px] leading-7 ${expanded ? "" : "line-clamp-6"}`}>{caption}</p>
-          {post.body.length > 280 && <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setExpanded((value) => !value)}>{t(expanded ? "socialReadLess" : "socialReadMore")}</Button>}
-        </div>
-      )}
-      {hashtags.length > 0 && <div className="flex flex-wrap gap-2">{hashtags.map((tag, index) => <Badge key={`${tag}-${index}`} variant="secondary">{tag}</Badge>)}</div>}
-      {post.media_url && !mediaError && (
-        <div className="w-full overflow-hidden rounded-lg bg-muted">
-          {post.media_type === "video" ? (
-            <video className="max-h-[min(68vh,660px)] w-full object-contain" src={post.media_url} controls playsInline preload="none" aria-label={t("socialVideo")} onError={() => setMediaError(true)} />
-          ) : (
-            <img className="max-h-[min(68vh,660px)] w-full object-contain" src={post.media_url} alt={t("socialImage")} loading="lazy" onError={() => setMediaError(true)} />
-          )}
-        </div>
-      )}
-      {post.media_url && mediaError && <p className="text-sm text-muted-foreground">{t("socialMediaLoadError")}</p>}
-      <div className="flex flex-wrap items-center gap-1">
-        <Button type="button" variant="ghost" size="sm" onClick={actions.toggleLike} disabled={likeBusy} aria-pressed={liked} aria-label={`${liked ? t("socialUnlike") : t("socialLike")} · ${likeCount}`} className={liked ? "text-destructive" : ""}>
-          <Heart className={liked ? "fill-current" : ""} />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(likeCount)}
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => setCommentsOpen(true)} aria-label={`${t("socialComments")} · ${commentCount}`}>
-          <MessageCircle />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(commentCount)}
-        </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={share} aria-label={t("socialShare")}>
-          <Share2 />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(shareCount)}
-        </Button>
-        <span className="ms-auto inline-flex items-center gap-1 text-xs text-muted-foreground" aria-label={`${t("socialViews")} ${viewCount}`}>
-          <Eye size={15} />{new Intl.NumberFormat(lang === "ur" ? "ur" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(viewCount)}
-        </span>
-      </div>
+      <PostHeader
+        post={post}
+        authorName={authorName}
+        authorAvatar={authorAvatar}
+        date={date}
+        absoluteDate={absoluteDate}
+        isOwn={isOwn}
+        following={following}
+        followBusy={followBusy}
+        onToggleFollow={actions.toggleFollow}
+        onDelete={() => setDeleteDialogOpen(true)}
+        onReport={() => setReportDialogOpen(true)}
+        t={t}
+      />
+      <PostBody
+        caption={caption}
+        hashtags={hashtags}
+        expanded={expanded}
+        onExpand={() => setExpanded((value) => !value)}
+        postLength={post.body?.length ?? 0}
+        t={t}
+      />
+      <PostMedia post={post} mediaError={mediaError} onError={() => setMediaError(true)} t={t} />
+      <PostActions
+        lang={lang}
+        liked={liked}
+        likeBusy={likeBusy}
+        likeCount={likeCount}
+        commentCount={commentCount}
+        shareCount={shareCount}
+        viewCount={viewCount}
+        onLike={actions.toggleLike}
+        onComment={() => setCommentsOpen(true)}
+        onShare={share}
+        t={t}
+      />
       <DeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => onDelete(post.id)} />
       <ReportDialog id={post.id} open={reportDialogOpen} onOpenChange={setReportDialogOpen} onReport={(reason) => onReport(post.id, reason)} />
       {commentsOpen && (

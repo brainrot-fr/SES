@@ -13,7 +13,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { App } from '@capacitor/app';
 import { supabase } from '../lib/supabaseClient';
-import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
+import { nuqoolObject } from '../features/nuqool/en/nuqoolData.jsx';
 
 const NEXT_NOTIF_ID = 500001; // fixed id — only ever one of these pending
 const TEST_NOTIF_ID = 1;

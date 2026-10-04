@@ -1,5 +1,6 @@
 /**
  * naqlDashboard.jsx
+ * Glossary: a Naql is a transmitted account; Khulasa means its summary.
  * The Naql browsing user interface.
  *
  * - Shows the current Naql text block with navigation and quick jump controls.
@@ -10,7 +11,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import './naqlDashboard.css';
-import { nuqoolObject } from './nuqool.jsx';
+import { nuqoolObject } from './nuqoolData.jsx';
 import { nuqoolKhulasaObject } from './nuqoolKhulasa.jsx';
 import { useLang } from '../../../context/LanguageContext.jsx';
 import AppIcon from '../../../components/icons/AppIcon.jsx';
@@ -24,6 +25,7 @@ import {
 import Page from '../../../components/layout/Page.jsx';
 import Split from '../../../components/layout/Split.jsx';
 import RowList from '../../../components/layout/RowList.jsx';
+import NaqlEntry from './NaqlEntry.jsx';
 
 /*
  * When you have Urdu naql content ready:
@@ -123,8 +125,10 @@ export default function NaqlDashboard({ openNaqlRequest }) {
                 {currentNaql}
               </h2>
               <div className="naql-content">
-                {naqlContent[currentNaql]}
-                {nuqoolKhulasaObject[currentNaql] ?? null}
+                <NaqlEntry
+                  content={naqlContent[currentNaql]}
+                  summary={nuqoolKhulasaObject[currentNaql]}
+                />
               </div>
             </motion.div>
           </AnimatePresence>

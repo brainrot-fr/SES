@@ -7,125 +7,27 @@
  * - Integrates with native media session and Android foreground service.
  */
 
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import { Capacitor } from "@capacitor/core";
-import { MediaSession } from "@capgo/capacitor-media-session";
-import { ForegroundService } from "@capawesome-team/capacitor-android-foreground-service";
+import { useRef, useState, useEffect, useCallback } from "react";
+import { RECITERS } from "./quranApi";
+import { useQuranAudioUrls } from "./quranAudioUrls";
+import { useQuranAudioProgress } from "./useQuranAudioProgress";
+import { useForegroundService } from "./useForegroundService";
 import {
-  RECITERS,
-  buildAudioUrl,
-  getSavedReciter,
-  saveReciter,
-  setReciterBitrate,
-  nextAudioBitrate,
-  fetchSurahAudioDuration,
-} from "./quranApi";
-import { shouldPlayOpeningBismillah } from "./quranPlayback";
-
-const FG_NOTIFICATION_ID = 5501;
-const FG_CHANNEL_ID = "quran-playback-v2";
-const FALLBACK_AYAH_SECONDS = 5;
-
-const isNative = () => Capacitor.isNativePlatform();
-const isAndroid = () => Capacitor.getPlatform() === "android";
-
-let channelReady = false;
-let foregroundServiceStarted = false;
-let foregroundServiceQueue = Promise.resolve();
-let lastForegroundKey = "";
-
-function enqueueForegroundOperation(operation) {
-  const result = foregroundServiceQueue.then(operation, operation);
-  foregroundServiceQueue = result.catch(() => {});
-  return result;
-}
-
-/*
- * Ensure the Android foreground service channel exists before starting playback.
- * This is a one-time setup step required for ongoing audio notifications.
- */
-
-async function ensureForegroundChannel() {
-  if (!isAndroid() || channelReady) return;
-  try {
-    if (typeof ForegroundService.deleteNotificationChannel === "function") {
-      ForegroundService.deleteNotificationChannel({ id: "quran-playback" }).catch(() => {});
-    }
-    await ForegroundService.createNotificationChannel({
-      id: FG_CHANNEL_ID,
-      name: "Quran playback",
-      description: "Shown while Quran audio is playing",
-      importance: 2,
-    });
-    channelReady = true;
-  } catch (err) {
-    console.warn("[quranAudio] createNotificationChannel failed", err);
-  }
-}
-
-async function startForeground(title, body) {
-  await ensureForegroundChannel();
-  await ForegroundService.startForegroundService({
-    id: FG_NOTIFICATION_ID,
-    title,
-    body,
-    smallIcon: "ic_quran_notification",
-    notificationChannelId: FG_CHANNEL_ID,
-    silent: true,
-  });
-  foregroundServiceStarted = true;
-}
-
-/* Keep the foreground service notification updated when playback changes. */
-async function updateForeground(title, body) {
-  if (!isAndroid()) return;
-  return enqueueForegroundOperation(async () => {
-    try {
-      if (!foregroundServiceStarted) {
-        await startForeground(title, body);
-        return;
-      }
-      await ForegroundService.updateForegroundService({
-        id: FG_NOTIFICATION_ID,
-        title,
-        body,
-        smallIcon: "ic_quran_notification",
-      });
-    } catch (err) {
-      foregroundServiceStarted = false;
-      console.warn("[quranAudio] foreground service update failed", err);
-    }
-  });
-}
-
-function syncForeground(surahName, reciterName) {
-  const key = `${surahName}|${reciterName}`;
-  if (key === lastForegroundKey) return;
-  lastForegroundKey = key;
-  updateForeground(surahName, reciterName);
-}
-
-/* Stop the Android foreground service when playback ends or is stopped. */
-async function stopForeground() {
-  if (!isAndroid()) {
-    lastForegroundKey = "";
-    return;
-  }
-  return enqueueForegroundOperation(async () => {
-    try {
-      if (foregroundServiceStarted) {
-        await ForegroundService.stopForegroundService();
-      }
-    } catch {
-      /* already stopped — fine */
-    } finally {
-      foregroundServiceStarted = false;
-      lastForegroundKey = "";
-    }
-  });
-}
+  updateMediaSessionNowPlaying,
+  updateMediaSessionPlaybackState,
+  useMediaSession,
+} from "./useMediaSession";
 
 export function useQuranAudioPlayer(surah) {
+  const {
+    buildAudioUrl,
+    getSavedReciter,
+    saveReciter,
+    setReciterBitrate,
+    nextAudioBitrate,
+    shouldPlayOpeningBismillah,
+  } = useQuranAudioUrls();
+  const { syncForeground, stopForeground } = useForegroundService();
   const audioRef = useRef(null);
   if (audioRef.current === null) {
     audioRef.current = new Audio();
@@ -176,6 +78,14 @@ export function useQuranAudioPlayer(surah) {
     surahRef.current = surah;
   }, [surah]);
 
+  const {
+    currentTime,
+    duration,
+    surahElapsedTime,
+    surahTotalTime,
+    seek,
+  } = useQuranAudioProgress({ audioRef, surah, activeAyahNumber, reciterId });
+
   const findAyah = useCallback(
     (numberInSurah) =>
       surahRef.current?.ayahs.find((a) => a.numberInSurah === numberInSurah) ??
@@ -188,21 +98,18 @@ export function useQuranAudioPlayer(surah) {
    * and the Android foreground notification.
    */
   const updateNowPlaying = useCallback((ayah, playing) => {
-    if (!isNative() || !surahRef.current) return;
-    const label = `${surahRef.current.englishName} — Ayah ${ayah.numberInSurah}`;
+    if (!surahRef.current) return;
     const reciterName =
       RECITERS.find((r) => r.id === reciterIdRef.current)?.name ??
       RECITERS[0].name;
-    MediaSession.setMetadata({
-      title: label,
-      artist: reciterName,
-      album: surahRef.current.englishName,
-    }).catch(() => {});
-    MediaSession.setPlaybackState({
-      playbackState: playing ? "playing" : "paused",
-    }).catch(() => {});
+    updateMediaSessionNowPlaying({
+      surahName: surahRef.current.englishName,
+      ayahNumber: ayah.numberInSurah,
+      reciterName,
+      playing,
+    });
     syncForeground(surahRef.current.englishName, reciterName);
-  }, []);
+  }, [syncForeground]);
 
   /* Start playback for a selected ayah and optionally keep auto-advancing. */
   const play = useCallback(
@@ -327,11 +234,9 @@ export function useQuranAudioPlayer(surah) {
     setIsPlaying(false);
     setAutoAdvance(false);
     setActiveAyahNumber(null);
-    if (isNative()) {
-      MediaSession.setPlaybackState({ playbackState: "none" }).catch(() => {});
-    }
+    updateMediaSessionPlaybackState("none");
     stopForeground();
-  }, []);
+  }, [stopForeground]);
 
   useEffect(() => {
     stopRef.current = stop;
@@ -393,6 +298,8 @@ export function useQuranAudioPlayer(surah) {
     [findAyah],
   );
 
+  useMediaSession({ resume, pause, advance, stop });
+
   /*
    * Single "ended" handler. Uses refs so it always sees the latest values
    * and is never re-subscribed on every ayah change (which previously left
@@ -419,114 +326,6 @@ export function useQuranAudioPlayer(surah) {
     audio.addEventListener("ended", handleEnded);
     return () => audio.removeEventListener("ended", handleEnded);
   }, [findAyah]);
-
-  /*
-   * Playback position for the progress bar. Reset on ayah change so the
-   * bar doesn't flash the previous ayah's position while the new one loads
-   * — though in practice setting audio.src already resets currentTime,
-   * this just avoids a one-frame stale read.
-   */
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [indexedSurahDuration, setIndexedSurahDuration] = useState(null);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const handleLoadedMetadata = () => setDuration(audio.duration || 0);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("durationchange", handleLoadedMetadata);
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("durationchange", handleLoadedMetadata);
-    };
-  }, []);
-
-  const [ayahDurations, setAyahDurations] = useState({});
-
-  useEffect(() => {
-    setAyahDurations({});
-  }, [surah?.number, reciterId]);
-
-  const activeAyah = findAyah(activeAyahNumber);
-  const audioMetadataMatchesActiveAyah =
-    activeAyah != null &&
-    audioRef.current.currentSrc.endsWith(
-      `/${reciterId}/${activeAyah.number}.mp3`,
-    );
-
-  useEffect(() => {
-    if (
-      activeAyahNumber == null ||
-      !Number.isFinite(duration) ||
-      duration <= 0 ||
-      audioRef.current.readyState < 1 ||
-      !audioMetadataMatchesActiveAyah
-    ) {
-      return;
-    }
-    setAyahDurations((previous) =>
-      previous[activeAyahNumber] === duration
-        ? previous
-        : { ...previous, [activeAyahNumber]: duration },
-    );
-  }, [activeAyahNumber, duration, audioMetadataMatchesActiveAyah]);
-
-  useEffect(() => {
-    setCurrentTime(0);
-    setDuration(0);
-  }, [activeAyahNumber, surah?.number, reciterId]);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!surah?.number) return () => { cancelled = true; };
-    fetchSurahAudioDuration(surah.number, reciterId).then((seconds) => {
-      if (!cancelled) {
-        setIndexedSurahDuration({
-          key: `${surah.number}:${reciterId}`,
-          seconds,
-        });
-      }
-    });
-    return () => { cancelled = true; };
-  }, [surah?.number, reciterId]);
-
-  // Before an index is generated, use a fixed average instead of letting
-  // whichever ayah happens to load first change the displayed surah length.
-  const ayahCount = surah?.ayahs?.length ?? 0;
-  const durationKey = `${surah?.number ?? ''}:${reciterId}`;
-  const indexedDuration = indexedSurahDuration?.key === durationKey
-    ? indexedSurahDuration.seconds
-    : null;
-  const estimatedAyahDuration = indexedDuration
-    ? indexedDuration / ayahCount
-    : FALLBACK_AYAH_SECONDS;
-  const surahTotalTime = indexedDuration ?? ayahCount * estimatedAyahDuration;
-
-  const surahElapsedTime = useMemo(() => {
-    if (activeAyahNumber == null) return 0;
-    let elapsed = currentTime;
-    for (let number = 1; number < activeAyahNumber; number += 1) {
-      elapsed += ayahDurations[number] ?? estimatedAyahDuration;
-    }
-    return Math.min(surahTotalTime, elapsed);
-  }, [
-    activeAyahNumber,
-    currentTime,
-    ayahDurations,
-    estimatedAyahDuration,
-    surahTotalTime,
-  ]);
-
-  const seek = useCallback((time) => {
-    const audio = audioRef.current;
-    if (!audio || !isFinite(audio.duration) || audio.duration <= 0) return;
-    const clamped = Math.max(0, Math.min(time, audio.duration));
-    audio.currentTime = clamped;
-    setCurrentTime(clamped);
-  }, []);
 
   /*
    * Seek to a position within the whole surah rather than just the
@@ -561,7 +360,7 @@ export function useQuranAudioPlayer(surah) {
         audio.removeEventListener("loadedmetadata", onLoaded);
         const targetTime = withinAyah * (audio.duration || 0);
         audio.currentTime = targetTime;
-        setCurrentTime(targetTime);
+        seek(targetTime);
       };
       audio.addEventListener("loadedmetadata", onLoaded);
 
@@ -573,29 +372,6 @@ export function useQuranAudioPlayer(surah) {
     },
     [seek, updateNowPlaying],
   );
-
-  /*
-   * Bind native media session action handlers for lock-screen controls.
-   */
-  useEffect(() => {
-    if (!isNative()) return undefined;
-    MediaSession.setActionHandler({ action: "play" }, resume).catch(() => {});
-    MediaSession.setActionHandler({ action: "pause" }, pause).catch(() => {});
-    MediaSession.setActionHandler({ action: "nexttrack" }, () =>
-      advance(1),
-    ).catch(() => {});
-    MediaSession.setActionHandler({ action: "previoustrack" }, () =>
-      advance(-1),
-    ).catch(() => {});
-    MediaSession.setActionHandler({ action: "stop" }, stop).catch(() => {});
-    return () => {
-      ["play", "pause", "nexttrack", "previoustrack", "stop"].forEach(
-        (action) => {
-          MediaSession.setActionHandler({ action }, null).catch(() => {});
-        },
-      );
-    };
-  }, [resume, pause, advance, stop]);
 
   /*
    * Reset playback whenever the surah changes; fully stop on unmount.

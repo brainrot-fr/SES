@@ -1,3 +1,4 @@
+// Template: Settings — profile, account, preference, and notification sections.
 import { useCallback, useEffect, useState } from "react";
 import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";

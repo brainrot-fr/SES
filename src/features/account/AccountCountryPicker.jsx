@@ -1,3 +1,4 @@
+// Template: Entry — searchable localized country selection for account onboarding.
 import { useState } from "react";
 import { Button } from "../../components/shadcn/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/shadcn/command";

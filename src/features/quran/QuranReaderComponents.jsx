@@ -1,3 +1,4 @@
+// Template: Reader — ayah presentation, toolbar, and loading states.
 import { PlayIcon, PauseIcon } from "../../components/icons/MediaIcons.jsx";
 import { Button } from "../../components/shadcn/button";
 import { Skeleton } from "../../components/shadcn/skeleton";

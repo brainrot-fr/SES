@@ -46,6 +46,19 @@ async function assertPostGenderVisibility(posts) {
   }
 }
 
+function prioritizedPostQuery(id, mediaType) {
+  let query = supabase.from("posts").select(POST_COLUMNS).eq("id", id);
+  if (mediaType) query = query.eq("media_type", mediaType);
+  else query = query.is("media_type", null).is("media_url", null);
+  return query.maybeSingle();
+}
+
+function prependPrioritizedPost(posts, prioritizedPost) {
+  return prioritizedPost
+    ? [prioritizedPost, ...posts.filter((post) => post.id !== prioritizedPost.id)]
+    : posts;
+}
+
 export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   const start = page * POSTS_PAGE_SIZE;
   let query = supabase
@@ -61,9 +74,7 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   query = query.range(start, start + POSTS_PAGE_SIZE - 1);
   const requests = [query];
   if (page === 0 && prioritizedPostId) {
-    requests.push(
-      supabase.from("posts").select(POST_COLUMNS).eq("id", prioritizedPostId).is("media_type", null).is("media_url", null).maybeSingle(),
-    );
+    requests.push(prioritizedPostQuery(prioritizedPostId, null));
   }
   const results = await Promise.all(requests);
   const { data, error } = results[0];
@@ -72,9 +83,7 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   if (results[1]?.error) throw results[1].error;
   const hasMore = hasMoreForPage(data.length, POSTS_PAGE_SIZE);
   const prioritizedPost = results[1]?.data;
-  const uniquePosts = prioritizedPost
-    ? [prioritizedPost, ...data.filter((post) => post.id !== prioritizedPost.id)]
-    : data;
+  const uniquePosts = prependPrioritizedPost(data, prioritizedPost);
   await assertPostGenderVisibility(uniquePosts);
   return { posts: await addEngagement(uniquePosts), hasMore };
 }
@@ -92,9 +101,7 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
   postsQuery = postsQuery.range(start, start + POSTS_PAGE_SIZE - 1);
   const requests = [postsQuery];
   if (page === 0 && prioritizedReelId) {
-    requests.push(
-      supabase.from("posts").select(POST_COLUMNS).eq("id", prioritizedReelId).eq("media_type", "video").maybeSingle(),
-    );
+    requests.push(prioritizedPostQuery(prioritizedReelId, "video"));
   }
   const results = await Promise.all(requests);
   const { data: posts, error } = results[0];
@@ -103,26 +110,12 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
   if (results[1]?.error) throw results[1].error;
   const hasMore = hasMoreForPage(posts.length, POSTS_PAGE_SIZE);
   const prioritizedPost = results[1]?.data;
-  const uniquePosts = prioritizedPost
-    ? [prioritizedPost, ...posts.filter((post) => post.id !== prioritizedPost.id)]
-    : posts;
+  const uniquePosts = prependPrioritizedPost(posts, prioritizedPost);
   if (!uniquePosts.length) return { posts: uniquePosts, hasMore };
   await assertPostGenderVisibility(uniquePosts);
 
   const postIds = uniquePosts.map((post) => post.id);
-  const [{ data: engagement, error: engagementError }, profiles] = await Promise.all([
-    supabase.rpc("get_social_engagement", { p_post_ids: postIds }),
-    fetchProfiles(uniquePosts),
-  ]);
-  if (engagementError) throw engagementError;
-  const engagementByPost = new Map(engagement.map((item) => [item.post_id, item]));
-
-  const enriched = uniquePosts.map((post) => ({
-    ...post,
-    ...engagementByPost.get(post.id),
-    author_display_name: profiles.get(post.author_id)?.display_name || post.author_display_name,
-    author_avatar_url: profiles.get(post.author_id)?.avatar_url || null,
-  }));
+  const enriched = await addEngagement(uniquePosts);
   let ranked;
   const { data: serverRanking, error: rankingError } = await supabase.rpc(
     "rank_social_reels",

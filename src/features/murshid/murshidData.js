@@ -4,6 +4,7 @@
  * feat-murshidObject.md. Simple ordered arrays; the Murshid page just
  * renders them top to bottom, same "add to the array, UI updates itself"
  * pattern as nuqoolObject and timelineEvents.
+ * A future CMS can replace these exports while preserving this entry shape.
  *
  * Fill in the real chain here — placeholders below just establish the shape:
  * `name` is required, `title`/`years`/`note` are optional and only render

@@ -1,3 +1,4 @@
+// Template: Entry — presentational Naql content and optional Khulasa.
 export default function NaqlEntry({ content, summary }) {
   return (
     <>

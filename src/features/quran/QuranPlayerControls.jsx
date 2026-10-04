@@ -1,3 +1,4 @@
+// Template: Reader — docked player and reader action controls.
 import { PlayIcon, PauseIcon, TopArrowIcon } from "../../components/icons/MediaIcons.jsx";
 import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";

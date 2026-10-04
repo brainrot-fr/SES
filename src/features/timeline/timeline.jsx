@@ -1,6 +1,8 @@
 /**
  * timeline.jsx
  * Timeline feature page showing major events and details.
+ * Glossary: AH is the Hijri year; CE is the Common Era year; each event has
+ * a short summary and an expanded historical detail.
  *
  * - Renders a semantic vertical timeline using shared design tokens.
  * - Opens event detail dialogs with accessible keyboard support.

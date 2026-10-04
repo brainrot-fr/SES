@@ -1,3 +1,4 @@
+// Template: Feed — posts and immersive reels list composition.
 import { Link } from "react-router-dom";
 import { getDisplayName } from "../auth/authSession";
 import PostCard from "./PostCard";

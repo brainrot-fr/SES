@@ -1,3 +1,4 @@
+// Template: Feed — presentational post regions.
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
 import { Badge } from "../../components/shadcn/badge";
 import { Button } from "../../components/shadcn/button";

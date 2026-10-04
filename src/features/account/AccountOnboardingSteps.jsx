@@ -1,3 +1,4 @@
+// Template: Entry — focused onboarding step composition.
 import { Button } from "../../components/shadcn/button";
 import { Checkbox } from "../../components/shadcn/checkbox";
 import { Label } from "../../components/shadcn/label";

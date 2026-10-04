@@ -4,6 +4,7 @@
  *
  * - Exports an array of event objects rendered by the timeline page.
  * - Each event includes year, title, summary, and expanded detail markup.
+ * A future CMS can supply this array shape without changing the page renderer.
  */
 
 import React from 'react';

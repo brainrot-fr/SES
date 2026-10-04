@@ -4,6 +4,9 @@
  * each rendered as a plain top-to-bottom ordered list. No selection UI —
  * per feat-murshidObject.md the Murshid choice happens once during
  * onboarding, not re-picked here.
+ *
+ * Glossary: Murshid is a spiritual guide; Silsila is a spiritual lineage;
+ * Tarbiyat means spiritual refinement and Faqiri denotes the path of renunciation.
  */
 
 import { silsilaETarbiyat, silsilaEFaqiri } from './murshidData';

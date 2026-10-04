@@ -58,13 +58,6 @@ jobs:
           VITE_CLOUDINARY_CLOUD_NAME: ${{ secrets.VITE_CLOUDINARY_CLOUD_NAME }}
           VITE_CLOUDINARY_UPLOAD_PRESET: ${{ secrets.VITE_CLOUDINARY_UPLOAD_PRESET }}
 
-      - name: Write google-services.json
-        env:
-          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
-        run: |
-          test -n "$GOOGLE_SERVICES_JSON_B64" || { echo "Missing GOOGLE_SERVICES_JSON_B64 repository secret"; exit 1; }
-          echo "$GOOGLE_SERVICES_JSON_B64" | base64 -d > android/app/google-services.json
-
       - run: npx cap sync android
 
       - name: Restore Firebase config

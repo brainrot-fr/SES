@@ -21,6 +21,20 @@ export function hasMoreForPage(rowCount, pageSize) {
   return rowCount === pageSize;
 }
 
+export function orderPostsByRankedIds(posts, rankedIds) {
+  if (
+    !Array.isArray(rankedIds)
+    || rankedIds.length !== posts.length
+    || new Set(rankedIds).size !== posts.length
+    || posts.some((post) => !rankedIds.includes(post.id))
+  ) {
+    return null;
+  }
+
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+  return rankedIds.map((id) => postsById.get(id));
+}
+
 export function getReelPosterUrl(post, width = 540, blurred = false) {
   const url = post?.media_url;
   if (url?.includes("/video/upload/")) {

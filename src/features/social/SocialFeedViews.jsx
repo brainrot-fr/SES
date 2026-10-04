@@ -9,6 +9,7 @@ import { Skeleton } from "../../components/shadcn/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
 import { Button } from "../../components/shadcn/button";
 import { Card } from "../../components/shadcn/card";
+import { Alert, AlertDescription } from "../../components/shadcn/alert";
 import Split from "../../components/layout/Split";
 import { ImagePlus, Plus } from "lucide-react";
 
@@ -20,6 +21,7 @@ export function ReelsViewport({ t, user, navigate, feed }) {
     loading,
     error,
     loadError,
+    showingCachedContent,
     activeReelIndex,
     reelMuted,
     setReelMuted,
@@ -47,6 +49,7 @@ export function ReelsViewport({ t, user, navigate, feed }) {
         <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("reelsCreate")} title={t("reelsCreate")}><Link to="/reels/create"><Plus /></Link></Button>
       </header>
       {error && <p className="social-error" role="alert">{error}</p>}
+      {showingCachedContent && <Alert aria-live="polite"><AlertDescription>{t("socialOfflineCached")}</AlertDescription></Alert>}
       {loadError && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
       {loading && posts.length === 0 && <div className="social-reels__skeleton" role="status" aria-label={t("socialLoading")}><Skeleton className="aspect-[9/16] w-full" /></div>}
       {!loading && !loadError && posts.length === 0 && <div className="social-reels__end social-reels__end--empty"><ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => loadPage(0, false)} /></div>}
@@ -94,6 +97,7 @@ export function FeedList({ t, user, navigate, feed }) {
     loading,
     error,
     loadError,
+    showingCachedContent,
     feedRef,
     loadPage,
     handleLike,
@@ -126,6 +130,7 @@ export function FeedList({ t, user, navigate, feed }) {
           </Button>
         </Card>
         {error && <p className="social-error" role="alert">{error}</p>}
+        {showingCachedContent && <Alert className="mb-3" aria-live="polite"><AlertDescription>{t("socialOfflineCached")}</AlertDescription></Alert>}
         {loadError && <div className="social-error" role="alert"><span>{loadError}</span><button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
         {loading && posts.length === 0 && (
           <div className="grid gap-3" role="status" aria-label={t("socialLoading")}>

@@ -19,6 +19,24 @@ import { getDisplayName } from '../account/accountProfile.js';
 export { getDisplayName };
 
 const AUTH_CALLBACK_URL = 'ses://auth-callback';
+const PUSH_TOKEN_KEY = 'ses-push-token';
+
+async function retryRpc(operation, attempts = 3) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      const { error } = await operation();
+      if (!error) return;
+      lastError = error;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt + 1 < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (2 ** attempt)));
+    }
+  }
+  throw lastError;
+}
 
 function getAuthRedirectTo() {
   return Capacitor.isNativePlatform() ? AUTH_CALLBACK_URL : window.location.origin;
@@ -112,22 +130,43 @@ export async function signUpWithPassword(username, email, password) {
 }
 
 export async function signOut() {
-  const pushToken = localStorage.getItem('ses-push-token');
+  const pushToken = localStorage.getItem(PUSH_TOKEN_KEY);
   if (pushToken) {
-    try { await supabase.rpc('unregister_device_token', { p_token: pushToken }); } catch { /* best effort */ }
-    localStorage.removeItem('ses-push-token');
+    await retryRpc(() => supabase.rpc('unregister_device_token', { p_token: pushToken }));
+    localStorage.removeItem(PUSH_TOKEN_KEY);
   }
   const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) throw error;
 }
 
 export async function deleteAccount() {
-  const { error } = await supabase.functions.invoke('delete-account');
+  const { data, error } = await supabase.functions.invoke('delete-account');
   if (error) throw error;
+  if (data?.deleted !== true) {
+    throw new Error("The account deletion service did not confirm deletion.");
+  }
 
-  localStorage.removeItem('ses-push-token');
+  let localCleanupFailed = false;
+  try {
+    localStorage.removeItem(PUSH_TOKEN_KEY);
+  } catch {
+    localCleanupFailed = true;
+  }
   const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
-  if (signOutError) throw signOutError;
+  const result = {
+    mediaCleanupIncomplete: data?.mediaCleanupIncomplete === true,
+    failedMediaCount: Number.isInteger(data?.failedMediaCount) ? data.failedMediaCount : 0,
+  };
+  if (signOutError || localCleanupFailed) {
+    const deletionError = new Error("Account deleted, but local sign-out failed.");
+    Object.assign(deletionError, result, {
+      accountDeleted: true,
+      signOutFailed: Boolean(signOutError),
+      localCleanupFailed,
+    });
+    throw deletionError;
+  }
+  return result;
 }
 
 /*

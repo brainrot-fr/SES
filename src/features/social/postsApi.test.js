@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   getReelPosterUrl,
   hasMoreForPage,
+  orderPostsByRankedIds,
   rankReels,
   splitCaption,
 } from "./reelRanking.js";
@@ -11,6 +12,13 @@ test("hasMore uses the raw page row count", () => {
   assert.equal(hasMoreForPage(20, 20), true);
   assert.equal(hasMoreForPage(19, 20), false);
   assert.equal(hasMoreForPage(21, 20), false);
+});
+
+test("orderPostsByRankedIds follows a complete server order and rejects incomplete results", () => {
+  const posts = [{ id: "a" }, { id: "b" }];
+  assert.deepEqual(orderPostsByRankedIds(posts, ["b", "a"]), [{ id: "b" }, { id: "a" }]);
+  assert.equal(orderPostsByRankedIds(posts, ["b"]), null);
+  assert.equal(orderPostsByRankedIds(posts, ["b", "b"]), null);
 });
 
 test("rankReels deterministically diversifies creators and topics", () => {

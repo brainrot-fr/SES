@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchSurah, QURAN_SURAH_LIST } from "./quranApi";
 import { quranTranslations } from "./quranTranslations";
+import {
+  cacheSurah,
+  cacheSurahList,
+  readCachedSurah,
+  readLastViewedSurah,
+  writeLastViewedSurah,
+} from "./quranOfflineCache.js";
 
 const TOTAL_SURAHS = 114;
-const STORAGE_KEY = "ses-current-surah";
 const VIEW_MODE_KEY = "ses-quran-view-mode";
 const TRANSLATION_KEY = "ses-show-translation";
 const FONT_SCALE_KEY = "ses-quran-font-scale";
@@ -11,23 +17,32 @@ const AYAH_BATCH_SIZE = 40;
 const MIN_FONT_SCALE = 0.8;
 const MAX_FONT_SCALE = 1.6;
 
+function readPreference(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 export function useQuranReaderState(initialSurah, initialAyah) {
   const [currentSurah, setCurrentSurah] = useState(() => {
-    const n = initialSurah ?? parseInt(localStorage.getItem(STORAGE_KEY), 10);
+    const n = initialSurah ?? readLastViewedSurah();
     return !isNaN(n) && n >= 1 && n <= TOTAL_SURAHS ? n : 1;
   });
   const [surah, setSurah] = useState(null);
+  const [showingCachedSurah, setShowingCachedSurah] = useState(false);
   const [error, setError] = useState(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [visibleCount, setVisibleCount] = useState(AYAH_BATCH_SIZE);
   const [viewMode, setViewMode] = useState(
-    () => localStorage.getItem(VIEW_MODE_KEY) || "verse",
+    () => readPreference(VIEW_MODE_KEY) || "verse",
   );
   const [showTranslation, setShowTranslation] = useState(
-    () => localStorage.getItem(TRANSLATION_KEY) !== "false",
+    () => readPreference(TRANSLATION_KEY) !== "false",
   );
   const [fontScale, setFontScale] = useState(() => {
-    const storedScale = Number.parseFloat(localStorage.getItem(FONT_SCALE_KEY));
+    const storedScale = Number.parseFloat(readPreference(FONT_SCALE_KEY));
     return Number.isFinite(storedScale)
       ? Math.min(MAX_FONT_SCALE, Math.max(MIN_FONT_SCALE, storedScale))
       : 1;
@@ -43,29 +58,53 @@ export function useQuranReaderState(initialSurah, initialAyah) {
   const retry = () => setLoadAttempt((attempt) => attempt + 1);
 
   useEffect(() => {
-    localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch {
+      // Reader preferences are optional; the bundled text remains available.
+    }
   }, [viewMode]);
   useEffect(() => {
-    localStorage.setItem(TRANSLATION_KEY, String(showTranslation));
+    try {
+      localStorage.setItem(TRANSLATION_KEY, String(showTranslation));
+    } catch {
+      // Reader preferences are optional; the bundled text remains available.
+    }
   }, [showTranslation]);
   useEffect(() => {
-    localStorage.setItem(FONT_SCALE_KEY, String(fontScale));
+    try {
+      localStorage.setItem(FONT_SCALE_KEY, String(fontScale));
+    } catch {
+      // Reader preferences are optional; the bundled text remains available.
+    }
   }, [fontScale]);
 
   useEffect(() => {
     let cancelled = false;
     setSurah(null);
+    setShowingCachedSurah(false);
     setError(null);
     setVisibleCount(AYAH_BATCH_SIZE);
-    localStorage.setItem(STORAGE_KEY, String(currentSurah));
+    cacheSurahList(QURAN_SURAH_LIST);
+    writeLastViewedSurah(currentSurah);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     fetchSurah(currentSurah)
       .then((data) => {
-        if (!cancelled) setSurah(data);
+        if (!cancelled) {
+          cacheSurah(currentSurah, data);
+          setSurah(data);
+        }
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message);
+        if (cancelled) return;
+        const cachedSurah = readCachedSurah(currentSurah);
+        if (cachedSurah) {
+          setSurah(cachedSurah);
+          setShowingCachedSurah(true);
+        } else {
+          setError(err.message);
+        }
       });
 
     return () => {
@@ -142,6 +181,7 @@ export function useQuranReaderState(initialSurah, initialAyah) {
   return {
     currentSurah,
     surah,
+    showingCachedSurah,
     error,
     loadAttempt,
     showBackToTop,

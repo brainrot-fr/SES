@@ -82,6 +82,40 @@ test("rejects failed or malformed public API responses", async () => {
   );
 });
 
+test("falls back to the latest known date when the current date cannot be fetched", async () => {
+  const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  const values = new Map();
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+    },
+  });
+
+  try {
+    const previousDate = await getIslamicDate({
+      countryCode: "SA",
+      locale: "en",
+      now: new Date("2026-09-29T12:00:00.000Z"),
+      fetcher: async () => ({ ok: true, json: async () => mockHijriResponse }),
+    });
+    const lastKnownDate = await getIslamicDate({
+      countryCode: "SA",
+      locale: "en",
+      now: new Date("2026-09-30T12:00:00.000Z"),
+      fetcher: async () => { throw new Error("offline"); },
+    });
+
+    assert.equal(lastKnownDate.text, previousDate.text);
+    assert.equal(lastKnownDate.isCached, true);
+    assert.equal(lastKnownDate.isStale, true);
+  } finally {
+    if (previousStorage) Object.defineProperty(globalThis, "localStorage", previousStorage);
+    else delete globalThis.localStorage;
+  }
+});
+
 test("uses the keyed Hijri cache first and refreshes it in the background", async () => {
   const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const values = new Map();

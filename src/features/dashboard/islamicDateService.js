@@ -2,6 +2,7 @@
 // the preceding Gregorian date to display one Hijri day behind Saudi Arabia.
 const HIJRI_API_BASE = "https://api.aladhan.com/v1/gToH";
 const HIJRI_CACHE_PREFIX = "ses-hijri-date-v1";
+const HIJRI_LATEST_CACHE_PREFIX = "ses-hijri-date-latest-v1";
 const BEHIND_SAUDI_COUNTRIES = new Set(["IN", "PK", "BD", "AF"]);
 const HIJRI_MONTH_NAMES = {
   en: [
@@ -101,6 +102,14 @@ export function getIslamicDateCacheKey(apiDate, countryCode, locale) {
   return `${HIJRI_CACHE_PREFIX}:${apiDate}:${countryCode?.toUpperCase() || "SA"}:${locale === "ur" ? "ur" : "en"}`;
 }
 
+function getLatestDateCacheKey(countryCode, locale) {
+  return `${HIJRI_LATEST_CACHE_PREFIX}:${countryCode?.toUpperCase() || "SA"}:${locale === "ur" ? "ur" : "en"}`;
+}
+
+function isOffline() {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
 function formatHijriDate(apiDate, hijri, locale) {
   const language = locale === "ur" ? "ur" : "en";
   const numberFormat = new Intl.NumberFormat(language, { useGrouping: false });
@@ -142,20 +151,31 @@ export async function getIslamicDate({
   const dateParts = getSaudiGregorianDate(now);
   const apiDate = formatApiDate(dateParts, countryDateOffset(countryCode));
   const cacheKey = getIslamicDateCacheKey(apiDate, countryCode, locale);
+  const latestCacheKey = getLatestDateCacheKey(countryCode, locale);
   const cached = readCachedDate(cacheKey);
   if (cached) {
-    void fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs)
+    if (!isOffline()) void fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs)
       .then((hijri) => {
         const refreshed = formatHijriDate(apiDate, hijri, locale);
         writeCachedDate(cacheKey, refreshed);
+        writeCachedDate(latestCacheKey, refreshed);
         onRefresh?.(refreshed);
       })
       .catch(() => {});
-    return cached;
+    return { ...cached, isCached: true, isStale: isOffline() };
   }
 
-  const hijri = await fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs);
-  const result = formatHijriDate(apiDate, hijri, locale);
-  writeCachedDate(cacheKey, result);
-  return result;
+  try {
+    const hijri = await fetchHijriForGregorianDate(apiDate, fetcher, timeoutMs);
+    const result = formatHijriDate(apiDate, hijri, locale);
+    writeCachedDate(cacheKey, result);
+    writeCachedDate(latestCacheKey, result);
+    return result;
+  } catch (error) {
+    const lastKnownDate = readCachedDate(latestCacheKey);
+    if (lastKnownDate) {
+      return { ...lastKnownDate, isCached: true, isStale: true };
+    }
+    throw error;
+  }
 }

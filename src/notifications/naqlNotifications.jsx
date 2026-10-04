@@ -20,6 +20,7 @@ const TEST_NOTIF_ID = 1;
 const LEGACY_CLEANUP_KEY = 'ses-notif-legacy-cleanup-v2';
 const EXACT_ALARM_PROMPT_KEY = 'ses-exact-alarm-prompted';
 const PUSH_TOKEN_KEY = 'ses-push-token';
+const TOKEN_REGISTRATION_ATTEMPTS = 3;
 
 const TIMES_OF_DAY = [
   { hour: 5,  minute: 0 },
@@ -51,6 +52,35 @@ function jsxToPlainText(node, maxLength) {
 function pickRandomNaql() {
   const naqlNumbers = Object.keys(nuqoolObject);
   return Number(naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)]);
+}
+
+async function registerPushToken(value, lang) {
+  let lastError;
+  for (let attempt = 0; attempt < TOKEN_REGISTRATION_ATTEMPTS; attempt += 1) {
+    try {
+      const { error } = await supabase.rpc('register_device_token', {
+        p_token: value,
+        p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        p_lang: lang,
+      });
+      if (!error) {
+        localStorage.setItem(PUSH_TOKEN_KEY, value);
+        try {
+          await LocalNotifications.cancel({ notifications: [{ id: NEXT_NOTIF_ID }] });
+        } catch (cancelError) {
+          console.warn('[push] could not cancel local notification after token registration', cancelError);
+        }
+        return;
+      }
+      lastError = error;
+    } catch (error) {
+      lastError = error;
+    }
+    if (attempt + 1 < TOKEN_REGISTRATION_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * (2 ** attempt)));
+    }
+  }
+  throw lastError;
 }
 
 /* Find the next TIME_OF_DAY slot strictly after `from`. */
@@ -216,14 +246,11 @@ export function initNaqlPush({ lang, onOpenNaql }) {
       if (perm.receive !== 'granted' || cancelled) return;
       await PushNotifications.createChannel({ id: 'naql-daily', name: 'Daily Naql', importance: 3, visibility: 1 });
       keep(await PushNotifications.addListener('registration', async ({ value }) => {
-        const { error } = await supabase.rpc('register_device_token', {
-          p_token: value,
-          p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          p_lang: lang,
-        });
-        if (error) { console.error('[push] could not save token', error); return; }
-        localStorage.setItem(PUSH_TOKEN_KEY, value);
-        LocalNotifications.cancel({ notifications: [{ id: NEXT_NOTIF_ID }] }).catch(() => {});
+        try {
+          await registerPushToken(value, lang);
+        } catch (error) {
+          console.error('[push] could not save token after retries', error);
+        }
       }));
       keep(await PushNotifications.addListener('registrationError', (e) => console.error('[push] registration failed', e)));
       keep(await PushNotifications.addListener('pushNotificationActionPerformed', ({ notification }) => {

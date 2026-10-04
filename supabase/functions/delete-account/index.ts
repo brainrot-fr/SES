@@ -102,6 +102,14 @@ Deno.serve(async (request) => {
     [socialProfileAvatarUrl, user.user_metadata?.avatar_url],
     cloudName,
   );
+
+  const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+  if (deleteError) {
+    console.error('[delete-account] failed to delete user', deleteError);
+    return jsonResponse({ error: 'Could not delete account' }, 500);
+  }
+
+  let failedMediaCount = 0;
   for (let offset = 0; offset < assets.length; offset += 5) {
     const batch = assets.slice(offset, offset + 5);
     const deletionResults = await Promise.allSettled(
@@ -113,18 +121,17 @@ Deno.serve(async (request) => {
         })
       ),
     );
-    const deletionError = deletionResults.find((result) => result.status === 'rejected');
-    if (deletionError?.status === 'rejected') {
-      console.error('[delete-account] failed to remove user media', deletionError.reason);
-      return jsonResponse({ error: 'Could not remove account media' }, 502);
+    for (const result of deletionResults) {
+      if (result.status === 'rejected') {
+        failedMediaCount += 1;
+        console.error('[delete-account] failed to remove user media', result.reason);
+      }
     }
   }
 
-  const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
-  if (deleteError) {
-    console.error('[delete-account] failed to delete user', deleteError);
-    return jsonResponse({ error: 'Could not delete account' }, 500);
-  }
-
-  return jsonResponse({ deleted: true }, 200);
+  return jsonResponse({
+    deleted: true,
+    mediaCleanupIncomplete: failedMediaCount > 0,
+    failedMediaCount,
+  }, 200);
 });

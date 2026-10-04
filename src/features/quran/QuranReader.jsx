@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLang } from "../../context/LanguageContext";
 import { Button } from "../../components/shadcn/button";
+import { Alert, AlertDescription } from "../../components/shadcn/alert";
 import { useQuranAudioPlayer } from "./useQuranAudioPlayer";
 import { useQuranReaderState } from "./useQuranReaderState";
 import QuranPlayerControls from "./QuranPlayerControls";
@@ -16,6 +17,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
   const {
     currentSurah,
     surah,
+    showingCachedSurah,
     error,
     loadAttempt,
     showBackToTop,
@@ -106,6 +108,7 @@ export default function QuranReader({ initialSurah, initialAyah }) {
       <div ref={topRef} className="quran-scroll-anchor" />
 
       <ReaderLoadState error={error} loading={!surah} onRetry={retry} t={t} />
+      {showingCachedSurah && <Alert className="mb-3" aria-live="polite"><AlertDescription>{t("quranOfflineCached")}</AlertDescription></Alert>}
       {surah && (
         <section className="quran-body" style={{ "--quran-font-scale": fontScale }}>
           <ReaderToolbar

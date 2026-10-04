@@ -43,7 +43,20 @@ export default function Dashboard() {
     error: false,
   });
   const [dateRetry, setDateRetry] = useState(0);
+  const [isOffline, setIsOffline] = useState(
+    () => typeof navigator !== "undefined" && navigator.onLine === false,
+  );
   const countryCode = profile?.country_code || null;
+
+  useEffect(() => {
+    const updateNetworkStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener("online", updateNetworkStatus);
+    window.addEventListener("offline", updateNetworkStatus);
+    return () => {
+      window.removeEventListener("online", updateNetworkStatus);
+      window.removeEventListener("offline", updateNetworkStatus);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,12 +90,12 @@ export default function Dashboard() {
       countryCode,
       locale: lang,
       now: new Date(),
-      onRefresh: ({ text }) => {
-        if (!cancelled) setIslamicDate({ text, loading: false, error: false });
+      onRefresh: ({ text, isStale = false }) => {
+        if (!cancelled) setIslamicDate({ text, loading: false, error: false, isStale });
       },
     })
-      .then(({ text }) => {
-        if (!cancelled) setIslamicDate({ text, loading: false, error: false });
+      .then(({ text, isStale = false }) => {
+        if (!cancelled) setIslamicDate({ text, loading: false, error: false, isStale });
       })
       .catch(() => {
         if (!cancelled) {
@@ -117,7 +130,12 @@ export default function Dashboard() {
                   {t("dashboardIslamicDateRetry")}
                 </button>
               </span>
-            ) : islamicDate.text}
+            ) : (
+              <>
+                {islamicDate.text}
+                {(islamicDate.isStale || isOffline) && <span className="ms-1 text-muted-foreground">{t("dashboardDateMayBeOutdated")}</span>}
+              </>
+            )}
           </span>
         </span>
       </header>

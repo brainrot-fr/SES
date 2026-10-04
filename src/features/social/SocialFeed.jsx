@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "../../context/LanguageContext";
 import { useAuth } from "../../context/AuthContext";
+import { useAccountProfile } from "../account/AccountProfileProvider";
 import { useSocialFeed } from "./useSocialFeed";
 import { FeedList, ReelsViewport } from "./SocialFeedViews";
 import "./socialFeed.css";
@@ -8,6 +9,7 @@ import "./socialFeed.css";
 export default function SocialFeed({ mode = "posts" }) {
   const { t } = useLang();
   const { user } = useAuth();
+  const { viewerGender } = useAccountProfile();
   const location = useLocation();
   const navigate = useNavigate();
   const isReels = mode === "reels";
@@ -20,6 +22,7 @@ export default function SocialFeed({ mode = "posts" }) {
   const feed = useSocialFeed({
     mode,
     user,
+    viewerGender,
     prioritizedPostId,
     prioritizedReelId,
     t,

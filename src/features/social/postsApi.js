@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabaseClient.js";
-import { hasMoreForPage, rankReels } from "./reelRanking.js";
+import { hasMoreForPage, orderPostsByRankedIds, rankReels } from "./reelRanking.js";
 
 export const POSTS_PAGE_SIZE = 20;
 const POST_COLUMNS = "id, author_id, author_display_name, body, media_url, media_type, media_format, media_width, media_height, media_bytes, created_at";
@@ -32,6 +32,20 @@ async function addEngagement(posts) {
   }));
 }
 
+async function assertPostGenderVisibility(posts) {
+  const authorIds = [...new Set(posts.map((post) => post.author_id))];
+  if (!authorIds.length) return;
+
+  const { data, error } = await supabase.rpc("assert_social_post_visibility", {
+    p_author_ids: authorIds,
+  });
+  if (error || data !== true) {
+    const visibilityError = new Error("Could not verify social post visibility.");
+    visibilityError.code = "SOCIAL_VISIBILITY_VIOLATION";
+    throw visibilityError;
+  }
+}
+
 export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   const start = page * POSTS_PAGE_SIZE;
   let query = supabase
@@ -61,6 +75,7 @@ export async function fetchPosts(page = 0, mediaType, prioritizedPostId) {
   const uniquePosts = prioritizedPost
     ? [prioritizedPost, ...data.filter((post) => post.id !== prioritizedPost.id)]
     : data;
+  await assertPostGenderVisibility(uniquePosts);
   return { posts: await addEngagement(uniquePosts), hasMore };
 }
 
@@ -92,6 +107,7 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
     ? [prioritizedPost, ...posts.filter((post) => post.id !== prioritizedPost.id)]
     : posts;
   if (!uniquePosts.length) return { posts: uniquePosts, hasMore };
+  await assertPostGenderVisibility(uniquePosts);
 
   const postIds = uniquePosts.map((post) => post.id);
   const [{ data: engagement, error: engagementError }, profiles] = await Promise.all([
@@ -107,8 +123,24 @@ export async function fetchReels(page = 0, userId, preferences = {}, prioritized
     author_display_name: profiles.get(post.author_id)?.display_name || post.author_display_name,
     author_avatar_url: profiles.get(post.author_id)?.avatar_url || null,
   }));
-  // Ranking is intentionally scoped to this fetched page.
-  const ranked = rankReels(enriched, preferences);
+  let ranked;
+  const { data: serverRanking, error: rankingError } = await supabase.rpc(
+    "rank_social_reels",
+    { p_post_ids: postIds, p_preferences: preferences },
+  );
+  if (!rankingError) {
+    ranked = orderPostsByRankedIds(
+      enriched,
+      Array.isArray(serverRanking)
+        ? serverRanking.map(({ post_id }) => post_id)
+        : null,
+    );
+    if (!ranked) console.warn("[Reels] server ranking returned an incomplete order; using client ranking");
+  } else {
+    console.warn("[Reels] server ranking unavailable; using client ranking", rankingError);
+  }
+  // Ranking stays page-scoped to preserve the existing pagination model.
+  ranked ||= rankReels(enriched, preferences);
   const ordered = !prioritizedPost ? ranked : [
     ...ranked.filter((post) => post.id === prioritizedPost.id),
     ...ranked.filter((post) => post.id !== prioritizedPost.id),

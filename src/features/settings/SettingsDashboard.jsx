@@ -20,8 +20,10 @@ import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../
 import { friendlyError } from "../../lib/supabaseClient.js";
 import { updateSocialProfile } from "../social/postsApi";
 import { getDisplayName } from "../auth/authSession";
+import { toast } from "sonner";
 import {
   SettingsAccountSection,
+  NotificationSettingsSection,
   SettingsPreferencesSection,
   SettingsProfileForm,
 } from "./SettingsSections";
@@ -92,9 +94,18 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
     setAccountBusy(true);
     setAccountError("");
     try {
-      await deleteAccount();
+      const result = await deleteAccount();
+      toast[result.mediaCleanupIncomplete ? "warning" : "success"](
+        t(result.mediaCleanupIncomplete ? "settingsDeletePartialSuccess" : "settingsDeleteSuccess"),
+      );
     } catch (error) {
-      setAccountError(friendlyError(error, t, "settingsActionError"));
+      if (error?.accountDeleted) {
+        toast.error(t(error.signOutFailed
+          ? "settingsDeleteSignOutWarning"
+          : "settingsDeleteTokenCleanupWarning"));
+      } else {
+        setAccountError(friendlyError(error, t, "settingsActionError"));
+      }
       setDeleteDialogOpen(false);
     } finally {
       setAccountBusy(false);
@@ -187,6 +198,7 @@ export default function SettingsDashboard({ darkMode, onThemeToggle }) {
         chooseLang={chooseLang}
         t={t}
       />
+      <NotificationSettingsSection t={t} />
       <section className="settings-dashboard__danger">
         <h2 className="settings-dashboard__danger-heading">{t("settingsDangerZone")}</h2>
         <div className="settings-dashboard__danger-row">

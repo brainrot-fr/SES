@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import AppIcon from "../../components/icons/AppIcon";
 import { Button } from "../../components/shadcn/button";
 import { Input } from "../../components/shadcn/input";
@@ -6,6 +7,93 @@ import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/ava
 import { Toggle } from "../../components/shadcn/toggle";
 import { ToggleGroup, ToggleGroupItem } from "../../components/shadcn/toggle-group";
 import { Item, ItemContent, ItemGroup, ItemSeparator } from "../../components/shadcn/item";
+import { Capacitor } from "@capacitor/core";
+import {
+  getNotificationReadiness,
+  openBatteryOptimizationSettings,
+  openExactAlarmSettings,
+  requestNotificationPermission,
+} from "../../notifications/notificationSettings";
+
+export function NotificationSettingsSection({ t }) {
+  const [readiness, setReadiness] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const isAndroid = Capacitor.getPlatform() === "android";
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setReadiness(await getNotificationReadiness());
+    } catch (statusError) {
+      console.error("[Settings] could not read notification readiness", statusError);
+      setError(t("notificationStatusError"));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    void refresh();
+    const refreshOnResume = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", refreshOnResume);
+    return () => document.removeEventListener("visibilitychange", refreshOnResume);
+  }, [refresh]);
+
+  if (!Capacitor.isNativePlatform()) return null;
+
+  const hasIncompletePermissions = readiness
+    && (!readiness.displayGranted
+      || readiness.exactAlarmGranted === false
+      || readiness.batteryOptimizationExempt === false);
+
+  const runSettingsAction = async (action) => {
+    setLoading(true);
+    setError("");
+    try {
+      await action();
+      await refresh();
+    } catch (actionError) {
+      console.error("[Settings] could not open notification settings", actionError);
+      setError(t("notificationSettingsOpenError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="settings-dashboard__section">
+      <h2 className="settings-dashboard__heading">{t("notificationSettingsTitle")}</h2>
+      {loading && <p className="settings-dashboard__muted" role="status">{t("settingsLoading")}</p>}
+      {readiness && hasIncompletePermissions && (
+        <p className="settings-dashboard__muted" role="status">{t("notificationsMayBeDelayed")}</p>
+      )}
+      {readiness && !hasIncompletePermissions && (
+        <p className="settings-dashboard__muted" role="status">{t("notificationsReady")}</p>
+      )}
+      {error && <p className="settings-dashboard__error" role="alert">{error}</p>}
+      {readiness && !readiness.displayGranted && (
+        <Button type="button" variant="outline" disabled={loading} onClick={() => runSettingsAction(requestNotificationPermission)}>
+          {t("notificationEnable")}
+        </Button>
+      )}
+      {isAndroid && readiness?.exactAlarmGranted === false && (
+        <Button type="button" variant="outline" disabled={loading} onClick={() => runSettingsAction(openExactAlarmSettings)}>
+          {t("notificationExactAlarmSettings")}
+        </Button>
+      )}
+      {isAndroid && readiness?.batteryOptimizationExempt === false && (
+        <Button type="button" variant="outline" disabled={loading} onClick={() => runSettingsAction(openBatteryOptimizationSettings)}>
+          {t("notificationBatterySettings")}
+        </Button>
+      )}
+    </section>
+  );
+}
 
 export function SettingsProfileForm({ user, t, profile }) {
   const {

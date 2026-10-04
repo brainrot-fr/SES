@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { deletePost, fetchPosts, fetchReels, recordPostShare, recordPostView, reportPost, setFollow, setPostLike } from "./postsApi";
 import { readReelPreferences, recordReelPreference } from "./reelRanking";
 import { getReelPosterUrl, REEL_MUTE_KEY } from "./ReelCard";
+import { readSocialFeedCache, writeSocialFeedCache } from "./socialFeedCache";
 import { friendlyError } from "../../lib/supabaseClient.js";
 
-export function useSocialFeed({ mode, user, prioritizedPostId, prioritizedReelId, t }) {
+export function useSocialFeed({ mode, user, viewerGender, prioritizedPostId, prioritizedReelId, t }) {
   const isReels = mode === "reels";
   const requestIdRef = useRef(0);
   const loadingRef = useRef(false);
@@ -17,6 +18,7 @@ export function useSocialFeed({ mode, user, prioritizedPostId, prioritizedReelId
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [showingCachedContent, setShowingCachedContent] = useState(false);
   const [activeReelIndex, setActiveReelIndex] = useState(0);
   const [reelMuted, setReelMuted] = useState(() => {
     try {
@@ -40,27 +42,46 @@ export function useSocialFeed({ mode, user, prioritizedPostId, prioritizedReelId
       if (requestId !== requestIdRef.current) return;
       const { posts: nextPosts, hasMore: nextHasMore } = pageResult;
       setPosts((current) => append ? [...current, ...nextPosts] : nextPosts);
+      if (!append && pageNumber === 0) {
+        writeSocialFeedCache(user?.id, mode, viewerGender, nextPosts);
+        setShowingCachedContent(false);
+      }
       hasMoreRef.current = nextHasMore;
       setHasMore(nextHasMore);
       setPage(pageNumber);
     } catch (loadError) {
       if (requestId !== requestIdRef.current) return;
       console.error("[SocialFeed] failed to load posts", loadError);
-      setLoadError(friendlyError(loadError, t, "socialFeedFailed"));
+      if (loadError?.code === "SOCIAL_VISIBILITY_VIOLATION") {
+        setLoadError(t("socialVisibilityFetchError"));
+      } else {
+        const cachedPosts = !append && pageNumber === 0
+          ? readSocialFeedCache(user?.id, mode, viewerGender)
+          : null;
+        if (cachedPosts) {
+          setPosts(cachedPosts);
+          setHasMore(false);
+          hasMoreRef.current = false;
+          setShowingCachedContent(true);
+          setLoadError("");
+        } else {
+          setLoadError(friendlyError(loadError, t, "socialFeedFailed"));
+        }
+      }
     } finally {
       if (requestId === requestIdRef.current) {
         loadingRef.current = false;
         setLoading(false);
       }
     }
-  }, [isReels, prioritizedPostId, prioritizedReelId, t, user?.id]);
+  }, [isReels, mode, prioritizedPostId, prioritizedReelId, t, user?.id, viewerGender]);
 
   useEffect(() => {
-    if (!loadError) return undefined;
+    if (!loadError && !showingCachedContent) return undefined;
     const retry = () => loadPage(page, page > 0);
     window.addEventListener("online", retry, { once: true });
     return () => window.removeEventListener("online", retry);
-  }, [loadError, loadPage, page]);
+  }, [loadError, loadPage, page, showingCachedContent]);
 
   const nextPosterUrl = isReels ? getReelPosterUrl(posts[activeReelIndex + 1]) : "";
 
@@ -68,6 +89,7 @@ export function useSocialFeed({ mode, user, prioritizedPostId, prioritizedReelId
     loadingRef.current = false;
     hasMoreRef.current = true;
     setPosts([]);
+    setShowingCachedContent(false);
     if (isReels) setActiveReelIndex(0);
     setPage(0);
     setHasMore(true);
@@ -194,6 +216,7 @@ export function useSocialFeed({ mode, user, prioritizedPostId, prioritizedReelId
     loading,
     error,
     loadError,
+    showingCachedContent,
     activeReelIndex,
     reelMuted,
     setReelMuted,

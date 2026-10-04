@@ -20,3 +20,4 @@ scripts/*
 public/quran-audio-durations.json
 .impeccable
 .github/hooks
+service-account.json

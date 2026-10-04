@@ -60,6 +60,16 @@ jobs:
 
       - run: npx cap sync android
 
+      - name: Restore Firebase config
+        env:
+          FIREBASE_CONFIG_BASE64: ${{ secrets.FIREBASE_CONFIG_BASE64 }}
+        run: |
+          test -n "$FIREBASE_CONFIG_BASE64" || { echo "Missing FIREBASE_CONFIG_BASE64 repository secret"; exit 1; }
+          printf '%s' "$FIREBASE_CONFIG_BASE64" | base64 --decode > android/app/google-services.json
+
+      - name: Build debug APK
+        run: android/gradlew -p android assembleDebug
+
       - name: Build debug APK
         run: android/gradlew -p android assembleDebug
 

@@ -12,6 +12,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import {
   getCurrentSession,
@@ -22,18 +23,26 @@ import {
   signInWithPassword,
   signInWithGoogle,
   signUpWithPassword,
+  requestPasswordReset,
+  updateRecoveredPassword,
+  resendSignupConfirmation,
   signOut as signOutSession,
   deleteAccount as deleteAccountSession,
-} from "../features/auth/authSession";
-import { AccountProfileProvider } from "../features/account/AccountProfileProvider";
+} from "@/features/auth/authSession";
+import { AccountProfileProvider } from "@/features/account/AccountProfileProvider";
+import { useLang } from "@/context/LanguageContext";
+import { toast } from "sonner";
+import { friendlyError } from "@/lib/supabaseClient.js";
 
 const Ctx = createContext(null);
 
 export function AuthProvider({ children }) {
+  const { t } = useLang();
   const [session, setSession] = useState(null);
   const [ready, setReady] = useState(false);
   const [upgradeConfirmed, setUpgradeConfirmed] = useState(false);
   const [upgradeError, setUpgradeError] = useState(null);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,8 +58,9 @@ export function AuthProvider({ children }) {
       }
     })();
 
-    const unsubscribe = onAuthStateChange((_event, s) => {
+    const unsubscribe = onAuthStateChange((event, s) => {
       setSession(s);
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
     });
 
     const stopListening = listenForAuthRedirect(
@@ -68,6 +78,12 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!upgradeError) return;
+    toast(friendlyError(upgradeError, t, "authGenericError"));
+    setUpgradeError(null);
+  }, [upgradeError, t]);
+
   const user = session?.user ?? null;
   const isAnonymous = isAnonymousUser(user);
 
@@ -84,27 +100,73 @@ export function AuthProvider({ children }) {
     (username, email, password) => signUpWithPassword(username, email, password),
     [],
   );
+  const sendPasswordReset = useCallback(
+    (email) => requestPasswordReset(email),
+    [],
+  );
+  const resendSignup = useCallback(
+    (email) => resendSignupConfirmation(email),
+    [],
+  );
+  const saveRecoveredPassword = useCallback(
+    (password) => updateRecoveredPassword(password),
+    [],
+  );
+  const finishPasswordRecovery = useCallback(
+    () => setPasswordRecovery(false),
+    [],
+  );
   const signOut = useCallback(() => signOutSession(), []);
   const deleteAccount = useCallback(() => deleteAccountSession(), []);
+  const clearUpgradeConfirmed = useCallback(
+    () => setUpgradeConfirmed(false),
+    [],
+  );
+  const value = useMemo(
+    () => ({
+      ready,
+      session,
+      user,
+      isAnonymous,
+      startEmailUpgrade,
+      upgradeConfirmed,
+      upgradeError,
+      passwordRecovery,
+      sendPasswordReset,
+      resendSignup,
+      saveRecoveredPassword,
+      finishPasswordRecovery,
+      clearUpgradeConfirmed,
+      signIn,
+      signInGoogle,
+      signUp,
+      signOut,
+      deleteAccount,
+    }),
+    [
+      ready,
+      session,
+      user,
+      isAnonymous,
+      startEmailUpgrade,
+      upgradeConfirmed,
+      upgradeError,
+      passwordRecovery,
+      sendPasswordReset,
+      resendSignup,
+      saveRecoveredPassword,
+      finishPasswordRecovery,
+      clearUpgradeConfirmed,
+      signIn,
+      signInGoogle,
+      signUp,
+      signOut,
+      deleteAccount,
+    ],
+  );
 
   return (
-    <Ctx.Provider
-      value={{
-        ready,
-        session,
-        user,
-        isAnonymous,
-        startEmailUpgrade,
-        upgradeConfirmed,
-        upgradeError,
-        clearUpgradeConfirmed: () => setUpgradeConfirmed(false),
-        signIn,
-        signInGoogle,
-        signUp,
-        signOut,
-        deleteAccount,
-      }}
-    >
+    <Ctx.Provider value={value}>
       <AccountProfileProvider
         user={user}
         isAnonymous={isAnonymous}

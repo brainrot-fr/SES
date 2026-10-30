@@ -1,28 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useLang } from "../../context/LanguageContext";
-import AppIcon from "../../components/icons/AppIcon";
-import { Button } from "../../components/shadcn/button";
-import { Progress } from "../../components/shadcn/progress";
-import { Textarea } from "../../components/shadcn/textarea";
-import { ToggleGroup, ToggleGroupItem } from "../../components/shadcn/toggle-group";
-import { MediaValidationError, uploadPostMedia, validateMediaFile } from "../../lib/cloudinaryUpload";
-import { friendlyError } from "../../lib/supabaseClient.js";
-import { createPost } from "./postsApi";
-import { REEL_TAGS } from "./reelRanking";
-import "./socialFeed.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LanguageContext";
+import AppIcon from "@/components/icons/AppIcon";
+import { Button } from "@/components/shadcn/button";
+import { Progress } from "@/components/shadcn/progress";
+import { Textarea } from "@/components/shadcn/textarea";
+import FormError from "@/components/FormError";
+import { ToggleGroup, ToggleGroupItem } from "@/components/shadcn/toggle-group";
+import { MediaValidationError, uploadPostMedia, validateMediaFile } from "@/lib/cloudinaryUpload";
+import { friendlyError } from "@/lib/supabaseClient.js";
+import { createPost } from "@/features/social/postsApi";
+import { REEL_TAGS } from "@/features/social/reelRanking";
+import "@/features/social/reel-upload.css";
 
 export default function ReelUpload() {
   const { user } = useAuth();
   const { t } = useLang();
   const navigate = useNavigate();
   const inputRef = useRef(null);
+  const uploadAbortControllerRef = useRef(null);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [caption, setCaption] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [progress, setProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,17 +69,31 @@ export default function ReelUpload() {
     setError("");
     setProgress(0);
     try {
-      const media = await uploadPostMedia(file, { onProgress: setProgress });
-      const taggedCaption = [
-        caption.trim(),
-        selectedTags.map((topic) => `#${topic}`).join(" "),
-      ].filter(Boolean).join("\n\n");
-      await createPost({ body: taggedCaption, media, user });
+      const controller = new AbortController();
+      uploadAbortControllerRef.current = controller;
+      setUploading(true);
+      const media = await uploadPostMedia(file, {
+        onProgress: setProgress,
+        userId: user.id,
+        signal: controller.signal,
+      });
+      setUploading(false);
+      uploadAbortControllerRef.current = null;
+      await createPost({
+        body: caption.trim(),
+        media,
+        topics: selectedTags,
+        user,
+        fallbackDisplayName: t("socialUnknownAuthor"),
+      });
       navigate("/reels", { replace: true });
     } catch (uploadError) {
+      if (uploadError?.name === "AbortError") return;
       console.error("[Reels] failed to publish reel", uploadError);
       setError(friendlyError(uploadError, t, "reelsUploadFailed"));
     } finally {
+      uploadAbortControllerRef.current = null;
+      setUploading(false);
       setBusy(false);
       setProgress(0);
     }
@@ -84,21 +101,27 @@ export default function ReelUpload() {
 
   return (
     <main className="reel-upload-page">
-      <header className="reel-upload-page__header">
-        <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("goBack")}><Link to="/reels"><AppIcon name="back" /></Link></Button>
-        <h1>{t("reelsCreate")}</h1>
-        <span className="reel-upload-page__spacer" />
-      </header>
       <form className="reel-upload" onSubmit={submit}>
         <div className="reel-upload__split">
           <div className="reel-upload__preview-pane">
             {preview ? (
-              <div className="reel-upload__preview">
-                <video src={preview} controls playsInline muted aria-label={t("reelsVideoPreview")} />
-                <button type="button" className="reel-upload__remove" onClick={removeVideo} disabled={busy} aria-label={t("socialRemoveMedia")}>
-                  <AppIcon name="close" size={19} />
+              <>
+                <div className="reel-upload__preview">
+                  <video src={preview} controls playsInline aria-label={t("reelsVideoPreview")} />
+                  <button type="button" className="reel-upload__remove" onClick={removeVideo} disabled={busy} aria-label={t("socialRemoveMedia")}>
+                    <AppIcon name="close" size={19} />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="reel-upload__picker reel-upload__picker--selected"
+                  onClick={() => inputRef.current?.click()}
+                  disabled={busy}
+                >
+                  <AppIcon name="play" size={20} />
+                  <strong>{t("reelsChooseVideo")}</strong>
                 </button>
-              </div>
+              </>
             ) : (
               <button type="button" className="reel-upload__picker" onClick={() => inputRef.current?.click()}>
                 <span><AppIcon name="play" size={27} /></span>
@@ -126,6 +149,8 @@ export default function ReelUpload() {
               </p>
               <ToggleGroup
                 type="multiple"
+                spacing={2}
+                variant="outline"
                 value={selectedTags}
                 disabled={busy}
                 onValueChange={(values) => {
@@ -134,8 +159,8 @@ export default function ReelUpload() {
                 className="flex w-full flex-wrap gap-2"
                 aria-label={t("reelsTopicsLabel")}
               >
-                {REEL_TAGS.map(({ topic, slug, label }) => (
-                  <ToggleGroupItem key={topic} value={slug} variant="outline" className="min-h-11 rounded-full">
+                {REEL_TAGS.map(({ topic, label }) => (
+                  <ToggleGroupItem key={topic} value={topic} className="min-h-11">
                     #{t(label)}
                   </ToggleGroupItem>
                 ))}
@@ -145,11 +170,20 @@ export default function ReelUpload() {
           </div>
         </div>
         <input ref={inputRef} className="reel-upload__file-input" type="file" accept="video/*" onChange={chooseVideo} disabled={busy} aria-label={t("reelsChooseVideo")} />
-        {busy && (
+        {uploading && (
           <Progress value={progress * 100} aria-label={t("socialUploadProgress")} />
         )}
-        {error && <p className="social-error" role="alert">{error}</p>}
+        <FormError message={error} />
         <div className="reel-upload__actions">
+          {uploading && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => uploadAbortControllerRef.current?.abort(new DOMException("Upload cancelled.", "AbortError"))}
+            >
+              {t("socialCancelUpload")}
+            </Button>
+          )}
           <Button type="submit" disabled={!file || busy}>
             {busy ? t("socialPosting") : t("reelsPublish")}
           </Button>

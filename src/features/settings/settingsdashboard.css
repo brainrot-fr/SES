@@ -89,12 +89,10 @@
   background: var(--surface-1);
 }
 
-.settings-dashboard__group > [data-slot="item"] {
+.settings-dashboard__row,
+.settings-dashboard__preference {
   min-height: 56px;
   padding-inline: var(--space-4);
-}
-
-.settings-dashboard__group > [data-slot="item"] {
   border-radius: 0;
 }
 
@@ -129,6 +127,21 @@
 .settings-dashboard__preference {
   min-height: 64px;
   justify-content: space-between;
+}
+
+.settings-dashboard__reminders {
+  gap: var(--space-3);
+}
+
+.settings-dashboard__reminder-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-dashboard__reminder-select {
+  width: 8rem;
 }
 
 .settings-dashboard__preference-label {
@@ -178,17 +191,6 @@
   line-height: var(--leading-relaxed);
 }
 
-.settings-dashboard__danger-row > [data-slot="button"] {
-  flex: 0 0 auto;
-}
-
-.settings-dashboard__error {
-  margin-block: var(--space-3) 0;
-  margin-inline: 0;
-  color: var(--danger);
-  font-size: var(--text-sm);
-}
-
 .settings-delete__field {
   margin-block-start: var(--space-4);
 }
@@ -199,9 +201,6 @@
     flex-direction: column;
   }
 
-  .settings-dashboard__danger-row > [data-slot="button"] {
-    width: 100%;
-  }
 }
 
 @media (min-width: 1024px) {

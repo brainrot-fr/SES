@@ -4,14 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F7F4E9" />
     <title>SES</title>
     <script>
     try {
-      if (localStorage.getItem('ses-theme-v2') === 'light') {
-        document.documentElement.dataset.theme = 'light';
-      }
-    } catch (e) {}
+      const savedTheme = localStorage.getItem('ses-theme-v2');
+      const prefersDark = savedTheme === 'dark' ||
+        (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
+    } catch {
+      document.documentElement.dataset.theme =
+        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
   </script>
   </head>
   <body>

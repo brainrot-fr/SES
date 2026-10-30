@@ -1,15 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
-import { fetchSurahList } from './quranApi';
-import { useLang } from '../../context/LanguageContext';
-import AppIcon from '../../components/icons/AppIcon';
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '../../components/shadcn/empty';
-import { Skeleton } from '../../components/shadcn/skeleton';
-import { Button } from '../../components/shadcn/button';
-import { Input } from '../../components/shadcn/input';
-import { ScrollArea } from '../../components/shadcn/scroll-area';
-import RowList from '../../components/layout/RowList';
-import PageHeader from '../../components/layout/PageHeader';
-import './quran.css';
+import { fetchSurahList } from '@/features/quran/quranData';
+import { useLang } from '@/context/LanguageContext';
+import AppIcon from '@/components/icons/AppIcon';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/shadcn/empty';
+import { Skeleton } from '@/components/shadcn/skeleton';
+import { Button } from '@/components/shadcn/button';
+import { Input } from '@/components/shadcn/input';
+import { ScrollArea } from '@/components/shadcn/scroll-area';
+import RowList from '@/components/layout/RowList';
+import PageHeader from '@/components/layout/PageHeader';
+import '@/features/quran/quran.css';
 
 export default function QuranSurahList({
   onOpenSurah,
@@ -23,6 +23,7 @@ export default function QuranSurahList({
   const [query, setQuery] = useState('');
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [continueSurah] = useState(() => Number(localStorage.getItem('ses-current-surah')) || null);
+  const [continueAyah] = useState(() => Number(localStorage.getItem('ses-current-ayah')) || 1);
 
   useEffect(() => {
     if (initialSurahs) {
@@ -100,7 +101,9 @@ export default function QuranSurahList({
           onClick={() => onOpenSurah(continueSurah)}
         >
           <span className="quran-list__continue-label">{t('quranContinue')}</span>
-          <span className="quran-list__continue-name">{surahs[continueSurah - 1].englishName}</span>
+          <span className="quran-list__continue-name">
+            {surahs[continueSurah - 1].englishName} · {t("quranAyahLabel")} {continueAyah}
+          </span>
           <span className="quran-list__continue-num">{continueSurah}</span>
         </button>
       )}
@@ -129,7 +132,11 @@ export default function QuranSurahList({
               <span className="quran-list__num">{s.number}</span>
               <span className="quran-list__names">
                 <span className="quran-list__en">{s.englishName} · {s.englishNameTranslation}</span>
-                <span className="quran-list__meta">{s.numberOfAyahs} · {s.revelationType}</span>
+                <span className="quran-list__meta">
+                  {t("quranAyahsCount")
+                    .replace("{count}", String(s.numberOfAyahs))
+                    .replace("{type}", s.revelationType)}
+                </span>
               </span>
               <span className="quran-list__ar" lang="ar" dir="rtl">{s.name}</span>
             </button>

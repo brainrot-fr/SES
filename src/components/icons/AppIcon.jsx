@@ -1,7 +1,7 @@
 import {
   House, BookOpen, ScrollText, Clapperboard, MessagesSquare, MessageCircle, Waypoints, History,
   Settings, Sun, Moon, User, Menu, X, Globe, Bell, Heart, Share2, Bookmark, Volume2, VolumeX, Play, Pause,
-  ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, SkipBack, SkipForward, Sparkles, RotateCcw, ZoomIn, ZoomOut,
+  ArrowRight, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight, SkipBack, SkipForward, Sparkles, RotateCcw, ZoomIn, ZoomOut,
   Search, Check, Camera, Trash2, TriangleAlert, Pencil, Ellipsis, Plus, SlidersHorizontal, Eye, Image, Flag,
 } from "lucide-react";
 
@@ -33,7 +33,7 @@ const icons = {
   murshid: Waypoints, timeline: History, settings: Settings, sun: Sun, moon: Moon, user: User, menu: Menu,
   close: X, globe: Globe, bell: Bell, heart: Heart, comment: MessageCircle, share: Share2, bookmark: Bookmark,
   volume: Volume2, volumeOff: VolumeX, play: Play, pause: Pause, arrowRight: ArrowRight, back: ArrowLeft,
-  chevronLeft: ChevronLeft, chevronRight: ChevronRight, skipBack: SkipBack, skipForward: SkipForward,
+  chevronLeft: ChevronLeft, chevronRight: ChevronRight, skipBack: SkipBack, skipForward: SkipForward, arrowUp: ArrowUp,
   sparkle: Sparkles, retry: RotateCcw, zoomIn: ZoomIn, zoomOut: ZoomOut, search: Search, check: Check,
   camera: Camera, trash: Trash2, warning: TriangleAlert, edit: Pencil, more: Ellipsis, plus: Plus,
   display: SlidersHorizontal, views: Eye, image: Image, report: Flag, book: BookOpen,

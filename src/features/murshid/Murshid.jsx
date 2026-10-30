@@ -6,23 +6,24 @@
  * onboarding, not re-picked here.
  */
 
-import { silsilaETarbiyat, silsilaEFaqiri } from './murshidData';
-import { useLang } from '../../context/LanguageContext';
-import Page from '../../components/layout/Page';
-import Split from '../../components/layout/Split';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/shadcn/tabs';
-import './murshid.css';
+import { silsilaETarbiyat, silsilaEFaqiri } from '@/features/murshid/murshidData';
+import { useLang } from '@/context/LanguageContext';
+import Page from '@/components/layout/Page';
+import Split from '@/components/layout/Split';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
+import '@/features/murshid/murshid.css';
 
-function SilsilaList({ title, entries, kind }) {
+function SilsilaList({ title, entries, kind, lang }) {
+  const visibleEntries = entries.filter((entry) => entry.name?.trim());
   return (
     <section className="murshid-section" data-silsila={kind}>
       <h2 className="murshid-section__title">{title}</h2>
       <ol className="murshid-chain">
-        {entries.filter((entry) => entry.name?.trim()).map((entry) => (
+        {visibleEntries.map((entry) => (
           <li key={entry.id} className="murshid-chain__item">
             <div className="murshid-chain__body">
-              <p className="murshid-chain__name">{entry.name}</p>
-              {entry.title && <p className="murshid-chain__meta">{entry.title}</p>}
+              <p className="murshid-chain__name">{lang === 'ur' ? entry.name_ur || entry.name : entry.name}</p>
+              {entry.title && <p className="murshid-chain__meta">{lang === 'ur' ? entry.title_ur || entry.title : entry.title}</p>}
               {entry.years && <p className="murshid-chain__meta">{entry.years}</p>}
               {entry.note && <p className="murshid-chain__note">{entry.note}</p>}
             </div>
@@ -34,7 +35,7 @@ function SilsilaList({ title, entries, kind }) {
 }
 
 export default function Murshid() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   return (
     <Page className="murshid-root">
@@ -42,7 +43,6 @@ export default function Murshid() {
         className="murshid-split"
         rail={(
           <header className="murshid-intro">
-            <h1>{t('titleMurshid')}</h1>
             <p>{t('murshidIntro')}</p>
           </header>
         )}
@@ -55,10 +55,10 @@ export default function Murshid() {
             </TabsList>
             <div className="murshid-lineages__columns">
               <TabsContent value="tarbiyat" forceMount className="data-[state=inactive]:hidden lg:data-[state=inactive]:block">
-                <SilsilaList kind="tarbiyat" title={t('murshidTarbiyat')} entries={silsilaETarbiyat} />
+                <SilsilaList kind="tarbiyat" title={t('murshidTarbiyat')} entries={silsilaETarbiyat} lang={lang} />
               </TabsContent>
               <TabsContent value="faqiri" forceMount className="data-[state=inactive]:hidden lg:data-[state=inactive]:block">
-                <SilsilaList kind="faqiri" title={t('murshidFaqiri')} entries={silsilaEFaqiri} />
+                <SilsilaList kind="faqiri" title={t('murshidFaqiri')} entries={silsilaEFaqiri} lang={lang} />
               </TabsContent>
             </div>
           </Tabs>

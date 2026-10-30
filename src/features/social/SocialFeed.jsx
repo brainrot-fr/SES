@@ -1,35 +1,86 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useLang } from "../../context/LanguageContext";
-import { useAuth } from "../../context/AuthContext";
-import { getDisplayName } from "../auth/authSession";
-import PostCard from "./PostCard";
-import ReelCard, { getReelPosterUrl, REEL_MUTE_KEY } from "./ReelCard";
-import AppIcon from "../../components/icons/AppIcon";
+import { useLang } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { getDisplayName } from "@/features/auth/authSession";
+import PostCard from "@/features/social/PostCard";
+import ReelCard, { getReelPosterUrl, REEL_MUTE_KEY } from "@/features/social/ReelCard";
+import AppIcon from "@/components/icons/AppIcon";
 import {
   deletePost,
   fetchPosts,
   fetchReels,
+  fetchReelPreferences,
   recordPostShare,
   recordPostView,
   reportPost,
+  saveReelPreferences,
   setFollow,
   setPostLike,
-} from "./postsApi";
-import { readReelPreferences, recordReelPreference } from "./reelRanking";
-import ReelEndCard from "./ReelEndCard";
-import { Skeleton } from "../../components/shadcn/skeleton";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "../../components/shadcn/empty";
-import { Button } from "../../components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
-import { Card } from "../../components/shadcn/card";
-import Split from "../../components/layout/Split";
+} from "@/features/social/postsApi";
+import { rankReels, readReelPreferences, recordReelPreference } from "@/features/social/reelRanking";
+import ReelEndCard from "@/features/social/ReelEndCard";
+import { Skeleton } from "@/components/shadcn/skeleton";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/shadcn/empty";
+import { Button } from "@/components/shadcn/button";
+import FormError from "@/components/FormError";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcn/avatar";
+import { Card } from "@/components/shadcn/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/shadcn/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
+import Split from "@/components/layout/Split";
 import { ImagePlus, Plus } from "lucide-react";
-import { friendlyError } from "../../lib/supabaseClient.js";
-import "./socialFeed.css";
+import { friendlyError } from "@/lib/supabaseClient.js";
+import { cloudinaryImageUrl } from "@/lib/cloudinaryUpload";
+import "@/features/social/feed.css";
+import "@/features/social/reels.css";
+
+function rankLoadedReels(posts, preferences, prioritizedReelId) {
+  const ranked = rankReels(posts, preferences);
+  if (!prioritizedReelId) return ranked;
+  const priorityIndex = ranked.findIndex((post) => post.id === prioritizedReelId);
+  return priorityIndex > 0
+    ? [ranked[priorityIndex], ...ranked.filter((post) => post.id !== prioritizedReelId)]
+    : ranked;
+}
+
+function ReelsInfo({ label, description }) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const pointerTypeRef = useRef("mouse");
+
+  return (
+    <Popover
+      open={popoverOpen}
+      onOpenChange={(open) => {
+        if (pointerTypeRef.current === "touch") setPopoverOpen(open);
+      }}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="social-reels__info"
+              aria-label={label}
+              onPointerDown={(event) => { pointerTypeRef.current = event.pointerType; }}
+            >
+              <AppIcon name="sparkle" size={15} /> {label}
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{description}</TooltipContent>
+      </Tooltip>
+      <PopoverContent side="bottom" className="text-sm">
+        {description}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function SocialFeed({ mode = "posts" }) {
   const { t } = useLang();
+  const tRef = useRef(t);
+  tRef.current = t;
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,6 +88,8 @@ export default function SocialFeed({ mode = "posts" }) {
   const prioritizedReelId = isReels ? new URLSearchParams(location.search).get("reel") : null;
   const prioritizedPostId = !isReels ? new URLSearchParams(location.search).get("post") : null;
   const requestIdRef = useRef(0);
+  const cursorRef = useRef(null);
+  const reelPreferencesRef = useRef(readReelPreferences(user?.id));
   const loadingRef = useRef(false);
   const hasMoreRef = useRef(true);
   const feedRef = useRef(null);
@@ -64,26 +117,55 @@ export default function SocialFeed({ mode = "posts" }) {
     setError("");
     setLoadError("");
     try {
+      const cursor = append ? cursorRef.current : null;
       const pageResult = isReels
-        ? await fetchReels(pageNumber, user?.id, readReelPreferences(user?.id), prioritizedReelId)
-        : await fetchPosts(pageNumber, undefined, prioritizedPostId);
+        ? await fetchReels(cursor, user?.id, prioritizedReelId)
+        : await fetchPosts(cursor, undefined, prioritizedPostId);
       if (requestId !== requestIdRef.current) return;
-      const { posts: nextPosts, hasMore: nextHasMore } = pageResult;
-      setPosts((current) => append ? [...current, ...nextPosts] : nextPosts);
+      const { posts: nextPosts, hasMore: nextHasMore, nextCursor } = pageResult;
+      cursorRef.current = nextCursor;
+      setPosts((current) => {
+        let combinedPosts = nextPosts;
+        if (append) {
+          const uniquePosts = new Map(current.map((post) => [post.id, post]));
+          nextPosts.forEach((post) => uniquePosts.set(post.id, post));
+          combinedPosts = [...uniquePosts.values()];
+        }
+        return isReels
+          ? rankLoadedReels(combinedPosts, reelPreferencesRef.current, prioritizedReelId)
+          : combinedPosts;
+      });
       hasMoreRef.current = nextHasMore;
       setHasMore(nextHasMore);
       setPage(pageNumber);
     } catch (loadError) {
       if (requestId !== requestIdRef.current) return;
       console.error("[SocialFeed] failed to load posts", loadError);
-      setLoadError(friendlyError(loadError, t, "socialFeedFailed"));
+      setLoadError(friendlyError(loadError, tRef.current, "socialFeedFailed"));
     } finally {
       if (requestId === requestIdRef.current) {
         loadingRef.current = false;
         setLoading(false);
       }
     }
-  }, [isReels, prioritizedPostId, prioritizedReelId, t, user?.id]);
+  }, [isReels, prioritizedPostId, prioritizedReelId, user?.id]);
+
+  useEffect(() => {
+    if (!isReels || !user?.id) return undefined;
+    let cancelled = false;
+    fetchReelPreferences(user.id)
+      .then((preferences) => {
+        if (cancelled) return;
+        reelPreferencesRef.current = preferences;
+        setPosts((current) => rankLoadedReels(current, preferences, prioritizedReelId));
+      })
+      .catch((preferenceError) => {
+        console.error("[Reels] failed to resolve topic preferences", preferenceError);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isReels, prioritizedReelId, user?.id]);
 
   useEffect(() => {
     if (!loadError) return undefined;
@@ -97,6 +179,7 @@ export default function SocialFeed({ mode = "posts" }) {
   useEffect(() => {
     loadingRef.current = false;
     hasMoreRef.current = true;
+    cursorRef.current = null;
     setPosts([]);
     if (isReels) setActiveReelIndex(0);
     setPage(0);
@@ -145,8 +228,18 @@ export default function SocialFeed({ mode = "posts" }) {
     setPosts((current) => current.map((item) => item.id === post.id
       ? { ...item, liked_by_me: liked, like_count: Math.max(0, (item.like_count || 0) + (liked ? 1 : -1)) }
       : item));
-    if (isReels) recordReelPreference(user.id, post.body, liked ? 1 : -1);
+    if (isReels) applyReelPreference(post, liked ? 1 : -1);
   };
+
+  const applyReelPreference = useCallback((content, delta) => {
+    if (!user?.id) return;
+    const preferences = recordReelPreference(user.id, content, delta);
+    reelPreferencesRef.current = preferences;
+    saveReelPreferences(user.id, preferences).catch((preferenceError) => {
+      console.warn("[Reels] could not save topic preferences remotely", preferenceError);
+    });
+    setPosts((current) => rankLoadedReels(current, preferences, prioritizedReelId));
+  }, [prioritizedReelId, user?.id]);
 
   const handleFollow = async (post, following) => {
     await setFollow(user.id, post.author_id, following);
@@ -176,14 +269,17 @@ export default function SocialFeed({ mode = "posts" }) {
     return isNew;
   }, [user?.id]);
 
-  const handleReport = useCallback((postId, reason) => reportPost(postId, user.id, reason), [user?.id]);
+  const handleReport = useCallback(async (postId, reason) => {
+    await reportPost(postId, user.id, reason);
+    setPosts((current) => current.filter((post) => post.id !== postId));
+  }, [user?.id]);
 
   const handleCommentCreated = useCallback((postId, body, delta = 1) => {
-    if (isReels && body && delta > 0) recordReelPreference(user.id, body, 0.5);
+    if (isReels && body && delta > 0) applyReelPreference(body, 0.5);
     setPosts((current) => current.map((post) => post.id === postId
       ? { ...post, comment_count: Math.max(0, (post.comment_count || 0) + delta) }
       : post));
-  }, [isReels, user?.id]);
+  }, [applyReelPreference, isReels]);
 
   const handleNearEnd = useCallback((index) => {
     if (hasMore && !loadingRef.current && index >= posts.length - 4) {
@@ -207,10 +303,11 @@ export default function SocialFeed({ mode = "posts" }) {
 
   const handleDelete = async (postId) => {
     const previousPosts = posts;
+    const hasMedia = Boolean(posts.find((post) => post.id === postId)?.media_url);
     setPosts((current) => current.filter((post) => post.id !== postId));
     setError("");
     try {
-      await deletePost(postId);
+      await deletePost(postId, hasMedia);
     } catch (deleteError) {
       console.error("[SocialFeed] failed to delete post", deleteError);
       setPosts(previousPosts);
@@ -225,13 +322,15 @@ export default function SocialFeed({ mode = "posts" }) {
           <header className="social-reels__topbar">
             <div className="social-reels__title">
               <h1>{t("navReels")}</h1>
-              <span title={t("reelsRankingInfo")}><AppIcon name="sparkle" size={15} /> {t("reelsForYou")}</span>
+              <ReelsInfo label={t("reelsForYou")} description={t("reelsRankingInfo")} />
             </div>
-            <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("reelsCreate")} title={t("reelsCreate")}><Link to="/reels/create"><Plus /></Link></Button>
+            <Button asChild variant="ghost" size="icon" className="social-reels__top-action" aria-label={t("reelsCreate")}><Link to="/reels/create"><Plus /></Link></Button>
           </header>
-          {error && <p className="social-error" role="alert">{error}</p>}
-          {loadError && <div className="social-reels__load-error" role="alert">{loadError}<button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
-          {loading && posts.length === 0 && <div className="social-reels__skeleton" role="status" aria-label={t("socialLoading")}><Skeleton className="aspect-[9/16] w-full" /></div>}
+          <FormError message={error} />
+          <FormError className="social-reels__load-error" message={loadError}>
+            {loadError && <><span>{loadError}</span><button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></>}
+          </FormError>
+          {loading && posts.length === 0 && <div className="social-reels__skeleton" role="status" aria-label={t("socialLoading")}><Skeleton className="social-reels__skeleton-card aspect-[9/16] w-full" /></div>}
           {!loading && !loadError && posts.length === 0 && <div className="social-reels__end social-reels__end--empty"><ReelEndCard onCreate={() => navigate("/reels/create")} onRestart={() => loadPage(0, false)} /></div>}
           <div ref={feedRef} className="social-feed__reels">
             {posts.map((post, index) => (
@@ -240,6 +339,7 @@ export default function SocialFeed({ mode = "posts" }) {
                 post={post}
                 index={index}
                 isActive={index === activeReelIndex}
+                isNext={index === activeReelIndex + 1}
                 muted={reelMuted}
                 onMutedChange={setReelMuted}
                 user={user}
@@ -264,6 +364,7 @@ export default function SocialFeed({ mode = "posts" }) {
           className="social-feed__split"
           rail={(
             <aside className="hidden space-y-4 lg:sticky lg:top-[calc(var(--header-height)+var(--space-4))] lg:block">
+              <p className="border-t border-border pt-3 text-sm leading-relaxed text-muted-foreground">{t("socialSameGenderNotice")}</p>
               <p className="border-t border-border pt-3 text-sm leading-relaxed text-muted-foreground">{t("socialVisibilityNotice")}</p>
               <Button asChild variant="outline" className="w-full"><Link to="/reels">{t("socialWatchReels")}</Link></Button>
             </aside>
@@ -272,15 +373,17 @@ export default function SocialFeed({ mode = "posts" }) {
         <main className="min-w-0 w-full lg:max-w-[var(--measure-feed)]">
         <Card className="mb-3 flex-row items-center gap-3 rounded-xl border p-3 shadow-sm">
           <Avatar>
-            <AvatarImage src={user?.user_metadata?.avatar_url || undefined} alt="" />
+            <AvatarImage src={cloudinaryImageUrl(user?.user_metadata?.avatar_url, "c_fill,w_96,h_96,f_auto,q_auto") || undefined} alt="" />
             <AvatarFallback>{(getDisplayName(user) || "?").slice(0, 1).toUpperCase()}</AvatarFallback>
           </Avatar>
           <Button asChild variant="secondary" className="h-11 flex-1 justify-start rounded-full text-muted-foreground">
             <Link to="/social/create">{t("socialSharePrompt")}<ImagePlus className="ms-auto" /></Link>
           </Button>
         </Card>
-        {error && <p className="social-error" role="alert">{error}</p>}
-        {loadError && <div className="social-error" role="alert"><span>{loadError}</span><button type="button" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</button></div>}
+        <FormError message={error} />
+        <FormError message={loadError}>
+          {loadError && <><span>{loadError}</span><Button type="button" variant="outline" onClick={() => loadPage(page, page > 0)}>{t("socialRetry")}</Button></>}
+        </FormError>
         {loading && posts.length === 0 && (
           <div className="grid gap-3" role="status" aria-label={t("socialLoading")}>
             {Array.from({ length: 3 }, (_, index) => (
@@ -301,6 +404,7 @@ export default function SocialFeed({ mode = "posts" }) {
               <EmptyMedia><AppIcon name="social" size={25} /></EmptyMedia>
               <EmptyTitle>{t("socialEmptyTitle")}</EmptyTitle>
               <EmptyDescription>{t("socialEmptyDescription")}</EmptyDescription>
+              <p className="m-0 max-w-md text-sm text-muted-foreground">{t("socialSameGenderNotice")}</p>
             </EmptyHeader>
             <EmptyContent><Button type="button" variant="secondary" onClick={() => navigate("/social/create")}>{t("socialWriteFirstPost")}</Button></EmptyContent>
           </Empty>

@@ -7,18 +7,18 @@
  */
 
 import { useState } from 'react';
-import { useLang } from '../context/LanguageContext';
-import { Button } from './shadcn/button';
-import { ToggleGroup, ToggleGroupItem } from './shadcn/toggle-group';
-import EntryBrand from './layout/EntryBrand';
-import './Onboarding.css';
+import { useLang } from '@/context/LanguageContext';
+import { Button } from '@/components/shadcn/button';
+import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group';
+import EntryBrand from '@/components/layout/EntryBrand';
+import '@/components/Onboarding.css';
 
 export default function Onboarding() {
   const { chooseLang, t } = useLang();
   const [selected, setSelected] = useState('en');
 
   return (
-    <main className="ob-root">
+    <main className="ob-root no-bottom-nav">
       <EntryBrand />
       <section className="ob-content" aria-labelledby="onboarding-title">
         <h1 className="ob-title" id="onboarding-title">{t("appTitle")}</h1>

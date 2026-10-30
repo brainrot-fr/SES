@@ -1,20 +1,18 @@
 import { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { useLang } from '../../context/LanguageContext';
-import { Button } from '../../components/shadcn/button';
-import { Field } from '../../components/shadcn/field';
-import { Input } from '../../components/shadcn/input';
-import { Label } from '../../components/shadcn/label';
-import { Alert, AlertDescription } from '../../components/shadcn/alert';
-import { Separator } from '../../components/shadcn/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/shadcn/tabs';
-import AppIcon from '../../components/icons/AppIcon';
-import EntryBrand from '../../components/layout/EntryBrand';
-import { friendlyError } from '../../lib/supabaseClient.js';
+import { useAuth } from '@/context/AuthContext';
+import { useLang } from '@/context/LanguageContext';
+import { Button } from '@/components/shadcn/button';
+import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/shadcn/field';
+import { Input } from '@/components/shadcn/input';
+import { Separator } from '@/components/shadcn/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
+import AppIcon from '@/components/icons/AppIcon';
+import EntryBrand from '@/components/layout/EntryBrand';
+import { friendlyError } from '@/lib/supabaseClient.js';
 
 export default function AuthGate() {
   const { t, lang } = useLang();
-  const { signIn, signInGoogle, signUp } = useAuth();
+  const { signIn, signInGoogle, signUp, sendPasswordReset, resendSignup } = useAuth();
   const [mode, setMode] = useState('signup');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -22,6 +20,8 @@ export default function AuthGate() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoverySent, setRecoverySent] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -57,6 +57,32 @@ export default function AuthGate() {
     }
   };
 
+  const handlePasswordReset = async (event) => {
+    event.preventDefault();
+    setError('');
+    setBusy(true);
+    try {
+      await sendPasswordReset(email.trim());
+      setRecoverySent(true);
+    } catch (authError) {
+      setError(friendlyError(authError, t, 'authGenericError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    setError('');
+    setBusy(true);
+    try {
+      await resendSignup(email.trim());
+    } catch (authError) {
+      setError(friendlyError(authError, t, 'authGenericError'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const selectMode = (nextMode) => {
     setMode(nextMode);
     setError('');
@@ -69,7 +95,7 @@ export default function AuthGate() {
       <section className="mx-auto grid w-full max-w-md content-center gap-4 px-4 py-8 md:px-8" aria-labelledby="auth-gate-title">
         <h1 className="text-xl font-semibold text-foreground" id="auth-gate-title">{t('authRequiredTitle')}</h1>
         <p className="text-sm leading-relaxed text-muted-foreground">{t('authRequiredDescription')}</p>
-        <Tabs value={mode} onValueChange={(value) => selectMode(value)} className="w-full">
+        {!recoveryOpen && <Tabs value={mode} onValueChange={(value) => selectMode(value)} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signup">{t('authCreateAccount')}</TabsTrigger>
             <TabsTrigger value="signin">{t('signInTitle')}</TabsTrigger>
@@ -81,12 +107,16 @@ export default function AuthGate() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               {t('authConfirmationDescription')} <strong>{email}</strong>
             </p>
+            <Button type="button" variant="outline" disabled={busy} onClick={handleResendConfirmation}>
+              {t('authResendConfirmation')}
+            </Button>
+            <FieldError>{error}</FieldError>
           </div>
         ) : (
           <form className="grid gap-3 pt-3" onSubmit={handleSubmit}>
             {mode === 'signup' && (
               <Field>
-                <Label htmlFor="auth-username" className="text-foreground">{t('authUsernameLabel')}</Label>
+                <FieldLabel htmlFor="auth-username">{t('authUsernameLabel')}</FieldLabel>
                 <Input
                   id="auth-username"
                   type="text"
@@ -100,7 +130,7 @@ export default function AuthGate() {
               </Field>
             )}
             <Field>
-              <Label htmlFor="auth-email" className="text-foreground">{t('authEmailLabel')}</Label>
+              <FieldLabel htmlFor="auth-email">{t('authEmailLabel')}</FieldLabel>
               <Input
                 id="auth-email"
                 type="email"
@@ -113,7 +143,7 @@ export default function AuthGate() {
               />
             </Field>
             <Field>
-              <Label htmlFor="auth-password" className="text-foreground">{t('authPasswordLabel')}</Label>
+              <FieldLabel htmlFor="auth-password">{t('authPasswordLabel')}</FieldLabel>
               <Input
                 id="auth-password"
                 type="password"
@@ -125,11 +155,13 @@ export default function AuthGate() {
                 onChange={(event) => setPassword(event.target.value)}
                 dir="ltr"
               />
+              {mode === 'signup' && <FieldDescription>{t('authPasswordDescription')}</FieldDescription>}
             </Field>
-            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+            <FieldError>{error}</FieldError>
             <Button
               type="submit"
               busy={busy}
+              loadingLabel={t(mode === 'signup' ? 'authCreatingAccount' : 'signInSubmitting')}
               className="mt-2 w-full"
             >
               {busy
@@ -139,9 +171,45 @@ export default function AuthGate() {
           </form>
         )}
           </TabsContent>
-        </Tabs>
-        <div className="flex items-center gap-3" aria-hidden="true"><Separator className="flex-1" /><span className="text-xs text-muted-foreground">{t('authOr')}</span><Separator className="flex-1" /></div>
-        <Button
+        </Tabs>}
+        {mode === 'signin' && !recoveryOpen && !confirmationSent && (
+          <Button type="button" variant="link" className="justify-self-start px-0" onClick={() => {
+            setRecoveryOpen(true);
+            setRecoverySent(false);
+            setError('');
+          }}>
+            {t('authForgotPassword')}
+          </Button>
+        )}
+        {recoveryOpen && (
+          <form className="grid gap-3" onSubmit={handlePasswordReset}>
+            <h2 className="text-lg font-semibold text-foreground">{t('authRecoveryTitle')}</h2>
+            {recoverySent ? (
+              <p className="text-sm leading-relaxed text-muted-foreground" role="status">{t('authRecoverySent')}</p>
+            ) : (
+              <>
+                <p className="text-sm leading-relaxed text-muted-foreground">{t('authRecoveryDescription')}</p>
+                <Field>
+                  <FieldLabel htmlFor="recovery-email">{t('authEmailLabel')}</FieldLabel>
+                  <Input id="recovery-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} dir="ltr" />
+                </Field>
+                <FieldError>{error}</FieldError>
+                <Button type="submit" busy={busy} className="w-full">
+                  {busy ? t('authRecoverySending') : t('authRecoverySend')}
+                </Button>
+              </>
+            )}
+            <Button type="button" variant="ghost" className="w-full" onClick={() => {
+              setRecoveryOpen(false);
+              setRecoverySent(false);
+              setError('');
+            }}>
+              {t('accountBack')}
+            </Button>
+          </form>
+        )}
+        {!recoveryOpen && <div className="flex items-center gap-3" aria-hidden="true"><Separator className="flex-1" /><span className="text-xs text-muted-foreground">{t('authOr')}</span><Separator className="flex-1" /></div>}
+        {!recoveryOpen && <Button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={busy}
@@ -150,16 +218,7 @@ export default function AuthGate() {
         >
           <AppIcon name="google" size={18} />
           {t('googleSignIn')}
-        </Button>
-
-        <Button
-          type="button"
-          onClick={() => selectMode(mode === 'signup' ? 'signin' : 'signup')}
-          variant="ghost"
-          className="w-full"
-        >
-          {t(mode === 'signup' ? 'authHaveAccount' : 'authNeedAccount')}
-        </Button>
+        </Button>}
         <p className="text-start text-xs text-muted-foreground" lang={lang}>
           {t('authDataNotice')}
         </p>

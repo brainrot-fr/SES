@@ -6,36 +6,24 @@
  * - Shows either the surah list or the selected surah reader.
  */
 
-import { useState } from 'react';
-import QuranSurahList from './QuranSurahList';
-import QuranReader from './QuranReader';
-import { QURAN_SURAH_LIST } from './quranApi';
-
-const STORAGE_KEY = 'ses-current-surah';
+import QuranSurahList from '@/features/quran/QuranSurahList';
+import QuranReader from '@/features/quran/QuranReader';
+import { QURAN_SURAH_LIST } from '@/features/quran/quranData';
 
 export default function Quran({
-  selectedSurah: controlledSurah,
+  selectedSurah,
   selectedAyah,
-  onSelectSurah,
-} = {}) {
-  const [internalSurah, setInternalSurah] = useState(() => {
-    const n = parseInt(localStorage.getItem(STORAGE_KEY), 10);
-    return !isNaN(n) && n >= 1 && n <= 114 ? n : null;
-  });
-
-  const isControlled = controlledSurah !== undefined;
-  const selectedSurah = isControlled ? controlledSurah : internalSurah;
-  const setSelectedSurah = isControlled ? onSelectSurah : setInternalSurah;
-
+  onNavigate,
+}) {
   if (selectedSurah == null) {
-    return <QuranSurahList onOpenSurah={setSelectedSurah} />;
+    return <QuranSurahList onOpenSurah={onNavigate} />;
   }
 
   return (
     <div className="quran-layout quran-layout--reader">
       <aside className="quran-layout__index">
         <QuranSurahList
-          onOpenSurah={setSelectedSurah}
+          onOpenSurah={onNavigate}
           activeSurah={selectedSurah}
           compact
           initialSurahs={QURAN_SURAH_LIST}
@@ -46,6 +34,7 @@ export default function Quran({
           key={`${selectedSurah}-${selectedAyah || ""}`}
           initialSurah={selectedSurah}
           initialAyah={selectedAyah}
+          onNavigate={onNavigate}
         />
       </div>
     </div>

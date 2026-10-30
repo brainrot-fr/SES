@@ -18,12 +18,11 @@ debug APK and attaches it to a GitHub Release.
 Run `npm run quran:audio-index` to download each listed reciter's ayah audio to
 the ignored `.cache/quran-audio/` directory and generate
 `public/quran-audio-durations.json`. The app continues to stream audio; the
-audio cache is never bundled. Run the index command before building or
-deploying when exact surah durations are required, because the generated JSON
-is intentionally ignored by Git. The indexer tries 64 kbps first, then the
-full standard MPEG bitrate ladder from 448 down to 8 kbps, retries transient
-downloads, and falls back when a bitrate is unavailable or serves invalid
-audio.
+audio cache is never bundled. The generated JSON is checked in so production
+builds have exact surah durations. For a fresh index, the script starts with
+the last successful bitrate when available; otherwise it tries the standard
+MPEG bitrate ladder from 448 down to 8 kbps. It retries transient downloads
+and falls back when a bitrate is unavailable or serves invalid audio.
 
 ## Islamic dates
 

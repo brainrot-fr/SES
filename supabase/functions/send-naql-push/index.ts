@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SignJWT, importPKCS8 } from "npm:jose@5";
+import { slotsForNaqlReminders } from "../_shared/naqlSlots.ts";
+import { NAQL_COUNT } from "../_shared/naqlCount.ts";
 
-const NAQL_COUNT = 55;
-// Local-time slots, matched against 30 minute windows (cron runs at :00 and :30 UTC).
-const SLOTS = ["05:00", "08:00", "11:00", "14:00", "15:00", "17:00", "20:00"];
+const DEVICE_TOKEN_PAGE_SIZE = 1000;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -60,16 +60,32 @@ Deno.serve(async (req) => {
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data: rows, error } = await supabase
-    .from("device_tokens").select("token, timezone, lang, last_sent_key").limit(5000);
-  if (error) return json({ error: error.message }, 500);
-
   const now = new Date();
-  const due = (rows ?? []).flatMap((row) => {
-    const slot = localSlot(row.timezone, now);
-    return force || (SLOTS.includes(slot.time) && row.last_sent_key !== slot.key)
-      ? [{ ...row, slotKey: slot.key }] : [];
-  });
+  const due = [];
+  let cursor: string | null = null;
+  while (true) {
+    let query = supabase
+      .from("device_tokens")
+      .select("token, timezone, lang, last_sent_key, slots_per_day")
+      .order("token", { ascending: true })
+      .limit(DEVICE_TOKEN_PAGE_SIZE);
+    if (cursor) query = query.gt("token", cursor);
+    const { data: rows, error } = await query;
+    if (error) return json({ error: error.message }, 500);
+    if (!rows?.length) break;
+
+    due.push(...rows.flatMap((row) => {
+      const slot = localSlot(row.timezone, now);
+      const slots = slotsForNaqlReminders(row.slots_per_day).map(({ hour, minute }) =>
+        `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      );
+      return row.slots_per_day > 0 && (force || (slots.includes(slot.time) && row.last_sent_key !== slot.key))
+        ? [{ ...row, slotKey: slot.key }] : [];
+    }));
+
+    cursor = rows[rows.length - 1].token;
+    if (rows.length < DEVICE_TOKEN_PAGE_SIZE) break;
+  }
   if (!due.length) return json({ due: 0 });
 
     let account;

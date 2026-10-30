@@ -1,23 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLang } from "../../context/LanguageContext";
-import AppIcon from "../../components/icons/AppIcon";
-import { Button } from "../../components/shadcn/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../../components/shadcn/avatar";
-import { Input } from "../../components/shadcn/input";
-import { ScrollArea } from "../../components/shadcn/scroll-area";
+import { useLang } from "@/context/LanguageContext";
+import BottomSheet from "@/components/BottomSheet";
+import AppIcon from "@/components/icons/AppIcon";
+import { Button } from "@/components/shadcn/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/shadcn/avatar";
+import { Textarea } from "@/components/shadcn/textarea";
+import { ScrollArea } from "@/components/shadcn/scroll-area";
 import {
   AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "../../components/shadcn/alert-dialog";
-import { Sheet, SheetContent, SheetTitle } from "../../components/shadcn/sheet";
-import { friendlyError } from "../../lib/supabaseClient.js";
-import { createComment, deletePostComment, fetchComments } from "./postsApi";
+} from "@/components/shadcn/alert-dialog";
+import { friendlyError } from "@/lib/supabaseClient.js";
+import { cloudinaryImageUrl } from "@/lib/cloudinaryUpload";
+import { createComment, deletePostComment, fetchComments } from "@/features/social/postsApi";
 
 function CommentBranch({ comment, children, depth, userId, onReply, onDelete, t }) {
   return (
     <article className="social-comment" style={{ "--comment-depth": Math.min(depth, 4) }}>
       <Avatar className="social-comment__avatar">
-        <AvatarImage src={comment.author_avatar_url || undefined} alt="" />
+        <AvatarImage src={cloudinaryImageUrl(comment.author_avatar_url, "c_fill,w_96,h_96,f_auto,q_auto") || undefined} alt="" />
         <AvatarFallback>{comment.author_display_name.slice(0, 1).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="social-comment__content">
@@ -43,6 +44,8 @@ function CommentBranch({ comment, children, depth, userId, onReply, onDelete, t 
 
 export default function SocialCommentsSheet({ post, user, onClose, onCommentCreated }) {
   const { lang, t } = useLang();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [comments, setComments] = useState([]);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -61,7 +64,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
       })
       .catch((loadError) => {
         console.error("[Social] failed to load comments", loadError);
-        if (!cancelled) setError(friendlyError(loadError, t, "socialCommentsError"));
+        if (!cancelled) setError(friendlyError(loadError, tRef.current, "socialCommentsError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -69,7 +72,7 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
     return () => {
       cancelled = true;
     };
-  }, [post.id, t]);
+  }, [post.id]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -77,14 +80,21 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
     setBusy(true);
     setError("");
     try {
-      const created = await createComment({ postId: post.id, body, user, replyToId: replyTo?.id });
+      const created = await createComment({
+        postId: post.id,
+        body,
+        user,
+        replyToId: replyTo?.id,
+        fallbackDisplayName: t("socialUnknownAuthor"),
+      });
       const profile = user.user_metadata || {};
       setComments((current) => [...current, {
         ...created,
-        author_display_name: profile.display_name || profile.full_name || profile.name || "Community member",
+        author_display_name: profile.display_name || profile.full_name || profile.name || t("socialUnknownAuthor"),
         author_avatar_url: profile.avatar_url || null,
       }]);
       setBody("");
+      if (inputRef.current) inputRef.current.style.height = "auto";
       setReplyTo(null);
       onCommentCreated(post.id, created.body);
     } catch (submitError) {
@@ -118,6 +128,13 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
     inputRef.current?.focus();
   };
 
+  const resizeCommentField = (event) => {
+    const element = event.currentTarget;
+    element.style.height = "auto";
+    element.style.height = `${element.scrollHeight}px`;
+    setBody(element.value);
+  };
+
   const close = useCallback(() => onClose(), [onClose]);
   const childComments = new Map();
   const commentIds = new Set(comments.map((comment) => comment.id));
@@ -143,11 +160,19 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
   );
 
   return (
-    <Sheet open onOpenChange={(open) => !open && close()}>
-      <SheetContent side="bottom" className="mx-auto h-[82dvh] max-w-xl gap-0 p-0" showCloseButton={false} aria-labelledby={`social-comments-title-${post.id}`}>
+    <>
+    <BottomSheet
+      open
+      onOpenChange={(open) => !open && close()}
+      title={t("socialComments")}
+      description={t("socialCommentsDescription")}
+      closeLabel={t("socialCloseComments")}
+      showCloseButton={false}
+      className="mx-auto h-[82dvh] w-full max-w-xl gap-0 p-0"
+    >
         <header className="flex min-h-16 items-center justify-between border-b px-4 py-3">
           <div>
-            <SheetTitle id={`social-comments-title-${post.id}`}>{t("socialComments")}</SheetTitle>
+            <h2 className="font-semibold text-foreground">{t("socialComments")}</h2>
             <span className="text-xs text-muted-foreground">{new Intl.NumberFormat(lang === "ur" ? "ur" : "en").format(comments.length)}</span>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={close} aria-label={t("socialCloseComments")}>
@@ -168,18 +193,20 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
             </div>
           )}
           <label className="sr-only" htmlFor={`social-comment-${post.id}`}>{t("socialCommentLabel")}</label>
-          <Input
+          <Textarea
             ref={inputRef}
             id={`social-comment-${post.id}`}
             value={body}
-            onChange={(event) => setBody(event.target.value)}
+            onChange={resizeCommentField}
             placeholder={t("socialCommentPlaceholder")}
             maxLength={1000}
+            rows={1}
             disabled={busy}
+            className="min-h-11 max-h-40 resize-none"
           />
           <Button type="submit" disabled={!body.trim() || busy}>{busy ? t("socialPosting") : t("socialSendComment")}</Button>
         </form>
-      </SheetContent>
+    </BottomSheet>
       <AlertDialog open={!!commentToDelete} onOpenChange={(open) => {
         if (!open && !deletingComment) setCommentToDelete(null);
       }}>
@@ -190,10 +217,10 @@ export default function SocialCommentsSheet({ post, user, onClose, onCommentCrea
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deletingComment}>{t("socialDeleteNo")}</AlertDialogCancel>
-            <Button type="button" variant="destructive" busy={deletingComment} onClick={removeComment}>{t("socialDeleteYes")}</Button>
+            <Button type="button" variant="destructive" busy={deletingComment} loadingLabel={t("socialDeleting")} onClick={removeComment}>{t("socialDeleteYes")}</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Sheet>
+    </>
   );
 }

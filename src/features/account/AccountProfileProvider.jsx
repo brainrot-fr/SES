@@ -6,37 +6,34 @@ import {
   useMemo,
   useState,
 } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { useLang } from "../../context/LanguageContext";
-import AccountOnboarding from "./AccountOnboarding";
-import { isAccountProfileComplete } from "./accountProfile";
-import { AppShellSkeleton } from "../../components/layout/Page";
+import { supabase } from "@/lib/supabaseClient";
+import { useLang } from "@/context/LanguageContext";
+import AccountOnboarding from "@/features/account/AccountOnboarding";
+import { isAccountProfileComplete } from "@/features/account/accountProfile";
+import { AppShellSkeleton } from "@/components/layout/Page";
+import { Button } from "@/components/shadcn/button";
+import {
+  cacheProfile as writeProfileCache,
+  readCachedProfile,
+} from "@/features/account/profileCache";
 
-export { isAccountProfileComplete } from "./accountProfile";
+export { isAccountProfileComplete } from "@/features/account/accountProfile";
 
 const AccountProfileContext = createContext(null);
-const PROFILE_CACHE_KEY = "ses-profile-cache-v1";
 const PROFILE_FIELDS =
   "id, onboarding_gender, follower_confirmed, country_code, onboarding_completed_at";
 
-function readCachedCompleteProfile(userId) {
-  try {
-    const profile = JSON.parse(localStorage.getItem(PROFILE_CACHE_KEY) || "null");
-    return profile?.id === userId && isAccountProfileComplete(profile)
-      ? profile
-      : null;
-  } catch {
-    return null;
-  }
+function createProfileError(code) {
+  const error = new Error(code);
+  error.code = code;
+  return error;
 }
 
-function cacheProfile(profile) {
-  try {
-    if (profile) localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-    else localStorage.removeItem(PROFILE_CACHE_KEY);
-  } catch {
-    // Profile loading remains available if local storage is unavailable.
-  }
+function readCachedCompleteProfile(userId) {
+  const profile = readCachedProfile();
+  return profile?.id === userId && isAccountProfileComplete(profile)
+    ? profile
+    : null;
 }
 
 export function AccountProfileProvider({
@@ -93,7 +90,7 @@ export function AccountProfileProvider({
           error,
           cachedProfile: error ? readCachedCompleteProfile(userId) : null,
         });
-        if (!error) cacheProfile(data);
+        if (!error) writeProfileCache(data);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -118,7 +115,7 @@ export function AccountProfileProvider({
 
   const persistProfile = useCallback(
     async (changes) => {
-      if (!userId) throw new Error("Sign in to save your account profile.");
+      if (!userId) throw createProfileError("profile_sign_in_required");
 
       const { data: updatedProfile, error: updateError } = await supabase
         .from("profiles")
@@ -148,7 +145,7 @@ export function AccountProfileProvider({
         error: null,
         cachedProfile: null,
       });
-      cacheProfile(data);
+      writeProfileCache(data);
       return data;
     },
     [userId],
@@ -157,7 +154,7 @@ export function AccountProfileProvider({
   const saveGender = useCallback(
     (onboardingGender) => {
       if (onboardingGender !== "girl" && onboardingGender !== "boy") {
-        throw new Error("Choose girl or boy to continue.");
+        throw createProfileError("profile_gender_invalid");
       }
       return persistProfile({ onboarding_gender: onboardingGender });
     },
@@ -175,7 +172,7 @@ export function AccountProfileProvider({
         countryCode !== null &&
         !/^[A-Z]{2}$/.test(countryCode)
       ) {
-        throw new Error("Choose a country from the list or continue without one.");
+        throw createProfileError("profile_country_invalid");
       }
       return persistProfile({
         country_code: countryCode,
@@ -258,9 +255,7 @@ export function AccountProfileProvider({
 export function useAccountProfile() {
   const context = useContext(AccountProfileContext);
   if (!context) {
-    throw new Error(
-      "useAccountProfile must be used inside AuthProvider's account profile boundary.",
-    );
+    throw createProfileError("account_profile_context_missing");
   }
   return context;
 }
@@ -277,21 +272,21 @@ function ProfileLoadError({ onRetry, onContinueOffline, canContinueOffline }) {
         <p className="account-onboarding__eyebrow">{t("accountSetupEyebrow")}</p>
         <h1 className="account-onboarding__title" id="profile-load-title">{t("accountProfileErrorTitle")}</h1>
         <p className="account-onboarding__copy" role="alert">{t("accountProfileError")}</p>
-        <button
-          className="account-onboarding__button"
+        <Button
+          variant="onboarding"
           type="button"
           onClick={onRetry}
         >
           {t("accountTryAgain")}
-        </button>
+        </Button>
         {canContinueOffline && (
-          <button
-            className="account-onboarding__button account-onboarding__button--secondary"
+          <Button
+            variant="onboardingOutline"
             type="button"
             onClick={onContinueOffline}
           >
             {t("accountContinueOffline")}
-          </button>
+          </Button>
         )}
       </section>
     </main>

@@ -99,14 +99,12 @@
   margin-block-start: 0.12rem;
 }
 
-.account-onboarding__confirmation:focus-within,
-.account-onboarding__button:focus-visible {
+.account-onboarding__confirmation:focus-within {
   outline: 3px solid var(--ring);
   outline-offset: 3px;
 }
 
-.account-onboarding__actions,
-.account-onboarding__step > .account-onboarding__button {
+.account-onboarding__actions {
   position: fixed;
   z-index: 90;
   inset-inline: var(--page-gutter);
@@ -116,47 +114,6 @@
   width: auto;
   max-width: 38rem;
   margin-inline: auto;
-}
-
-.account-onboarding__button {
-  display: inline-flex;
-  min-width: 0;
-  min-height: 48px;
-  flex: 1 1 auto;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: var(--on-primary, #fff);
-  font: inherit;
-  font-weight: 650;
-  text-align: center;
-  cursor: pointer;
-  transition: opacity var(--duration-base) var(--ease-standard);
-}
-
-.account-onboarding__button:hover:not(:disabled) {
-  filter: brightness(0.94);
-}
-
-.account-onboarding__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.account-onboarding__button--secondary {
-  border-color: var(--border);
-  background: var(--surface-1);
-  color: var(--text-large);
-}
-
-.account-onboarding__error {
-  margin: 0;
-  color: var(--danger);
-  font-size: 0.925rem;
-  line-height: 1.5;
 }
 
 .account-onboarding__card {
@@ -182,15 +139,13 @@
     padding-block: var(--space-8) calc(6rem + env(safe-area-inset-bottom, 0px));
   }
 
-  .account-onboarding__actions,
-  .account-onboarding__step > .account-onboarding__button {
+  .account-onboarding__actions {
     inset-inline-start: calc(50% + var(--page-gutter));
     inset-inline-end: var(--page-gutter);
     inset-block-end: max(var(--space-3), env(safe-area-inset-bottom, 0px));
   }
 
-  [dir="rtl"] .account-onboarding__actions,
-  [dir="rtl"] .account-onboarding__step > .account-onboarding__button {
+  [dir="rtl"] .account-onboarding__actions {
     inset-inline-start: var(--page-gutter);
     inset-inline-end: calc(50% + var(--page-gutter));
   }
@@ -201,17 +156,4 @@
     gap: var(--space-2);
   }
 
-  .account-onboarding__button {
-    padding-inline: var(--space-2);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .account-onboarding *,
-  .account-onboarding *::before,
-  .account-onboarding *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0s !important;
-    animation-duration: 0s !important;
-  }
 }

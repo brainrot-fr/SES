@@ -18,7 +18,7 @@
 .quran-list__header {
   position: sticky;
   z-index: 20;
-  inset-block-start: 0;
+  inset-block-start: var(--header-height);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
@@ -195,21 +195,6 @@
   font-size: var(--text-sm);
 }
 
-.quran-reading-controls {
-  display: grid;
-  width: 100%;
-  justify-items: center;
-  gap: var(--space-2);
-}
-
-.quran-reading-controls__mode {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
 .quran-reading-controls__font-size {
   display: flex;
   flex: 0 0 auto;
@@ -328,8 +313,8 @@
   font-family: var(--font-body);
 }
 
-.quran-ayah__translit {
-  margin-block-start: var(--space-1) !important;
+.quran-ayah__translation > .quran-ayah__translit {
+  margin-block-start: var(--space-1);
   font-style: italic;
 }
 
@@ -393,10 +378,6 @@
   vertical-align: -0.2em;
 }
 
-.quran-back-to-top {
-  inset-block-end: calc(var(--dock-offset) + 5rem);
-}
-
 @media (min-width: 768px) {
   .quran-list:not(.quran-list--compact) {
     padding-block-start: var(--space-4);
@@ -426,7 +407,7 @@
   }
 
   .quran-list--compact .quran-list__header {
-    inset-block-start: 0;
+    inset-block-start: var(--header-height);
     grid-template-columns: 1fr;
     background: var(--bg);
   }

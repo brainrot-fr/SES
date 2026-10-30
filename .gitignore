@@ -16,8 +16,12 @@ scripts/
 scripts/*
 !scripts/fetch-quran-text.mjs
 !scripts/index-quran-audio.mjs
+!scripts/check-profile-identity-lock.mjs
+!scripts/check-i18n.mjs
+!scripts/check-css-policy.mjs
 .cache/quran-audio/
-public/quran-audio-durations.json
 .impeccable
 .github/hooks
 service-account.json
+android/app/release.keystore
+prompts.md

@@ -7,15 +7,25 @@
  * - Provides a translation helper and reset function.
  */
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import en from '../i18n/en';
-import ur from '../i18n/ur';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import en from '@/i18n/en';
+import ur from '@/i18n/ur';
 
 const strings = { en, ur };
 const Ctx = createContext(null);
 
+function readSavedLanguage() {
+  try {
+    const saved = localStorage.getItem('ses-lang-v2');
+    return saved === 'en' || saved === 'ur' ? saved : null;
+  } catch (error) {
+    console.warn('[language] could not read saved language', error);
+    return null;
+  }
+}
+
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState(() => localStorage.getItem('ses-lang-v2'));
+  const [lang, setLang] = useState(readSavedLanguage);
   const isRTL = lang === 'ur';
 
   /*
@@ -29,21 +39,31 @@ export function LanguageProvider({ children }) {
     document.documentElement.lang = lang || 'en';
   }, [lang, isRTL]);
 
-  const chooseLang = (l) => {
-    localStorage.setItem('ses-lang-v2', l);
+  const chooseLang = useCallback((l) => {
+    if (l !== 'en' && l !== 'ur') return;
+    try {
+      localStorage.setItem('ses-lang-v2', l);
+    } catch (error) {
+      console.warn('[language] could not persist selected language', error);
+    }
     setLang(l);
-  };
+  }, []);
 
-  const resetLang = () => {
-    localStorage.removeItem('ses-lang-v2');
+  const resetLang = useCallback(() => {
+    try {
+      localStorage.removeItem('ses-lang-v2');
+    } catch (error) {
+      console.warn('[language] could not clear saved language', error);
+    }
     setLang(null);
-  };
+  }, []);
 
   /* Translation helper: fall back to English if the current language key is missing. */
-  const t = (key) => strings[lang]?.[key] ?? strings.en[key] ?? key;
+  const t = useCallback((key) => strings[lang]?.[key] ?? strings.en[key] ?? key, [lang]);
+  const value = useMemo(() => ({ lang, chooseLang, resetLang, t, isRTL }), [lang, chooseLang, resetLang, t, isRTL]);
 
   return (
-    <Ctx.Provider value={{ lang, chooseLang, resetLang, t, isRTL }}>
+    <Ctx.Provider value={value}>
       {children}
     </Ctx.Provider>
   );

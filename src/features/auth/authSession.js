@@ -10,15 +10,22 @@
  *   same user id throughout, just no longer anonymous after confirmation.
  */
 
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
-import { getDisplayName } from '../account/accountProfile.js';
+import { getDisplayName } from '@/features/account/accountProfile.js';
+import { clearProfileCache } from '@/features/account/profileCache.js';
 
 export { getDisplayName };
 
 const AUTH_CALLBACK_URL = 'ses://auth-callback';
+
+function createAuthError(code) {
+  const error = new Error(code);
+  error.code = code;
+  return error;
+}
 
 function getAuthRedirectTo() {
   return Capacitor.isNativePlatform() ? AUTH_CALLBACK_URL : window.location.origin;
@@ -79,10 +86,31 @@ export async function signInWithGoogle() {
   if (native) await Browser.open({ url: data.url });
 }
 
+export async function requestPasswordReset(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getAuthRedirectTo(),
+  });
+  if (error) throw error;
+}
+
+export async function updateRecoveredPassword(password) {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
+export async function resendSignupConfirmation(email) {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: getAuthRedirectTo() },
+  });
+  if (error) throw error;
+}
+
 export async function signUpWithPassword(username, email, password) {
   const trimmedUsername = username.trim();
   if (trimmedUsername.length < 2 || trimmedUsername.length > 40) {
-    throw new Error('Username must be between 2 and 40 characters.');
+    throw createAuthError('auth_username_invalid');
   }
   const { data: { session } } = await supabase.auth.getSession();
   const userMetadata = {
@@ -112,6 +140,7 @@ export async function signUpWithPassword(username, email, password) {
 }
 
 export async function signOut() {
+  clearProfileCache();
   const pushToken = localStorage.getItem('ses-push-token');
   if (pushToken) {
     try { await supabase.rpc('unregister_device_token', { p_token: pushToken }); } catch { /* best effort */ }
@@ -126,6 +155,7 @@ export async function deleteAccount() {
   if (error) throw error;
 
   localStorage.removeItem('ses-push-token');
+  clearProfileCache();
   const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
   if (signOutError) throw signOutError;
 }

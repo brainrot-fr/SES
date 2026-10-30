@@ -12,51 +12,41 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { App } from '@capacitor/app';
-import { supabase } from '../lib/supabaseClient';
-import { nuqoolObject } from '../features/nuqool/en/nuqool.jsx';
+import { supabase } from '@/lib/supabaseClient';
+import { nuqoolData } from '@/features/nuqool/nuqool.data.js';
+import { slotsForNaqlReminders } from '../../supabase/functions/_shared/naqlSlots.ts';
 
 const NEXT_NOTIF_ID = 500001; // fixed id — only ever one of these pending
 const TEST_NOTIF_ID = 1;
 const LEGACY_CLEANUP_KEY = 'ses-notif-legacy-cleanup-v2';
-const EXACT_ALARM_PROMPT_KEY = 'ses-exact-alarm-prompted';
 const PUSH_TOKEN_KEY = 'ses-push-token';
-
-const TIMES_OF_DAY = [
-  { hour: 5,  minute: 0 },
-  { hour: 8,  minute: 0 },
-  { hour: 11, minute: 0 },
-  { hour: 14, minute: 0 },
-  { hour: 15, minute: 25 },
-  { hour: 17, minute: 0 },
-  { hour: 20, minute: 0 },
-];
+const REMINDER_SLOTS_KEY = 'ses-naql-slots-per-day';
 
 const PREVIEW_LENGTH = 100;
 const FULL_LENGTH = 800;
 
-/* TEXT HELPERS — unchanged */
+const naqlById = new Map(nuqoolData.map((entry) => [entry.id, entry]));
 
-function jsxToPlainText(node, maxLength) {
-  function walkChildren(child) {
-    if (typeof child === 'string' || typeof child === 'number') return String(child);
-    if (Array.isArray(child)) return child.map(walkChildren).join(' ');
-    if (child && typeof child === 'object') return walkChildren(child.props?.children);
-    return '';
-  }
-
-  const text = walkChildren(node).replace(/\s+/g, ' ').trim();
+function naqlToPlainText(entry, maxLength) {
+  const text = entry.parts.map((part) => part.text).join(' ').replace(/\s+/g, ' ').trim();
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}…` : text;
 }
 
 function pickRandomNaql() {
-  const naqlNumbers = Object.keys(nuqoolObject);
-  return Number(naqlNumbers[Math.floor(Math.random() * naqlNumbers.length)]);
+  return nuqoolData[Math.floor(Math.random() * nuqoolData.length)].id;
+}
+
+function getReminderSlotsPerDay() {
+  const saved = localStorage.getItem(REMINDER_SLOTS_KEY);
+  if (saved === null) return 7;
+  const count = Number(saved);
+  return [0, 1, 3, 7].includes(count) ? count : 7;
 }
 
 /* Find the next TIME_OF_DAY slot strictly after `from`. */
-function getNextSlotDate(from = new Date()) {
+function getNextSlotDate(from = new Date(), slots = slotsForNaqlReminders(getReminderSlotsPerDay())) {
   for (let day = 0; day < 14; day++) {
-    for (const time of TIMES_OF_DAY) {
+    for (const time of slots) {
       const candidate = new Date(from);
       candidate.setDate(candidate.getDate() + day);
       candidate.setHours(time.hour, time.minute, 0, 0);
@@ -64,25 +54,6 @@ function getNextSlotDate(from = new Date()) {
     }
   }
   return null;
-}
-
-async function ensureExactAlarmPermission() {
-  let exactGranted = true;
-  try {
-    const exact = await LocalNotifications.checkExactNotificationSetting?.();
-    if (exact) {
-      exactGranted = exact.exact_alarm === 'granted';
-      if (!exactGranted && !localStorage.getItem(EXACT_ALARM_PROMPT_KEY)) {
-        localStorage.setItem(EXACT_ALARM_PROMPT_KEY, '1');
-        await LocalNotifications.changeExactNotificationSetting?.();
-        const recheck = await LocalNotifications.checkExactNotificationSetting?.();
-        exactGranted = recheck?.exact_alarm === 'granted';
-      }
-    }
-  } catch {
-    // API unavailable on this plugin/OS version — assume fine.
-  }
-  return exactGranted;
 }
 
 /* One-time cleanup of the old 90000–90069 batch-scheduled ids, so nothing
@@ -110,6 +81,11 @@ export async function scheduleNextNaqlNotification() {
   if (!Capacitor.isNativePlatform()) return;
 
   try {
+    const slots = slotsForNaqlReminders(getReminderSlotsPerDay());
+    if (slots.length === 0) {
+      await LocalNotifications.cancel({ notifications: [{ id: NEXT_NOTIF_ID }] });
+      return;
+    }
     if (localStorage.getItem(PUSH_TOKEN_KEY)) return;
 
     let perm = await LocalNotifications.checkPermissions();
@@ -127,8 +103,7 @@ export async function scheduleNextNaqlNotification() {
       return; // already have a future one queued
     }
 
-    const exactGranted = await ensureExactAlarmPermission();
-    const target = getNextSlotDate();
+    const target = getNextSlotDate(new Date(), slots);
     if (!target) return;
 
     const naqlNumber = pickRandomNaql();
@@ -136,9 +111,9 @@ export async function scheduleNextNaqlNotification() {
       notifications: [{
         id: NEXT_NOTIF_ID,
         title: `Naql ${naqlNumber}`,
-        body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-        largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
-        schedule: { at: target, allowWhileIdle: exactGranted },
+        body: naqlToPlainText(naqlById.get(naqlNumber), PREVIEW_LENGTH),
+        largeBody: naqlToPlainText(naqlById.get(naqlNumber), FULL_LENGTH),
+        schedule: { at: target },
         extra: { naqlNumber },
       }],
     });
@@ -164,8 +139,8 @@ export async function scheduleTestNotification(secondsFromNow = 10) {
     notifications: [{
       id: TEST_NOTIF_ID,
       title: `Naql ${naqlNumber}`,
-      body: jsxToPlainText(nuqoolObject[naqlNumber], PREVIEW_LENGTH),
-      largeBody: jsxToPlainText(nuqoolObject[naqlNumber], FULL_LENGTH),
+      body: naqlToPlainText(naqlById.get(naqlNumber), PREVIEW_LENGTH),
+      largeBody: naqlToPlainText(naqlById.get(naqlNumber), FULL_LENGTH),
       schedule: { at: new Date(Date.now() + secondsFromNow * 1000) },
       extra: { naqlNumber },
     }],
@@ -220,6 +195,7 @@ export function initNaqlPush({ lang, onOpenNaql }) {
           p_token: value,
           p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           p_lang: lang,
+          p_slots_per_day: getReminderSlotsPerDay(),
         });
         if (error) { console.error('[push] could not save token', error); return; }
         localStorage.setItem(PUSH_TOKEN_KEY, value);

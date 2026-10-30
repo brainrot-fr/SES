@@ -2,16 +2,12 @@
   padding-block: var(--space-4) calc(var(--dock-offset) + var(--space-7));
 }
 
-.dashboard__ayah:active {
-  background-color: var(--primary-soft);
-}
-
 .dashboard__greeting {
   padding-block-end: var(--space-5);
 }
 
 .dashboard__greeting h1 {
-  display: inline;
+  display: block;
   margin: 0;
   color: var(--text-large);
   font-family: var(--font-page-title);
@@ -20,15 +16,14 @@
   letter-spacing: -0.03em;
 }
 
-.dashboard__date-separator,
 .dashboard__date {
   color: var(--muted);
   font-size: var(--text-sm);
 }
 
 .dashboard__date-line {
-  display: inline-block;
-  white-space: nowrap;
+  display: block;
+  margin-block-start: var(--space-2);
 }
 
 .dashboard__date-error {
@@ -50,25 +45,29 @@
 }
 
 .dashboard__layout {
+  display: grid;
+  grid-template-areas:
+    "continue"
+    "ayah"
+    "explore";
   gap: var(--space-6);
 }
 
 .dashboard__ayah {
+  grid-area: ayah;
   display: flex;
   width: calc(100% + 2 * var(--page-gutter));
-  min-height: 26rem;
+  min-height: 20rem;
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-4);
   margin-inline: calc(-1 * var(--page-gutter));
   border: 0;
   color: var(--text-small);
-  cursor: pointer;
   font: inherit;
   text-align: start;
 }
 
-.dashboard__ayah:focus-visible,
 .dashboard__row:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: -3px;
@@ -108,14 +107,26 @@
   font-weight: 700;
 }
 
-.dashboard__lists {
+.dashboard__section {
   display: grid;
-  gap: var(--space-7);
+  gap: var(--space-3);
   min-width: 0;
 }
 
-.dashboard__section {
-  min-width: 0;
+.dashboard__continue { grid-area: continue; }
+.dashboard__explore { grid-area: explore; }
+
+.dashboard__ayah-error {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+}
+
+.dashboard__empty-progress {
+  margin: 0;
+  padding-block: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .dashboard__section h2 {
@@ -173,6 +184,9 @@
 @media (min-width: 1024px) {
   .dashboard__layout {
     grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    grid-template-areas:
+      "ayah continue"
+      "ayah explore";
     gap: clamp(var(--space-6), 5vw, var(--space-8));
   }
 
@@ -182,10 +196,6 @@
     min-height: min(70dvh, 44rem);
     width: 100%;
     margin-inline: 0;
-  }
-
-  .dashboard__lists {
-    padding-inline: var(--space-4);
   }
 }
 

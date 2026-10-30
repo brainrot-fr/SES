@@ -9,13 +9,14 @@
 @import '@fontsource/readex-pro/arabic-400.css';
 @import '@fontsource/readex-pro/arabic-600.css';
 @import '@fontsource/readex-pro/arabic-700.css';
+@import '@fontsource/noto-nastaliq-urdu/400.css';
 @import '@fontsource/manrope/latin-400.css';
 @import '@fontsource/manrope/latin-500.css';
 @import '@fontsource/manrope/latin-600.css';
 @import '@fontsource/manrope/latin-700.css';
 
-@import "./styles/tokens.css";
-@import "./styles/layout.css";
+@import "@/styles/tokens.css";
+@import "@/styles/layout.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -36,7 +37,7 @@
   --color-destructive: var(--danger);
   --color-input: var(--input);
   --color-ring: var(--primary);
-  --radius-xl: 20px;
+  --radius-xl: 24px;
 
   --color-bg: var(--bg);
   --color-surface-0: var(--surface-0);
@@ -64,25 +65,6 @@
   --color-panel: var(--panel);
   --color-panel-2: var(--panel-2);
   --color-border: var(--border);
-
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-pill: var(--radius-pill);
-
-  --shadow-sm: var(--shadow-sm);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-focus: var(--shadow-focus);
-
-  --spacing-1: var(--space-1);
-  --spacing-2: var(--space-2);
-  --spacing-3: var(--space-3);
-  --spacing-4: var(--space-4);
-  --spacing-5: var(--space-5);
-  --spacing-6: var(--space-6);
-  --spacing-7: var(--space-7);
-  --spacing-8: var(--space-8);
 }
 
 @font-face {
@@ -90,7 +72,7 @@
   src: url('./assets/fonts/QPC\ Hafs\ \(Official\ Uthmani\ script\ font\)\ -\ TTF.ttf') format('truetype');
   font-display: swap;
   unicode-range: U+0020, U+0028-U+0029, U+0030-U+0039, U+005B, U+005D, U+00A0,
-    U+0600-U+0621, U+0623-U+06FF, U+200C-U+200F, U+25CC,
+    U+0600-U+06FF, U+200C-U+200F, U+25CC,
     U+FC00-U+FD1D, U+FD50-U+FD7D;
 }
 @font-face {
@@ -124,6 +106,13 @@ html {
 
 html[data-theme="dark"] {
   color-scheme: dark;
+}
+
+html[lang="ur"],
+html[dir="rtl"] {
+  --font-body: 'Noto Nastaliq Urdu', 'Readex Pro', 'Manrope', sans-serif;
+  --font-display: 'Noto Nastaliq Urdu', 'Readex Pro', 'Manrope', sans-serif;
+  --font-page-title: 'Noto Nastaliq Urdu', 'Readex Pro', 'Manrope', sans-serif;
 }
 
 :focus-visible {
@@ -165,6 +154,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+[lang="ur"] body,
+[dir="rtl"] body {
+  line-height: 1.8;
+}
+
 button:not(:disabled),
 a[href],
 label[for],
@@ -198,12 +192,12 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  html:root *,
+  html:root *::before,
+  html:root *::after {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
   }
 }

@@ -11,13 +11,28 @@
  */
 
 export const silsilaETarbiyat = [
-  { id: 1, name: 'Hazrat Syed Muhammad Jaunpuri A.S', title: "Mahdi-e-Ma'ud" },
+  {
+    id: 1,
+    name: 'Hazrat Syed Muhammad Jaunpuri A.S',
+    name_ur: 'حضرت سید محمد جونپوری علیہ السلام',
+    title: "Mahdi-e-Ma'ud",
+    title_ur: 'مہدی موعود',
+  },
   { id: 2, name: '' /* fill in next in chain */ },
   { id: 3, name: '' },
 ];
 
 export const silsilaEFaqiri = [
-  { id: 1, name: 'Hazrat Syed Muhammad Jaunpuri A.S', title: "Mahdi-e-Ma'ud" },
+  {
+    id: 1,
+    name: 'Hazrat Syed Muhammad Jaunpuri A.S',
+    name_ur: 'حضرت سید محمد جونپوری علیہ السلام',
+    title: "Mahdi-e-Ma'ud",
+    title_ur: 'مہدی موعود',
+  },
   { id: 2, name: '' /* fill in next in chain */ },
   { id: 3, name: '' },
 ];
+
+export const hasPublishedMurshidLineage = [silsilaETarbiyat, silsilaEFaqiri]
+  .some((entries) => entries.filter((entry) => entry.name?.trim()).length >= 2);

@@ -18,8 +18,8 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className="h-full w-full flex-1 bg-primary transition-all"
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        className="h-full w-full flex-1 bg-primary transition-all ltr:-translate-x-[var(--progress-offset)] rtl:translate-x-[var(--progress-offset)]"
+        style={{ "--progress-offset": `${100 - (value || 0)}%` }}
       />
     </ProgressPrimitive.Root>
   )

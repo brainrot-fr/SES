@@ -4,19 +4,29 @@ import {
   motion,
   useReducedMotion,
 } from "framer-motion";
-import { useAccountProfile } from "./AccountProfileProvider";
-import { useLang } from "../../context/LanguageContext";
-import EntryBrand from "../../components/layout/EntryBrand";
-import { Button } from "../../components/shadcn/button";
-import { Checkbox } from "../../components/shadcn/checkbox";
-import { Label } from "../../components/shadcn/label";
-import { Popover, PopoverContent, PopoverTrigger } from "../../components/shadcn/popover";
-import { Progress } from "../../components/shadcn/progress";
-import { RadioGroup, RadioGroupItem } from "../../components/shadcn/radio-group";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../../components/shadcn/command";
+import { useAccountProfile } from "@/features/account/AccountProfileProvider";
+import { useLang } from "@/context/LanguageContext";
+import EntryBrand from "@/components/layout/EntryBrand";
+import { Button } from "@/components/shadcn/button";
+import { Checkbox } from "@/components/shadcn/checkbox";
+import { Field, FieldDescription, FieldError, FieldLabel, FieldLegend, FieldSet } from "@/components/shadcn/field";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/shadcn/popover";
+import { Progress } from "@/components/shadcn/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/shadcn/radio-group";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/shadcn/alert-dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/shadcn/command";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { friendlyError } from "../../lib/supabaseClient.js";
-import "./accountOnboarding.css";
+import { friendlyError } from "@/lib/supabaseClient.js";
+import "@/features/account/accountOnboarding.css";
 
 const COUNTRY_CODES = `
 AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ
@@ -79,6 +89,7 @@ export default function AccountOnboarding() {
     profile?.country_code || "",
   );
   const [countryOpen, setCountryOpen] = useState(false);
+  const [genderConfirmOpen, setGenderConfirmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const headingRef = useRef(null);
@@ -129,7 +140,7 @@ export default function AccountOnboarding() {
       };
 
   return (
-    <main className="account-onboarding">
+    <main className="account-onboarding no-bottom-nav">
       <Progress className="fixed inset-x-0 top-0 z-[100] h-1 rounded-none" value={stepNumber / 3 * 100} aria-label={t("accountProfileProgress").replace("{step}", String(stepNumber))} />
       <EntryBrand />
       <section
@@ -155,27 +166,29 @@ export default function AccountOnboarding() {
                 <p className="account-onboarding__copy">
                   {t("accountGenderCopy")}
                 </p>
-                <fieldset className="account-onboarding__fieldset">
-                  <legend className="account-onboarding__label">{t("accountGenderLabel")}</legend>
+                <FieldSet className="account-onboarding__fieldset">
+                  <FieldLegend variant="label" className="account-onboarding__label">{t("accountGenderLabel")}</FieldLegend>
                   <RadioGroup value={gender} onValueChange={setGender} disabled={busy} className="account-onboarding__choices">
                     {[
-                      { value: "girl", label: t("accountGirl") },
-                      { value: "boy", label: t("accountBoy") },
+                      { value: "girl", label: t("accountSister") },
+                      { value: "boy", label: t("accountBrother") },
                     ].map((choice) => (
-                      <Label className={`account-onboarding__choice${gender === choice.value ? " account-onboarding__choice--selected" : ""}`} htmlFor={`account-gender-${choice.value}`} key={choice.value}>
-                        <RadioGroupItem id={`account-gender-${choice.value}`} value={choice.value} />
-                        <span>{choice.label}</span>
-                      </Label>
+                      <FieldLabel className={`account-onboarding__choice${gender === choice.value ? " account-onboarding__choice--selected" : ""}`} htmlFor={`account-gender-${choice.value}`} key={choice.value}>
+                        <RadioGroupItem className="peer" id={`account-gender-${choice.value}`} value={choice.value} />
+                        <span className="peer-focus-visible:rounded-sm peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ring peer-focus-visible:outline-offset-2">{choice.label}</span>
+                      </FieldLabel>
                     ))}
                   </RadioGroup>
-                  <span className="account-onboarding__helper">
+                  <FieldDescription className="account-onboarding__helper">
                     {t("accountGenderHelper")}
-                  </span>
-                </fieldset>
-                {error && <p className="account-onboarding__error" role="alert">{error}</p>}
-                <Button className="account-onboarding__button" type="button" disabled={!gender || busy} onClick={() => runStep(() => saveGender(gender), "confirmation")}>
-                  {busy ? t("accountSaving") : t("accountContinue")}
-                </Button>
+                  </FieldDescription>
+                </FieldSet>
+                <FieldError>{error}</FieldError>
+                <div className="account-onboarding__actions">
+                  <Button variant="onboarding" type="button" disabled={!gender || busy} onClick={() => setGenderConfirmOpen(true)}>
+                    {busy ? t("accountSaving") : t("accountContinue")}
+                  </Button>
+                </div>
               </div>
             ) : step === "confirmation" ? (
               <div className="account-onboarding__step">
@@ -192,17 +205,17 @@ export default function AccountOnboarding() {
                 </p>
                 <div className="account-onboarding__confirmation flex min-h-11 items-start gap-3">
                   <Checkbox id="account-follower-confirmation" checked={confirmed} onCheckedChange={(checked) => setConfirmed(checked === true)} disabled={busy} />
-                  <Label htmlFor="account-follower-confirmation" className="font-normal">{t("accountFollowerStatement")}</Label>
+                  <label htmlFor="account-follower-confirmation" className="leading-relaxed peer-focus-visible:rounded-sm peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-ring peer-focus-visible:outline-offset-2">{t("accountFollowerStatement")}</label>
                 </div>
-                <p className="account-onboarding__helper">
+                <FieldDescription className="account-onboarding__helper">
                   {t("accountConfirmationRequired")}
-                </p>
-                {error && <p className="account-onboarding__error" role="alert">{error}</p>}
+                </FieldDescription>
+                <FieldError>{error}</FieldError>
                 <div className="account-onboarding__actions">
-                  <Button className="account-onboarding__button account-onboarding__button--secondary" type="button" variant="outline" disabled={busy} onClick={() => setStep("gender")}>
+                  <Button variant="onboardingOutline" type="button" disabled={busy} onClick={() => setStep("gender")}>
                     {t("accountBack")}
                   </Button>
-                  <Button className="account-onboarding__button" type="button" disabled={!confirmed || busy} onClick={() => runStep(confirmFollower, "country")}>
+                  <Button variant="onboarding" type="button" disabled={!confirmed || busy} onClick={() => runStep(confirmFollower, "country")}>
                     {busy ? t("accountSaving") : t("accountConfirmContinue")}
                   </Button>
                 </div>
@@ -220,51 +233,48 @@ export default function AccountOnboarding() {
                 <p className="account-onboarding__copy">
                   {t("accountCountryCopy")}
                 </p>
-                <Label className="account-onboarding__label" id="account-country-label">{t("accountCountryLabel")}</Label>
-                <Popover open={countryOpen} onOpenChange={setCountryOpen}>
-                  <PopoverTrigger asChild>
-                    <Button type="button" variant="outline" className="min-h-12 w-full justify-between" aria-labelledby="account-country-label" aria-describedby="account-country-help" disabled={busy}>
-                      {countryOptions.find(({ code }) => code === countryCode)?.name || t("accountCountryPlaceholder")}
-                      <ChevronsUpDown className="ms-2 size-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[min(250px,calc(100vw-2rem))] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder={t("accountCountrySearch")} />
-                      <CommandList>
-                        <CommandEmpty>{t("accountCountryNoResults")}</CommandEmpty>
-                        <CommandGroup>
-                          {countryOptions.map(({ code, name }) => (
-                            <CommandItem key={code} value={name} onSelect={() => {
-                              setCountryCode(code);
-                              setCountryOpen(false);
-                            }}>
-                              <Check className={countryCode === code ? "opacity-100" : "opacity-0"} />
-                              {name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <p
-                  className="account-onboarding__helper"
-                  id="account-country-help"
-                >
-                  {countryHelper}
-                </p>
-                {error && <p className="account-onboarding__error" role="alert">{error}</p>}
+                <Field>
+                  <FieldLabel className="account-onboarding__label" id="account-country-label">{t("accountCountryLabel")}</FieldLabel>
+                  <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button type="button" variant="outline" className="min-h-12 w-full justify-between" aria-labelledby="account-country-label" aria-describedby="account-country-help" disabled={busy}>
+                        {countryOptions.find(({ code }) => code === countryCode)?.name || t("accountCountryPlaceholder")}
+                        <ChevronsUpDown className="ms-2 size-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder={t("accountCountrySearch")} />
+                        <CommandList>
+                          <CommandEmpty>{t("accountCountryNoResults")}</CommandEmpty>
+                          <CommandGroup>
+                            {countryOptions.map(({ code, name }) => (
+                              <CommandItem key={code} value={name} onSelect={() => {
+                                setCountryCode(code);
+                                setCountryOpen(false);
+                              }}>
+                                <Check className={countryCode === code ? "opacity-100" : "opacity-0"} />
+                                {name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FieldDescription id="account-country-help" className="account-onboarding__helper">{countryHelper}</FieldDescription>
+                  <FieldError>{error}</FieldError>
+                </Field>
                 <div className="account-onboarding__actions">
-                  <Button className="account-onboarding__button account-onboarding__button--secondary" type="button" variant="outline" disabled={busy} onClick={() => setStep("confirmation")}>
+                  <Button variant="onboardingOutline" type="button" disabled={busy} onClick={() => setStep("confirmation")}>
                     {t("accountBack")}
                   </Button>
                   {countryCode ? (
-                    <Button className="account-onboarding__button" type="button" disabled={busy} onClick={() => finish(countryCode)}>
+                    <Button variant="onboarding" type="button" disabled={busy} onClick={() => finish(countryCode)}>
                       {busy ? t("accountSaving") : t("accountSaveFinish")}
                     </Button>
                   ) : (
-                    <Button className="account-onboarding__button" type="button" disabled={busy} onClick={() => finish(null)}>
+                    <Button variant="onboarding" type="button" disabled={busy} onClick={() => finish(null)}>
                       {busy ? t("accountSaving") : t("accountSkipCountry")}
                     </Button>
                   )}
@@ -274,6 +284,27 @@ export default function AccountOnboarding() {
           </motion.div>
         </AnimatePresence>
       </section>
+      <AlertDialog open={genderConfirmOpen} onOpenChange={setGenderConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("accountGenderLockTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("accountGenderLockDescription")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>{t("accountBack")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={(event) => {
+                event.preventDefault();
+                setGenderConfirmOpen(false);
+                void runStep(() => saveGender(gender), "confirmation");
+              }}
+            >
+              {t("accountContinue")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

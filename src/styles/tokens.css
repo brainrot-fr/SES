@@ -17,7 +17,7 @@
   --font-body: 'Manrope', 'Readex Pro', sans-serif;
   --font-display: 'Manrope', 'Readex Pro', sans-serif;
   --font-page-title: 'Manrope', 'Readex Pro', sans-serif;
-  --font-hero: 'Space Grotesk', 'Manrope', serif;
+  --font-hero: 'Cormorant Garamond', serif;
   --font-arabic: 'QPCHafs', serif;
   --font-nastaliq: 'Indopak', serif;
   --text-large: #182B2C;
@@ -36,6 +36,7 @@
   --primary-2: #248579;
   --primary-soft: #E2EEE4;
   --primary-action-background: var(--primary);
+  --primary-action-foreground: var(--on-primary);
   --accent: #B47A32;
   --accent-soft: #F6EBD9;
   --on-primary: #FFFFFF;
@@ -58,7 +59,7 @@
   );
 
   --hairline: rgba(54, 61, 45, 0.16);
-  --ring: rgba(23, 102, 95, 0.30);
+  --ring: #17665F;
   --shadow-sm:
     0 1px 3px rgba(52, 48, 31, 0.05),
     0 1px 2px rgba(52, 48, 31, 0.03);
@@ -74,7 +75,8 @@
 
   --radius-sm: 10px;
   --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
   --radius-pill: 999px;
 
   --space-1: 4px;
@@ -89,6 +91,7 @@
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
+  --text-md: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
@@ -138,18 +141,17 @@ html[data-theme="dark"] {
   --primary: #79C5AE;
   --primary-2: #95D9C3;
   --primary-soft: #203D35;
-  --primary-action-background: var(--primary-soft);
-  --primary-foreground: var(--text-large);
+  --primary-action-background: var(--primary);
+  --primary-action-foreground: var(--text-large);
+  --primary-foreground: var(--on-primary);
   --accent: #E2B873;
   --accent-soft: #403624;
   --on-primary: #112723;
 
-  --surface-1: color-mix(in srgb, #192725 60%, #213330 40%);
-  --surface-2: color-mix(in srgb, #213330 65.2%, #2B403C 34.8%);
   --surface-3: #2B403C;
 
   --hairline: rgba(228, 245, 236, 0.14);
-  --ring: rgba(121, 197, 174, 0.36);
+  --ring: #79C5AE;
   --shadow-sm:
     0 1px 3px rgba(0, 0, 0, 0.24);
   --shadow-md:

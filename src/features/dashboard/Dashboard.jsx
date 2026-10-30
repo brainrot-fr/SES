@@ -1,32 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { useLang } from "../../context/LanguageContext";
-import { getDisplayName } from "../auth/authSession";
-import { useAccountProfile } from "../account/AccountProfileProvider";
-import { getIslamicDate } from "./islamicDateService";
-import AppIcon from "../../components/icons/AppIcon";
-import Page from "../../components/layout/Page";
-import Band from "../../components/layout/Band";
-import Split from "../../components/layout/Split";
-import RowList from "../../components/layout/RowList";
-import Row from "../../components/layout/Row";
-import { Skeleton } from "../../components/shadcn/skeleton";
-import { Progress } from "../../components/shadcn/progress";
-import "./dashboard.css";
+import { useAuth } from "@/context/AuthContext";
+import { useLang } from "@/context/LanguageContext";
+import { getDisplayName } from "@/features/auth/authSession";
+import { useAccountProfile } from "@/features/account/AccountProfileProvider";
+import { getIslamicDate } from "@/features/dashboard/islamicDateService";
+import { getDailyAyahPosition } from "@/features/dashboard/dailyAyah";
+import { fetchSurah, QURAN_SURAH_COUNT, QURAN_SURAH_META } from "@/features/quran/quranData";
+import { NAQL_COUNT } from "@/features/nuqool/count";
+import DirectionalIcon from "@/components/icons/DirectionalIcon";
+import Page from "@/components/layout/Page";
+import Band from "@/components/layout/Band";
+import RowList from "@/components/layout/RowList";
+import Row from "@/components/layout/Row";
+import { Skeleton } from "@/components/shadcn/skeleton";
+import { Button } from "@/components/shadcn/button";
+import FormError from "@/components/FormError";
+import "@/features/dashboard/dashboard.css";
 
 function getStoredProgress(key, total) {
   const value = Number(localStorage.getItem(key));
   return Number.isInteger(value) && value >= 1 && value <= total ? value : 1;
 }
 
-function getDayOfYear(date) {
-  const dayOfYear = Math.floor(
-    (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) -
-      Date.UTC(date.getFullYear(), 0, 0)) /
-      86400000,
-  );
-  return dayOfYear;
+function hasStoredProgress(key) {
+  return localStorage.getItem(key) !== null;
 }
 
 export default function Dashboard() {
@@ -36,7 +34,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [today] = useState(() => new Date());
   const [ayah, setAyah] = useState(null);
-  const [surahList, setSurahList] = useState([]);
+  const [ayahError, setAyahError] = useState(false);
+  const [ayahRetry, setAyahRetry] = useState(0);
   const [islamicDate, setIslamicDate] = useState({
     text: "",
     loading: true,
@@ -47,28 +46,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    import("../quran/quranApi").then(async ({ QURAN_SURAH_LIST, fetchSurah }) => {
-      const totalAyahs = QURAN_SURAH_LIST.reduce((total, surah) => total + surah.numberOfAyahs, 0);
-      let ayahIndex = (getDayOfYear(today) - 1) % totalAyahs;
-      let selectedSurah = QURAN_SURAH_LIST[0];
-      for (const surah of QURAN_SURAH_LIST) {
-        if (ayahIndex < surah.numberOfAyahs) {
-          selectedSurah = surah;
-          break;
-        }
-        ayahIndex -= surah.numberOfAyahs;
-      }
+    setAyah(null);
+    setAyahError(false);
+    (async () => {
+      const { surah: selectedSurah, ayahIndex } = getDailyAyahPosition(today, QURAN_SURAH_META);
       const surahData = await fetchSurah(selectedSurah.number, { includeBismillah: true });
       if (cancelled) return;
-      setSurahList(QURAN_SURAH_LIST);
       setAyah({ ...surahData.ayahs[ayahIndex], surah: selectedSurah });
-    }).catch((error) => {
+    })().catch((error) => {
       console.error("[Dashboard] failed to load daily ayah", error);
+      if (!cancelled) setAyahError(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, [today, ayahRetry]);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,16 +89,19 @@ export default function Dashboard() {
   const welcome = username
     ? t("dashboardWelcomeNamed").replace("{username}", username)
     : t("dashboardWelcome");
-  const currentSurah = getStoredProgress("ses-current-surah", 114);
-  const currentNaql = getStoredProgress("ses-current-naql", 55);
-  const currentSurahName = surahList[currentSurah - 1]?.englishName ?? t("navQuran");
+  const currentSurah = getStoredProgress("ses-current-surah", QURAN_SURAH_COUNT);
+  const currentNaql = getStoredProgress("ses-current-naql", NAQL_COUNT);
+  const hasQuranProgress = hasStoredProgress("ses-current-surah");
+  const hasNaqlProgress = hasStoredProgress("ses-current-naql");
+  const currentSurahMeta = QURAN_SURAH_META[currentSurah - 1];
+  const currentAyah = getStoredProgress("ses-current-ayah", currentSurahMeta?.numberOfAyahs ?? 286);
+  const currentSurahName = currentSurahMeta?.englishName ?? t("navQuran");
 
   return (
     <Page className="dashboard">
       <header className="dashboard__greeting">
         <h1>{welcome}</h1>
         <span className="dashboard__date-line">
-          <span className="dashboard__date-separator" aria-hidden="true">· </span>
           <span className="dashboard__date" aria-label={t("dashboardIslamicDate")}>
             {islamicDate.loading ? (
               <span role="status">{t("dashboardIslamicDateLoading")}</span>
@@ -122,21 +117,22 @@ export default function Dashboard() {
         </span>
       </header>
 
-      <Split
-        className="dashboard__layout"
-        rail={(
-          <Band
-            as="button"
-            type="button"
+      <div className="dashboard__layout">
+        <Band
+            as="section"
             glow
             className="dashboard__ayah"
-            onClick={() => ayah && navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
-            disabled={!ayah}
-            aria-label={ayah ? `${t("dashboardOpenAyah")} ${ayah.surah.englishName}, ${t("quranAyahLabel")} ${ayah.numberInSurah}` : t("dashboardAyahOfDay")}
           >
             <span className="dashboard__ayah-label">{t("dashboardAyahOfDay")}</span>
             {ayah ? (
               <span className="dashboard__arabic" lang="ar" dir="rtl">{ayah.text.replace(/^\uFEFF/, "")}</span>
+            ) : ayahError ? (
+              <span className="dashboard__ayah-error">
+                <FormError message={t("dashboardAyahError")} />
+                <Button type="button" variant="outline" onClick={() => setAyahRetry((retry) => retry + 1)}>
+                  {t("dashboardIslamicDateRetry")}
+                </Button>
+              </span>
             ) : (
               <span className="grid flex-1 content-center gap-4" aria-hidden="true">
                 <Skeleton className="mx-auto h-8 w-4/5" />
@@ -148,17 +144,20 @@ export default function Dashboard() {
               {ayah.surah.englishName} · {t("quranAyahLabel")} {ayah.numberInSurah}
             </span>}
             {ayah && <span className="dashboard__ayah-link">
-              {t("dashboardReadQuran")}
-              <AppIcon name="arrowRight" size={18} />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate(`/quran/${ayah.surah.number}/${ayah.numberInSurah}`)}
+              >
+                {t("dashboardReadQuran")}
+                <DirectionalIcon name="arrowRight" size={18} />
+              </Button>
             </span>}
-          </Band>
-        )}
-      >
-        <div className="dashboard__lists">
-          <section className="dashboard__section" aria-labelledby="dashboard-continue-title">
+        </Band>
+          <section className="dashboard__section dashboard__continue" aria-labelledby="dashboard-continue-title">
             <h2 id="dashboard-continue-title">{t("dashboardContinue")}</h2>
             <RowList>
-              <Row
+              {hasQuranProgress && <Row
                 as="button"
                 type="button"
                 className="dashboard__row"
@@ -166,12 +165,13 @@ export default function Dashboard() {
                 leading={<span className="dashboard__number">{currentSurah}</span>}
                 content={(
                   <span className="dashboard__row-copy">
-                    <span className="dashboard__row-name">{currentSurahName}</span>
-                    <Progress className="h-0.5" value={(currentSurah / 114) * 100} aria-hidden="true" />
+                    <span className="dashboard__row-name">
+                      {currentSurahName} · {t("quranAyahLabel")} {currentAyah} / {currentSurahMeta?.numberOfAyahs ?? 286}
+                    </span>
                   </span>
                 )}
-              />
-              <Row
+              />}
+              {hasNaqlProgress && <Row
                 as="button"
                 type="button"
                 className="dashboard__row"
@@ -179,15 +179,17 @@ export default function Dashboard() {
                 leading={<span className="dashboard__number">{currentNaql}</span>}
                 content={(
                   <span className="dashboard__row-copy">
-                    <span className="dashboard__row-name">{t("titleNuqool")}</span>
-                    <Progress className="h-0.5" value={(currentNaql / 55) * 100} aria-hidden="true" />
+                    <span className="dashboard__row-name">{t("titleNuqool")} · {currentNaql} / {NAQL_COUNT}</span>
                   </span>
                 )}
-              />
+              />}
+              {!hasQuranProgress && !hasNaqlProgress && (
+                <p className="dashboard__empty-progress">{t("dashboardNoProgress")}</p>
+              )}
             </RowList>
           </section>
 
-          <section className="dashboard__section" aria-labelledby="dashboard-explore-title">
+          <section className="dashboard__section dashboard__explore" aria-labelledby="dashboard-explore-title">
             <h2 id="dashboard-explore-title">{t("dashboardExplore")}</h2>
             <RowList>
               {[
@@ -202,13 +204,12 @@ export default function Dashboard() {
                   className="dashboard__row dashboard__explore-row"
                   onClick={() => navigate(`/${destination.id}`)}
                   content={<span className="dashboard__row-name">{destination.label}</span>}
-                  trailing={<AppIcon name="arrowRight" size={18} />}
+                  trailing={<DirectionalIcon name="arrowRight" size={18} />}
                 />
               ))}
             </RowList>
           </section>
-        </div>
-      </Split>
+      </div>
     </Page>
   );
 }

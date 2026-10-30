@@ -1,5 +1,5 @@
-import { useLang } from "../../context/LanguageContext";
-import AppIcon from "../icons/AppIcon";
+import { useLang } from "@/context/LanguageContext";
+import AppIcon from "@/components/icons/AppIcon";
 
 export default function EntryBrand() {
   const { t } = useLang();

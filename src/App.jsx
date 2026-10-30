@@ -3,32 +3,38 @@
  * Main application shell for the SES PWA.
  */
 
-import { lazy, Suspense, useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { lazy, Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
-import "./App.css";
-import AppIcon from "./components/icons/AppIcon";
-import Sidebar from "./components/sidebar";
-import IconButton from "./components/layout/IconButton";
-import { AppShellSkeleton } from "./components/layout/Page";
-import { Toaster } from "./components/shadcn/sonner";
-import Onboarding from "./components/Onboarding";
-import AuthGate from "./features/auth/AuthGate";
-import { useLang } from "./context/LanguageContext";
-import { useAuth } from "./context/AuthContext";
-import { getCssDurationSeconds } from "./lib/utils";
+import "@/App.css";
+import Sidebar from "@/components/Sidebar";
+import BottomNav from "@/components/nav/BottomNav";
+import DesktopNav from "@/components/nav/DesktopNav";
+import IconButton from "@/components/layout/IconButton";
+import { AppShellSkeleton } from "@/components/layout/Page";
+import { Progress } from "@/components/shadcn/progress";
+import { Toaster } from "@/components/shadcn/sonner";
+import Onboarding from "@/components/Onboarding";
+import AuthGate from "@/features/auth/AuthGate";
+import RecoveryGate from "@/features/auth/RecoveryGate";
+import { useLang } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { getCssDurationSeconds } from "@/lib/utils";
+import { hasPublishedMurshidLineage } from "@/features/murshid/murshidData";
+import { QURAN_SURAH_COUNT } from "@/features/quran/count";
+import { NAQL_COUNT } from "@/features/nuqool/count";
 
-const loadNaqlDashboard = () => import("./features/nuqool/en/naqlDashboard");
-const loadTimeline = () => import("./features/timeline/timeline");
-const loadQuran = () => import("./features/quran/Quran");
-const loadMurshid = () => import("./features/murshid/Murshid");
-const loadSettingsDashboard = () => import("./features/settings/SettingsDashboard");
-const loadDashboard = () => import("./features/dashboard/Dashboard");
-const loadSocialFeed = () => import("./features/social/SocialFeed");
-const loadReelUpload = () => import("./features/social/ReelUpload");
-const loadPostCreate = () => import("./features/social/PostCreate");
+const loadNaqlDashboard = () => import("@/features/nuqool/naqlDashboard");
+const loadTimeline = () => import("@/features/timeline/timeline");
+const loadQuran = () => import("@/features/quran/Quran");
+const loadMurshid = () => import("@/features/murshid/Murshid");
+const loadSettingsDashboard = () => import("@/features/settings/SettingsDashboard");
+const loadDashboard = () => import("@/features/dashboard/Dashboard");
+const loadSocialFeed = () => import("@/features/social/SocialFeed");
+const loadReelUpload = () => import("@/features/social/ReelUpload");
+const loadPostCreate = () => import("@/features/social/PostCreate");
 
 const NaqlDashboard = lazy(loadNaqlDashboard);
 const Timeline = lazy(loadTimeline);
@@ -62,71 +68,14 @@ function preloadPath(pathname) {
   return preloadRoute(pathname.split("/")[1] || "dashboard");
 }
 
-function BottomNav({ items, activePage, onNavigate, label, inert = false }) {
-  return (
-    <nav
-      aria-label={label}
-      inert={inert}
-      className="bottom-nav fixed inset-x-0 bottom-[var(--bottom-nav-gap)] z-[100] mx-auto flex w-[min(30rem,calc(100vw-24px))] rounded-[var(--radius-md)] border border-border bg-card/95 p-1 shadow-lg supports-[backdrop-filter]:bg-card/75 supports-[backdrop-filter]:backdrop-blur-md lg:hidden"
-    >
-      {items.map((it) => {
-        const active = activePage === it.id;
-        return (
-          <button
-            key={it.id}
-            type="button"
-            onClick={() => onNavigate(it.id)}
-            onMouseEnter={() => preloadRoute(it.id)}
-            onFocus={() => preloadRoute(it.id)}
-            aria-current={active ? "page" : undefined}
-            aria-label={it.label}
-            className="group flex min-h-12 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] text-xs font-medium text-muted-foreground transition-colors active:scale-[0.98] aria-[current=page]:text-primary motion-reduce:active:scale-100"
-          >
-            <span className="grid h-7 w-14 place-items-center rounded-full transition-colors group-aria-[current=page]:bg-primary/15">
-              <AppIcon name={it.iconName} size={22} filled={active} />
-            </span>
-            {it.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-function DesktopNav({ items, activePage, onNavigate, label }) {
-  return (
-    <nav className="desktop-nav" aria-label={label}>
-      <button
-        type="button"
-        className="desktop-nav__brand"
-        aria-label={items.find((item) => item.id === "dashboard")?.label}
-        onClick={() => onNavigate("dashboard")}
-        onMouseEnter={() => preloadRoute("dashboard")}
-        onFocus={() => preloadRoute("dashboard")}
-      >
-        <AppIcon name="home" size={28} className="desktop-nav__brand-mark" />
-        <span className="desktop-nav__brand-name">SES</span>
-      </button>
-      <div className="desktop-nav__items">
-        {items.map((item) => (
-          <button
-            type="button"
-            key={item.id}
-            className={`desktop-nav__item${activePage === item.id ? " desktop-nav__item--active" : ""}`}
-            onClick={() => onNavigate(item.id)}
-            onMouseEnter={() => preloadRoute(item.id)}
-            onFocus={() => preloadRoute(item.id)}
-            aria-label={item.label}
-            aria-current={activePage === item.id ? "page" : undefined}
-            title={item.label}
-          >
-            <span className="desktop-nav__icon"><AppIcon name={item.iconName} size={24} filled={activePage === item.id} /></span>
-            <span className="desktop-nav__label">{item.label}</span>
-          </button>
-        ))}
-      </div>
-    </nav>
-  );
+function getInitialDarkMode() {
+  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  try {
+    const savedTheme = localStorage.getItem("ses-theme-v2");
+    return savedTheme === "dark" || (savedTheme === null && prefersDark);
+  } catch {
+    return prefersDark;
+  }
 }
 
 /* ── Small wrapper so QuranReader's initialSurah comes from the URL param ── */
@@ -135,49 +84,69 @@ function QuranRoute() {
   const navigate = useNavigate();
   const n = parseInt(surahNumber, 10);
   const ayah = parseInt(ayahNumber, 10);
-  const selectedSurah = !isNaN(n) && n >= 1 && n <= 114 ? n : null;
+  const selectedSurah = !isNaN(n) && n >= 1 && n <= QURAN_SURAH_COUNT ? n : null;
   const selectedAyah = Number.isInteger(ayah) && ayah > 0 ? ayah : null;
 
   return (
     <Quran
       selectedSurah={selectedSurah}
       selectedAyah={selectedAyah}
-      onSelectSurah={(s) => navigate(s == null ? "/quran" : `/quran/${s}`)}
+      onNavigate={(surah) => navigate(`/quran/${surah}`, { replace: true })}
     />
   );
 }
 
-/* ── Small wrapper so NaqlDashboard's openNaqlRequest comes from the URL ── */
-function NuqoolRoute({ openNaqlRequest }) {
+/* ── Naql selection is sourced from the URL; the reader handles saved progress. ── */
+function NuqoolRoute() {
   const { naqlNumber } = useParams();
-  const requestFromUrl = useMemo(() => {
-    const number = parseInt(naqlNumber, 10);
-    return !isNaN(number) ? { number, ts: 0 } : null;
-  }, [naqlNumber]);
-  // openNaqlRequest (from a notification tap) takes priority when fresher
-  const effective = openNaqlRequest?.ts > 0 ? openNaqlRequest : requestFromUrl;
-  return <NaqlDashboard openNaqlRequest={effective} />;
+  const number = Number.parseInt(naqlNumber, 10);
+  const initialNaql = Number.isInteger(number) && number >= 1 && number <= NAQL_COUNT ? number : null;
+  return <NaqlDashboard initialNaql={initialNaql} />;
+}
+
+function NotificationBootstrap({ lang, user, onOpenNaql }) {
+  useEffect(() => {
+    let cancelled = false;
+    let cleanup;
+    import("@/notifications/naqlNotifications").then(({ initNaqlNotificationLifecycle }) => {
+      if (!cancelled) cleanup = initNaqlNotificationLifecycle(onOpenNaql);
+    }).catch((error) => console.error("[naqlNotifications] lifecycle initialization failed", error));
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [onOpenNaql]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let cleanup;
+    import("@/notifications/naqlNotifications").then(({ initNaqlPush }) => {
+      if (!cancelled) cleanup = initNaqlPush({ lang, onOpenNaql });
+    }).catch((error) => console.error("[push] initialization failed", error));
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [user.id, lang, onOpenNaql]);
+
+  return null;
 }
 
 export default function App() {
   const { lang, t } = useLang();
-  const { user, isAnonymous, ready } = useAuth();
+  const { user, isAnonymous, ready, passwordRecovery } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const prefersReducedMotion = useReducedMotion();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("ses-theme-v2") === "dark");
-  const [openNaqlRequest, setOpenNaqlRequest] = useState(null);
+  const [darkMode, setDarkMode] = useState(getInitialDarkMode);
   const [headerScrolled, setHeaderScrolled] = useState(false);
   const headerSentinelRef = useRef(null);
   const previousDarkModeRef = useRef(darkMode);
   const [readyLocation, setReadyLocation] = useState(location);
   const [baseDuration, setBaseDuration] = useState(0);
-  const openNaql = useCallback((naqlNumber) => {
-    navigate(`/nuqool/${naqlNumber}`);
-    setOpenNaqlRequest({ number: naqlNumber, ts: Date.now() });
-  }, [navigate]);
+  const openNaql = useCallback((naqlNumber) => navigate(`/nuqool/${naqlNumber}`), [navigate]);
 
   useEffect(() => {
     setBaseDuration(getCssDurationSeconds("--duration-base"));
@@ -222,8 +191,10 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.dataset.theme = darkMode ? "dark" : "";
+    root.dataset.theme = darkMode ? "dark" : "light";
     localStorage.setItem("ses-theme-v2", darkMode ? "dark" : "light");
+    const themeColor = getComputedStyle(root).getPropertyValue("--bg").trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", themeColor);
     const themeChanged = previousDarkModeRef.current !== darkMode;
     previousDarkModeRef.current = darkMode;
     if (themeChanged) {
@@ -256,29 +227,6 @@ export default function App() {
   const renderedLocation = readyLocation.key === location.key ? location : readyLocation;
 
   useEffect(() => {
-    let cancelled = false;
-    let cleanup;
-    import("./notifications/naqlNotifications").then(({ initNaqlNotificationLifecycle }) => {
-      if (cancelled) return;
-      cleanup = initNaqlNotificationLifecycle(openNaql);
-    });
-    return () => {
-      cancelled = true;
-      cleanup?.();
-    };
-  }, [openNaql]);
-
-  useEffect(() => {
-    if (!user || isAnonymous) return undefined;
-    let cancelled = false;
-    let cleanup;
-    import("./notifications/naqlNotifications").then(({ initNaqlPush }) => {
-      if (!cancelled) cleanup = initNaqlPush({ lang, onOpenNaql: openNaql });
-    });
-    return () => { cancelled = true; cleanup?.(); };
-  }, [user?.id, isAnonymous, lang, openNaql]);
-
-  useEffect(() => {
     const title = !lang ? t("appTitle") : pageTitles[currentPage] ?? t("appTitle");
     document.title = title === t("appTitle") ? title : `${title} · ${t("appTitle")}`;
   }, [currentPage, lang, t]);
@@ -287,6 +235,7 @@ export default function App() {
   if (!ready) {
     return <AppShellSkeleton label={t("settingsLoading")} />;
   }
+  if (passwordRecovery) return <RecoveryGate />;
   if (!user || isAnonymous) return <AuthGate />;
 
   const navItems = [
@@ -298,13 +247,17 @@ export default function App() {
     { id: "murshid", label: t("navMurshid"), iconName: "murshid" },
     { id: "timeline", label: t("navTimeline"), iconName: "timeline" },
     { id: "settings", label: t("titleSettings"), iconName: "settings" },
-  ];
+  ].filter((item) => item.id !== "murshid" || hasPublishedMurshidLineage);
 
   const primaryNavItems = navItems.filter((it) => ["dashboard", "quran", "nuqool", "reels", "social"].includes(it.id));
   const secondaryNavItems = navItems.filter((it) => ["murshid", "timeline", "settings"].includes(it.id));
+  const pageTitle = location.pathname === "/social/create"
+    ? t("titleCreatePost")
+    : pageTitles[currentPage] ?? t("appTitle");
 
   return (
     <div className="app-root">
+      <NotificationBootstrap lang={lang} user={user} onOpenNaql={openNaql} />
       <a className="app-skip-link" href="#main-content">{t("skipToContent")}</a>
       <div ref={headerSentinelRef} className="app-header-sentinel" aria-hidden="true" />
       <header className={`app-header${headerScrolled ? " app-header--scrolled bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-md border-b border-border" : ""}`} inert={sidebarOpen}>
@@ -322,15 +275,14 @@ export default function App() {
           />
         )}
 
-        <span className="app-header__title">{pageTitles[currentPage] ?? t("appTitle")}</span>
+        <span className="app-header__title">{pageTitle}</span>
 
         <IconButton
           className="app-header__btn"
-          icon={darkMode ? "sun" : "moon"}
+          icon="settings"
           size={18}
-          onClick={() => setDarkMode((d) => !d)}
-          label={darkMode ? t("toLightMode") : t("toDarkMode")}
-          title={darkMode ? t("toLightMode") : t("toDarkMode")}
+          onClick={() => navigate("/settings")}
+          label={t("titleSettings")}
         />
       </header>
 
@@ -348,8 +300,15 @@ export default function App() {
       />
 
       <main id="main-content" className="app-main" inert={sidebarOpen}>
+        {readyLocation.key !== location.key && (
+          <Progress
+            aria-label={t("routeLoading")}
+            value={65}
+            className="fixed inset-x-0 top-0 z-[120] h-0.5 rounded-none"
+          />
+        )}
         <motion.div
-          key={location.pathname}
+          key={renderedLocation.pathname}
           className="route-transition"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -359,8 +318,8 @@ export default function App() {
             <Routes location={renderedLocation}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/nuqool" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
-              <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute openNaqlRequest={openNaqlRequest} />} />
+              <Route path="/nuqool" element={<NuqoolRoute />} />
+              <Route path="/nuqool/:naqlNumber" element={<NuqoolRoute />} />
               <Route path="/quran" element={<QuranRoute />} />
               <Route path="/quran/:surahNumber/:ayahNumber" element={<QuranRoute />} />
               <Route path="/quran/:surahNumber" element={<QuranRoute />} />
@@ -386,6 +345,7 @@ export default function App() {
         onNavigate={(id) => {
           void preloadRoute(id).then(() => navigate(`/${id}`));
         }}
+        onPreload={preloadRoute}
         label={t("primaryNavigation")}
         inert={sidebarOpen}
       />
@@ -395,9 +355,10 @@ export default function App() {
         onNavigate={(id) => {
           void preloadRoute(id).then(() => navigate(`/${id}`));
         }}
+        onPreload={preloadRoute}
         label={t("primaryNavigation")}
       />
-      <Toaster position="top-center" />
+      <Toaster position="top-center" theme={darkMode ? "dark" : "light"} />
     </div>
   );
 }

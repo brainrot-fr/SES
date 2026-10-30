@@ -7,11 +7,7 @@ import {
 } from "lucide-react"
 import { Toaster as Sonner } from "sonner";
 
-const Toaster = ({
-  ...props
-}) => {
-  const theme = document.documentElement.dataset.theme === "dark" ? "dark" : "light"
-
+const Toaster = ({ theme = "light", ...props }) => {
   return (
     <Sonner
       theme={theme}

@@ -20,7 +20,7 @@ export function validateMediaFile(file) {
   }
 }
 
-export function uploadPostMedia(file, { onProgress } = {}) {
+export function uploadPostMedia(file, { onProgress, userId, signal } = {}) {
   if (!cloudName) {
     return Promise.reject(
       new Error("Cloudinary is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your .env file."),
@@ -39,9 +39,17 @@ export function uploadPostMedia(file, { onProgress } = {}) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
+  if (userId) formData.append("folder", `ses-posts/${userId}`);
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    const cleanupSignal = () => signal?.removeEventListener("abort", abortUpload);
+    const abortUpload = () => xhr.abort();
+    if (signal?.aborted) {
+      reject(signal.reason ?? new DOMException("Upload cancelled.", "AbortError"));
+      return;
+    }
+    signal?.addEventListener("abort", abortUpload, { once: true });
     xhr.open(
       "POST",
       `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${resourceType}/upload`,
@@ -49,8 +57,16 @@ export function uploadPostMedia(file, { onProgress } = {}) {
     xhr.upload.onprogress = (event) => {
       if (onProgress && event.lengthComputable) onProgress(event.loaded / event.total);
     };
-    xhr.onerror = () => reject(new Error("Network error while uploading media."));
+    xhr.onerror = () => {
+      cleanupSignal();
+      reject(new Error("Network error while uploading media."));
+    };
+    xhr.onabort = () => {
+      cleanupSignal();
+      reject(signal?.reason ?? new DOMException("Upload cancelled.", "AbortError"));
+    };
     xhr.onload = () => {
+      cleanupSignal();
       let result;
       try {
         result = JSON.parse(xhr.responseText);
@@ -89,4 +105,20 @@ export function uploadPostMedia(file, { onProgress } = {}) {
     };
     xhr.send(formData);
   });
+}
+
+export function cloudinaryImageUrl(url, transformation) {
+  if (!url || !transformation) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" || parsed.hostname !== "res.cloudinary.com") return url;
+    const segments = parsed.pathname.split("/");
+    const uploadIndex = segments.lastIndexOf("upload");
+    if (uploadIndex < 0) return url;
+    segments.splice(uploadIndex + 1, 0, transformation);
+    parsed.pathname = segments.join("/");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }

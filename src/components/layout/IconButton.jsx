@@ -1,5 +1,8 @@
-import AppIcon from "../icons/AppIcon";
-import { Button } from "../shadcn/button";
+import AppIcon from "@/components/icons/AppIcon";
+import DirectionalIcon from "@/components/icons/DirectionalIcon";
+import { Button } from "@/components/shadcn/button";
+
+const DIRECTIONAL_ICONS = new Set(["arrowRight", "back", "chevronLeft", "chevronRight", "skipBack", "skipForward"]);
 
 export default function IconButton({
   as: Component,
@@ -11,7 +14,8 @@ export default function IconButton({
   type,
   ...props
 }) {
-  const iconElement = <AppIcon name={icon} size={size} />;
+  const Icon = DIRECTIONAL_ICONS.has(icon) ? DirectionalIcon : AppIcon;
+  const iconElement = <Icon name={icon} size={size} />;
 
   if (asChild && !Component && props.children) {
     return <Button {...props} variant="ghost" size="icon" className={className} aria-label={label} asChild />;

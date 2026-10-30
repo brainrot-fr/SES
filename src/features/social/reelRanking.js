@@ -53,9 +53,13 @@ export function getReelTags(text = "") {
   return [...new Set(tags.map((tag) => TAG_TOPICS.get(tag.slice(1).toLowerCase())).filter(Boolean))];
 }
 
-export function getReelTopics(text = "") {
+export function getReelTopics(value = "") {
+  const post = value && typeof value === "object" ? value : null;
+  const text = post ? `${post.body || ""} ${post.author_display_name || ""}` : String(value || "");
   const normalized = text.toLocaleLowerCase();
-  const taggedTopics = getReelTags(text);
+  const taggedTopics = post && Array.isArray(post.topics)
+    ? [...new Set(post.topics.map((topic) => String(topic).trim().toLowerCase()).filter(Boolean))]
+    : post ? getReelTags(text) : [];
   const inferredTopics = Object.entries(TOPIC_KEYWORDS)
     .filter(([, keywords]) => keywords.some((keyword) => normalized.includes(keyword)))
     .map(([topic]) => topic);
@@ -73,7 +77,7 @@ export function readReelPreferences(userId) {
 }
 
 export function recordReelPreference(userId, text, delta) {
-  if (!userId || typeof localStorage === "undefined") return;
+  if (!userId || typeof localStorage === "undefined") return {};
   try {
     const key = `${REEL_PREFERENCES_KEY}:${userId}`;
     const preferences = readReelPreferences(userId);
@@ -81,17 +85,21 @@ export function recordReelPreference(userId, text, delta) {
       preferences[topic] = Math.max(0, Math.min(12, (Number(preferences[topic]) || 0) + delta));
     }
     localStorage.setItem(key, JSON.stringify(preferences));
+    return preferences;
   } catch (error) {
     console.warn("[Reels] could not store local topic preferences", error);
+    return readReelPreferences(userId);
   }
 }
 
 function scoreReel(post, preferences, now) {
   const hoursOld = Math.max(0, (now - new Date(post.created_at).getTime()) / 3_600_000);
   const freshness = Math.exp(-hoursOld / (24 * 4));
-  const topics = getReelTopics(`${post.body || ""} ${post.author_display_name || ""}`);
+  const topics = getReelTopics(post);
   const interest = topics.reduce((total, topic) => total + Math.min(1, (Number(preferences[topic]) || 0) / 6), 0);
-  const taggedTopics = getReelTags(post.body || "");
+  const taggedTopics = Array.isArray(post.topics)
+    ? [...new Set(post.topics.map((topic) => String(topic).trim().toLowerCase()).filter(Boolean))]
+    : getReelTags(post.body || "");
   const tagInterest = taggedTopics.length
     ? taggedTopics.reduce((total, topic) => total + Math.min(1, (Number(preferences[topic]) || 0) / 6), 0) / taggedTopics.length
     : 0;

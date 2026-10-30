@@ -9,7 +9,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[var(--primary-action-background)] text-primary-foreground hover:brightness-95 disabled:brightness-95 disabled:opacity-100",
+        default: "bg-[var(--primary-action-background)] text-[var(--primary-action-foreground)] enabled:hover:brightness-95",
+        onboarding: "min-w-0 min-h-12 flex-1 justify-center px-4 py-3 font-[inherit] font-semibold text-center enabled:cursor-pointer disabled:cursor-not-allowed max-[25rem]:px-2",
+        onboardingOutline: "min-w-0 min-h-12 flex-1 justify-center px-4 py-3 font-[inherit] font-semibold text-center enabled:cursor-pointer disabled:cursor-not-allowed max-[25rem]:px-2 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        reelAction: "min-w-[52px] min-h-14 flex-col gap-0.5 rounded-[14px] p-0.5 bg-transparent font-[inherit] text-[0.7rem] font-bold text-[var(--reel-fg)] [text-shadow:0_1px_5px_rgb(0_0_0/60%)] enabled:hover:scale-[1.06] active:scale-[0.96] disabled:cursor-wait disabled:opacity-[0.65]",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
         "destructive-outline": "border border-destructive/45 bg-transparent text-destructive hover:bg-destructive/10",
@@ -45,6 +48,7 @@ function Button({
   size = "default",
   asChild = false,
   busy = false,
+  loadingLabel,
   ...props
 }) {
   const Comp = asChild ? Slot.Root : "button"
@@ -59,7 +63,7 @@ function Button({
       disabled={busy || props.disabled}
       aria-busy={busy || undefined}
     >
-      {busy && <Spinner aria-hidden="true" />}
+      {busy && <Spinner label={loadingLabel} aria-hidden="true" />}
       {asChild ? <Slot.Slottable>{props.children}</Slot.Slottable> : props.children}
     </Comp>
   )

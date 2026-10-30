@@ -7,23 +7,18 @@
  */
 
 import { useState } from 'react';
-import { timelineEvents } from './timelineData';
-import { useLang } from '../../context/LanguageContext';
-import AppIcon from '../../components/icons/AppIcon';
-import Page from '../../components/layout/Page';
-import Split from '../../components/layout/Split';
-import { Button } from '../../components/shadcn/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '../../components/shadcn/sheet';
-import './timeline.css';
+import { timelineEvents } from '@/features/timeline/timelineData';
+import { useLang } from '@/context/LanguageContext';
+import AppIcon from '@/components/icons/AppIcon';
+import BottomSheet from '@/components/BottomSheet';
+import DirectionalIcon from '@/components/icons/DirectionalIcon';
+import Page from '@/components/layout/Page';
+import Split from '@/components/layout/Split';
+import { Button } from '@/components/shadcn/button';
+import '@/features/timeline/timeline.css';
 
 export default function Timeline() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const [openEvent, setOpenEvent] = useState(null);
 
@@ -45,40 +40,41 @@ export default function Timeline() {
         <ol className="tl-list">
           {timelineEvents.map((ev) => (
             <li className="tl-item" key={ev.id}>
-              <div className="tl-item__rail" aria-hidden="true">
-                <span className="tl-item__year">{ev.year}</span>
-                <span className="tl-item__marker" />
+              <div className="tl-item__rail">
+                <span className="tl-item__marker" aria-hidden="true" />
               </div>
               <button type="button" className="tl-item__content" onClick={() => openDetails(ev)}>
-                <h2 className="tl-item__title">{ev.title}</h2>
-                <p className="tl-item__summary">{ev.summary}</p>
-                <span className="tl-item__cta">{t('tlDetails')} <AppIcon name="arrowRight" size={16} /></span>
+                <span className="tl-item__year">{ev.year}</span>
+                <h2 className="tl-item__title">{lang === 'ur' ? ev.title_ur || ev.title : ev.title}</h2>
+                <p className="tl-item__summary">{lang === 'ur' ? ev.summary_ur || ev.summary : ev.summary}</p>
+                <span className="tl-item__cta">{t('tlDetails')} <DirectionalIcon name="arrowRight" size={16} /></span>
               </button>
             </li>
           ))}
         </ol>
       </Split>
 
-      <Sheet open={Boolean(openEvent)} onOpenChange={(open) => { if (!open) setOpenEvent(null); }}>
-        <SheetContent
-          side="bottom"
-          showCloseButton={false}
-          closeLabel={t('closeSheet')}
-          className="tl-dialog mx-auto w-full gap-4 rounded-t-[var(--radius-md)] border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
-        >
-          <SheetHeader className="gap-3 p-0">
+      <BottomSheet
+        open={Boolean(openEvent)}
+        onOpenChange={(open) => { if (!open) setOpenEvent(null); }}
+        title={lang === 'ur' ? openEvent?.title_ur || openEvent?.title : openEvent?.title}
+        description={lang === 'ur' ? openEvent?.summary_ur || openEvent?.summary : openEvent?.summary}
+        closeLabel={t('closeSheet')}
+        showCloseButton={false}
+        className="tl-dialog mx-auto w-full gap-4 border-border bg-card p-5"
+      >
+          <header className="tl-dialog__header flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <span className="tl-dialog__year">{openEvent?.year}</span>
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpenEvent(null)} aria-label={t('tlCloseLabel')}>
                 <AppIcon name="close" />
               </Button>
             </div>
-            <SheetTitle className="tl-dialog__title">{openEvent?.title}</SheetTitle>
-            <SheetDescription className="text-base leading-relaxed">{openEvent?.summary}</SheetDescription>
-          </SheetHeader>
-          <div className="tl-dialog__body">{openEvent?.detail}</div>
-        </SheetContent>
-      </Sheet>
+            <h2 className="tl-dialog__title">{lang === 'ur' ? openEvent?.title_ur || openEvent?.title : openEvent?.title}</h2>
+            <p className="text-base leading-relaxed text-muted-foreground">{lang === 'ur' ? openEvent?.summary_ur || openEvent?.summary : openEvent?.summary}</p>
+          </header>
+          <div className="tl-dialog__body">{lang === 'ur' ? openEvent?.detail_ur || openEvent?.detail : openEvent?.detail}</div>
+      </BottomSheet>
     </Page>
   );
 }

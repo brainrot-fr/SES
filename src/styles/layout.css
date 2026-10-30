@@ -12,6 +12,10 @@
   padding: var(--space-6) var(--page-gutter);
 }
 
+.no-bottom-nav {
+  --dock-offset: env(safe-area-inset-bottom, 0px);
+}
+
 .layout-page--reading {
   max-width: var(--measure-reading);
 }
@@ -155,6 +159,10 @@
 }
 
 @media (min-width: 1024px) {
+  :root {
+    --dock-offset: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
   .layout-split {
     grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
     align-items: start;

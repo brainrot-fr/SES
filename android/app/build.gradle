@@ -1,5 +1,11 @@
 apply plugin: 'com.android.application'
 
+def androidKeyAlias = System.getenv("KEY_ALIAS")
+def androidKeyPassword = System.getenv("KEY_PASSWORD")
+def androidStorePassword = System.getenv("STORE_PASSWORD")
+def androidVersionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInteger()
+def androidVersionName = System.getenv("GITHUB_REF_NAME") ?: "1.0"
+
 android {
     namespace = "app.vercel.sesmvp"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +13,8 @@ android {
         applicationId "app.vercel.sesmvp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode androidVersionCode
+        versionName androidVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,9 +22,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword androidStorePassword
+            keyAlias androidKeyAlias
+            keyPassword androidKeyPassword
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
+            debuggable false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

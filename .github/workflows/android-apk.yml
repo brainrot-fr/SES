@@ -50,6 +50,12 @@ jobs:
 
       - run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
       - name: Build web assets
         run: npm run build
         env:
@@ -67,14 +73,27 @@ jobs:
           test -n "$FIREBASE_CONFIG_BASE64" || { echo "Missing FIREBASE_CONFIG_BASE64 repository secret"; exit 1; }
           printf '%s' "$FIREBASE_CONFIG_BASE64" | base64 --decode > android/app/google-services.json
 
-      - name: Build debug APK
-        run: android/gradlew -p android assembleDebug
+      - name: Restore Android signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64 repository secret"; exit 1; }
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          chmod 600 android/app/release.keystore
 
-      - name: Build debug APK
-        run: android/gradlew -p android assembleDebug
+      - name: Build signed release APK
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          test -n "$KEY_ALIAS" || { echo "Missing KEY_ALIAS repository secret"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "Missing KEY_PASSWORD repository secret"; exit 1; }
+          test -n "$STORE_PASSWORD" || { echo "Missing STORE_PASSWORD repository secret"; exit 1; }
+          android/gradlew -p android assembleRelease
 
       - name: Publish APK on GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: android/app/build/outputs/apk/release/app-release.apk
           name: SES ${{ github.ref_name }}

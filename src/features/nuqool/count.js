@@ -1,1 +1,1 @@
-export const NAQL_COUNT = 55;
+export { NAQL_COUNT } from "../../../supabase/functions/_shared/naqlCount.ts";

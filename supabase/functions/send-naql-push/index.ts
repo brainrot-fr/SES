@@ -1,8 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { SignJWT, importPKCS8 } from "npm:jose@5";
 import { slotsForNaqlReminders } from "../_shared/naqlSlots.ts";
+import { NAQL_COUNT } from "../_shared/naqlCount.ts";
 
-const NAQL_COUNT = 55;
 const DEVICE_TOKEN_PAGE_SIZE = 1000;
 
 const json = (body: unknown, status = 200) =>
